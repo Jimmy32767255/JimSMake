@@ -14,5 +14,19 @@ Project：项目
         $版本号.mkv
 Qt：QT 界面设计文件
 Src：SMake 源代码文件
+  UI:UI 代码文件
+    Main_Windows.py：主窗口代码文件
+  Main.py：程序入口点
 Tools：工具
 Translation：UI 翻译文件
+  $语言名.qm
+  $语言名.ts
+  SMake.pro：翻译集合文件
+.gitattributes：git 大文件加速列表
+.gitignore：git 忽略追踪列表
+DirInfo.txt：目录信息
+README.md：项目描述
+requirements.txt：项目依赖列表
+Start.bash：Linux 启动脚本
+Start.bat：Windows 启动脚本
+ToDoList.md：待办事项清单

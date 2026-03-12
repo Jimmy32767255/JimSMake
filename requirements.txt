@@ -2,3 +2,4 @@ PyQt5>=5.15.0
 PyQt5-sip>=12.9.0
 pyttsx3>=2.90
 PyAudio>=0.2.11
+loguru>=0.7.0

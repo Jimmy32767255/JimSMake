@@ -2,26 +2,87 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton, 
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
                              QScrollArea, QGridLayout, QMessageBox, QTabWidget)
-from PyQt5.QtCore import Qt, QTranslator
+from PyQt5.QtCore import Qt, QTranslator, QSettings
 import pyttsx3
 import pyaudio
+import os
+from loguru import logger
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        logger.info("初始化主窗口")
+        
+        # 初始化设置
+        self.settings = QSettings("JimSMake", "SMake")
+        self.current_language = self.settings.value("language", "zh_CN")
+        logger.info(f"加载设置，当前语言: {self.current_language}")
+        
         self.initUI()
         self.setupTranslations()
         self.enumerate_tts_engines()
         self.enumerate_audio_devices()
         
+        logger.info("主窗口初始化完成")
+        
     def setupTranslations(self):
         """设置翻译支持"""
+        logger.info(f"开始设置翻译支持，当前语言: {self.current_language}")
+        
+        # 移除现有的翻译器
+        app = QApplication.instance()
+        if hasattr(self, 'translator') and self.translator:
+            logger.debug("移除现有翻译器")
+            app.removeTranslator(self.translator)
+        
+        # 创建新的翻译器
         self.translator = QTranslator()
-        self.translator.load("zh_CN.qm")
-        QApplication.instance().installTranslator(self.translator)
+        
+        # 构建翻译文件路径
+        translation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Translation")
+        logger.debug(f"翻译文件目录: {translation_dir}")
+        
+        # 根据当前语言设置加载翻译文件
+        translation_file = os.path.join(translation_dir, f"{self.current_language}.qm")
+        logger.debug(f"尝试加载翻译文件: {translation_file}")
+        
+        if os.path.exists(translation_file):
+            if self.translator.load(translation_file):
+                app.installTranslator(self.translator)
+                logger.info(f"成功加载翻译文件: {translation_file}")
+            else:
+                logger.error(f"加载翻译文件失败: {translation_file}")
+        else:
+            logger.warning(f"翻译文件不存在: {translation_file}")
+            
+        # 更新UI文本
+        logger.debug("开始更新UI文本翻译")
+        self.retranslateUI()
+        logger.info("翻译设置完成")
+        
+    def retranslateUI(self):
+        """重新翻译UI文本"""
+        logger.debug("开始重新翻译UI文本")
+        
+        if hasattr(self, 'tab_widget'):
+            # 更新选项卡标题
+            self.tab_widget.setTabText(0, self.tr("肯定语"))
+            self.tab_widget.setTabText(1, self.tr("背景音"))
+            self.tab_widget.setTabText(2, self.tr("输出"))
+            if hasattr(self, 'settings_tab_index'):
+                self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
+            logger.debug("选项卡标题翻译完成")
+            
+        # 更新窗口标题
+        self.setWindowTitle(self.tr("SMake"))
+        logger.debug("窗口标题翻译完成")
+        
+        logger.info("UI文本重新翻译完成")
         
     def enumerate_tts_engines(self):
         """枚举系统中已安装的TTS引擎"""
+        logger.debug("开始枚举TTS引擎")
+        
         try:
             # 清空现有选项
             self.tts_engine.clear()
@@ -32,6 +93,8 @@ class MainWindow(QMainWindow):
             # 使用pyttsx3枚举TTS引擎
             engine = pyttsx3.init()
             voices = engine.getProperty('voices')
+            
+            logger.debug(f"找到 {len(voices)} 个TTS语音")
             
             for voice in voices:
                 # 获取引擎名称，通常包含在voice.id中
@@ -46,20 +109,25 @@ class MainWindow(QMainWindow):
                         engine_name = voice_name
                     
                     self.tts_engine.addItem(engine_name)
+                    logger.debug(f"添加TTS引擎: {engine_name}")
             
             # 释放引擎资源
             engine.stop()
+            logger.info(f"TTS引擎枚举完成，共找到 {len(voices)} 个语音")
             
         except Exception as e:
             # 如果枚举失败，保留默认选项
-            print(f"TTS引擎枚举失败: {e}")
+            logger.error(f"TTS引擎枚举失败: {e}")
             self.tts_engine.clear()
             self.tts_engine.addItem(self.tr("系统默认"))
             self.tts_engine.addItem("Microsoft")
             self.tts_engine.addItem("Google")
+            logger.warning("使用默认TTS引擎选项")
     
     def enumerate_audio_devices(self):
         """枚举系统中可用的音频输入设备"""
+        logger.debug("开始枚举音频输入设备")
+        
         try:
             # 清空现有选项
             self.record_device.clear()
@@ -69,8 +137,11 @@ class MainWindow(QMainWindow):
             
             # 使用pyaudio枚举音频设备
             p = pyaudio.PyAudio()
+            device_count = p.get_device_count()
+            logger.debug(f"系统中共有 {device_count} 个音频设备")
             
-            for i in range(p.get_device_count()):
+            input_devices = []
+            for i in range(device_count):
                 device_info = p.get_device_info_by_index(i)
                 
                 # 只显示输入设备（麦克风）
@@ -81,22 +152,29 @@ class MainWindow(QMainWindow):
                     
                     # 添加设备到下拉列表
                     self.record_device.addItem(device_name)
+                    input_devices.append(device_name)
+                    logger.debug(f"添加音频输入设备: {device_name}")
             
             # 释放pyaudio资源
             p.terminate()
+            logger.info(f"音频设备枚举完成，共找到 {len(input_devices)} 个输入设备")
             
         except Exception as e:
             # 如果枚举失败，保留默认选项
-            print(f"音频设备枚举失败: {e}")
+            logger.error(f"音频设备枚举失败: {e}")
             self.record_device.clear()
             self.record_device.addItem(self.tr("系统默认"))
             self.record_device.addItem(self.tr("麦克风 (Realtek)"))
+            logger.warning("使用默认音频设备选项")
     
     def generate_tts_audio(self):
         """使用TTS引擎生成肯定语音频"""
+        logger.info("开始生成TTS音频")
+        
         try:
             # 检查是否有文本输入
             if not self.affirmation_text.text().strip():
+                logger.warning("未输入肯定语文本")
                 QMessageBox.warning(self, self.tr("警告"), 
                                    self.tr("请输入肯定语文本！"))
                 return
@@ -105,24 +183,29 @@ class MainWindow(QMainWindow):
             output_dir = "Project/Assets/kdy"
             import os
             if not os.path.exists(output_dir):
+                logger.debug(f"创建输出目录: {output_dir}")
                 os.makedirs(output_dir)
             
             # 生成文件名（基于文本内容）
             import hashlib
             text_hash = hashlib.md5(self.affirmation_text.text().strip().encode()).hexdigest()[:8]
             output_file = os.path.join(output_dir, f"tts_generated_{text_hash}.wav")
+            logger.debug(f"生成输出文件路径: {output_file}")
             
             # 获取选中的TTS引擎
             selected_engine = self.tts_engine.currentText()
+            logger.debug(f"选中的TTS引擎: {selected_engine}")
             
             # 初始化TTS引擎
             engine = pyttsx3.init()
             
             # 设置语音属性
             voices = engine.getProperty('voices')
+            logger.debug(f"可用的语音数量: {len(voices)}")
             
             # 如果选择了特定引擎，尝试设置对应的语音
             if selected_engine != self.tr("系统默认"):
+                logger.debug("尝试设置特定语音引擎")
                 for voice in voices:
                     voice_name = voice.name
                     if hasattr(voice, 'id'):
@@ -130,32 +213,40 @@ class MainWindow(QMainWindow):
                         if 'microsoft' in voice.id.lower() and 'microsoft' in selected_engine.lower():
                             if voice_name in selected_engine:
                                 engine.setProperty('voice', voice.id)
+                                logger.debug(f"设置Microsoft语音: {voice_name}")
                                 break
                         elif 'google' in voice.id.lower() and 'google' in selected_engine.lower():
                             if voice_name in selected_engine:
                                 engine.setProperty('voice', voice.id)
+                                logger.debug(f"设置Google语音: {voice_name}")
                                 break
+            else:
+                logger.debug("使用系统默认语音引擎")
             
             # 设置语速（可选）
             engine.setProperty('rate', 150)  # 默认语速
+            logger.debug("设置语速: 150")
             
             # 设置音量（可选）
             engine.setProperty('volume', 0.8)  # 默认音量
+            logger.debug("设置音量: 0.8")
             
             # 保存音频到文件
+            logger.debug("开始生成音频文件")
             engine.save_to_file(self.affirmation_text.text().strip(), output_file)
             engine.runAndWait()
             
             # 更新音频文件路径
             self.affirmation_file.setText(output_file)
             
+            logger.info(f"TTS音频生成成功: {output_file}")
             QMessageBox.information(self, self.tr("成功"), 
                                    self.tr(f"TTS音频生成成功！文件已保存到: {output_file}"))
             
         except Exception as e:
+            logger.error(f"TTS音频生成失败: {e}")
             QMessageBox.critical(self, self.tr("错误"), 
                                self.tr(f"TTS音频生成失败: {str(e)}"))
-            print(f"TTS音频生成错误: {e}")
         
     def initUI(self):
         self.setWindowTitle(self.tr("SMake"))
@@ -186,10 +277,15 @@ class MainWindow(QMainWindow):
         output_layout = QVBoxLayout(output_widget)
         output_layout.addWidget(self.create_output_group())
         
+        settings_widget = QWidget()
+        settings_layout = QVBoxLayout(settings_widget)
+        settings_layout.addWidget(self.create_settings_group())
+        
         # 添加选项卡
         self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
         self.tab_widget.addTab(background_widget, self.tr("背景音"))
         self.tab_widget.addTab(output_widget, self.tr("输出"))
+        self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         
         main_layout.addWidget(self.tab_widget)
         
@@ -533,3 +629,102 @@ class MainWindow(QMainWindow):
         
         QMessageBox.information(self, self.tr("成功"), 
                                self.tr("项目生成功能尚未实现，此版本为界面演示。"))
+    
+    def create_settings_group(self):
+        """创建设置组"""
+        group_box = QGroupBox(self.tr("设置"))
+        layout = QGridLayout()
+        
+        # 语言设置
+        layout.addWidget(QLabel(self.tr("语言:")), 0, 0)
+        self.language_combo = QComboBox()
+        self.language_combo.addItem("简体中文", "zh_CN")
+        self.language_combo.addItem("English", "en_US")
+        
+        # 设置当前选中的语言
+        current_index = self.language_combo.findData(self.current_language)
+        if current_index >= 0:
+            self.language_combo.setCurrentIndex(current_index)
+        
+        self.language_combo.currentIndexChanged.connect(self.change_language)
+        layout.addWidget(self.language_combo, 0, 1)
+        
+        # 应用语言按钮
+        self.apply_language_btn = QPushButton(self.tr("应用语言"))
+        self.apply_language_btn.clicked.connect(self.apply_language_settings)
+        layout.addWidget(self.apply_language_btn, 0, 2)
+        
+        # 重置设置按钮
+        self.reset_settings_btn = QPushButton(self.tr("重置设置"))
+        self.reset_settings_btn.clicked.connect(self.reset_settings)
+        layout.addWidget(self.reset_settings_btn, 1, 0, 1, 3)
+        
+        # 关于信息
+        about_group = QGroupBox(self.tr("关于"))
+        about_layout = QVBoxLayout()
+        
+        about_label = QLabel(self.tr("SMake"))
+        about_label.setAlignment(Qt.AlignCenter)
+        about_layout.addWidget(about_label)
+        
+        about_group.setLayout(about_layout)
+        layout.addWidget(about_group, 2, 0, 1, 3)
+        
+        group_box.setLayout(layout)
+        return group_box
+    
+    def change_language(self, index):
+        """语言选择改变"""
+        self.new_language = self.language_combo.itemData(index)
+        logger.debug(f"语言选择改变: {self.new_language}")
+    
+    def apply_language_settings(self):
+        """应用语言设置"""
+        logger.info("开始应用语言设置")
+        
+        if hasattr(self, 'new_language') and self.new_language:
+            logger.info(f"应用新语言设置: {self.new_language}")
+            
+            # 保存语言设置
+            self.settings.setValue("language", self.new_language)
+            self.current_language = self.new_language
+            
+            # 重新加载翻译
+            self.setupTranslations()
+            
+            logger.info("语言设置应用完成")
+            QMessageBox.information(self, self.tr("成功"), 
+                                   self.tr("语言设置已应用，部分界面可能需要重启程序才能完全生效。"))
+        else:
+            logger.warning("未选择语言")
+            QMessageBox.warning(self, self.tr("警告"), 
+                               self.tr("请先选择语言！"))
+    
+    def reset_settings(self):
+        """重置所有设置"""
+        reply = QMessageBox.question(self, self.tr("确认重置"), 
+                                    self.tr("确定要重置所有设置吗？这将恢复所有设置为默认值。"),
+                                    QMessageBox.Yes | QMessageBox.No)
+        
+        if reply == QMessageBox.Yes:
+            logger.info("开始重置设置")
+            # 清除所有设置
+            self.settings.clear()
+            logger.debug("设置已清空")
+            
+            # 重置语言为默认
+            self.current_language = "zh_CN"
+            self.settings.setValue("language", self.current_language)
+            logger.info(f"语言重置为默认: {self.current_language}")
+            
+            # 重新加载翻译
+            self.setupTranslations()
+            
+            # 更新语言选择框
+            current_index = self.language_combo.findData(self.current_language)
+            if current_index >= 0:
+                self.language_combo.setCurrentIndex(current_index)
+            
+            logger.info("设置重置完成")
+            QMessageBox.information(self, self.tr("成功"), 
+                                   self.tr("所有设置已重置为默认值。"))
