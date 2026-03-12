@@ -27,6 +27,6 @@ Translation：UI 翻译文件
 DirInfo.txt：目录信息
 README.md：项目描述
 requirements.txt：项目依赖列表
-Start.bash：Linux 启动脚本
+Start.sh：Linux 启动脚本
 Start.bat：Windows 启动脚本
 ToDoList.md：待办事项清单
