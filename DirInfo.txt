@@ -1,0 +1,15 @@
+Project：项目
+  $项目名
+    README.md：项目描述
+      Assets：资产
+        bgm.wav：背景音乐
+        Visualization.png：视觉化图片
+        kdy：肯定语
+          $生成方式.wav：肯定语音频
+          raw.txt：肯定语文本
+    Releases：发行版/输出
+      Audio：音频
+        $版本号.wav
+      Video：视频
+        $版本号.mkv
+Tools：工具

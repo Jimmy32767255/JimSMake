@@ -94,6 +94,71 @@ class MainWindow(QMainWindow):
             self.record_device.clear()
             self.record_device.addItem(self.tr("系统默认"))
             self.record_device.addItem(self.tr("麦克风 (Realtek)"))
+    
+    def generate_tts_audio(self):
+        """使用TTS引擎生成肯定语音频"""
+        try:
+            # 检查是否有文本输入
+            if not self.affirmation_text.text().strip():
+                QMessageBox.warning(self, self.tr("警告"), 
+                                   self.tr("请输入肯定语文本！"))
+                return
+            
+            # 获取输出文件路径
+            output_dir = "Project/Assets/kdy"
+            import os
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+            
+            # 生成文件名（基于文本内容）
+            import hashlib
+            text_hash = hashlib.md5(self.affirmation_text.text().strip().encode()).hexdigest()[:8]
+            output_file = os.path.join(output_dir, f"tts_generated_{text_hash}.wav")
+            
+            # 获取选中的TTS引擎
+            selected_engine = self.tts_engine.currentText()
+            
+            # 初始化TTS引擎
+            engine = pyttsx3.init()
+            
+            # 设置语音属性
+            voices = engine.getProperty('voices')
+            
+            # 如果选择了特定引擎，尝试设置对应的语音
+            if selected_engine != self.tr("系统默认"):
+                for voice in voices:
+                    voice_name = voice.name
+                    if hasattr(voice, 'id'):
+                        # 构建引擎名称进行匹配
+                        if 'microsoft' in voice.id.lower() and 'microsoft' in selected_engine.lower():
+                            if voice_name in selected_engine:
+                                engine.setProperty('voice', voice.id)
+                                break
+                        elif 'google' in voice.id.lower() and 'google' in selected_engine.lower():
+                            if voice_name in selected_engine:
+                                engine.setProperty('voice', voice.id)
+                                break
+            
+            # 设置语速（可选）
+            engine.setProperty('rate', 150)  # 默认语速
+            
+            # 设置音量（可选）
+            engine.setProperty('volume', 0.8)  # 默认音量
+            
+            # 保存音频到文件
+            engine.save_to_file(self.affirmation_text.text().strip(), output_file)
+            engine.runAndWait()
+            
+            # 更新音频文件路径
+            self.affirmation_file.setText(output_file)
+            
+            QMessageBox.information(self, self.tr("成功"), 
+                                   self.tr(f"TTS音频生成成功！文件已保存到: {output_file}"))
+            
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("错误"), 
+                               self.tr(f"TTS音频生成失败: {str(e)}"))
+            print(f"TTS音频生成错误: {e}")
         
     def initUI(self):
         self.setWindowTitle(self.tr("SMake"))
@@ -175,6 +240,7 @@ class MainWindow(QMainWindow):
         # 生成按钮
         self.generate_tts_btn = QPushButton(self.tr("生成"))
         self.generate_tts_btn.setToolTip(self.tr("通过TTS从文本生成肯定语。"))
+        self.generate_tts_btn.clicked.connect(self.generate_tts_audio)
         layout.addWidget(self.generate_tts_btn, 3, 2)
         
         # 录制设备选择
