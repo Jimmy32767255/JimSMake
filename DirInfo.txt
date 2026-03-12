@@ -1,27 +1,27 @@
 Project：项目
-  $项目名
-    README.md：项目描述
-      Assets：资产
-        bgm.wav：背景音乐
-        Visualization.png：视觉化图片
-        kdy：肯定语
-          $生成方式.wav：肯定语音频
-          raw.txt：肯定语文本
-    Releases：发行版/输出
-      Audio：音频
-        $版本号.wav
-      Video：视频
-        $版本号.mkv
-Qt：QT 界面设计文件
+    $项目名
+        README.md：项目描述
+            Assets：资产
+                BGM.wav：背景音乐
+                Visualization.png：视觉化图片
+                Affirmation：肯定语
+                    $生成方式.wav：肯定语音频
+                    Raw.txt：肯定语文本
+        Releases：发行版/输出
+            Audio：音频
+                $版本号.wav
+            Video：视频
+                $版本号.mkv
+Qt：Qt 界面设计文件
 Src：SMake 源代码文件
-  UI:UI 代码文件
-    Main_Windows.py：主窗口代码文件
-  Main.py：程序入口点
+    UI:UI 代码文件
+        Main_Windows.py：主窗口代码文件
+    Main.py：程序入口点
 Tools：工具
 Translation：UI 翻译文件
-  $语言名.qm
-  $语言名.ts
-  SMake.pro：翻译集合文件
+    $语言名.qm
+    $语言名.ts
+    SMake.pro：翻译集合文件
 .gitattributes：git 大文件加速列表
 .gitignore：git 忽略追踪列表
 DirInfo.txt：目录信息
@@ -29,4 +29,4 @@ README.md：项目描述
 requirements.txt：项目依赖列表
 Start.sh：Linux 启动脚本
 Start.bat：Windows 启动脚本
-ToDoList.md：待办事项清单
+todo.md：待办事项清单
