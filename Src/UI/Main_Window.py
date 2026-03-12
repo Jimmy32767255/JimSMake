@@ -1,9 +1,8 @@
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton, 
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
                              QScrollArea, QGridLayout, QMessageBox, QTabWidget)
-from PyQt5.QtCore import Qt, QTranslator, QLocale
-from PyQt5.QtGui import QDoubleValidator
+from PyQt5.QtCore import Qt, QTranslator
 import pyttsx3
 import pyaudio
 
@@ -17,11 +16,9 @@ class MainWindow(QMainWindow):
         
     def setupTranslations(self):
         """设置翻译支持"""
-        # 这里可以加载翻译文件
-        # self.translator = QTranslator()
-        # self.translator.load("smake_zh_CN.qm")
-        # QApplication.instance().installTranslator(self.translator)
-        pass
+        self.translator = QTranslator()
+        self.translator.load("zh_CN.qm")
+        QApplication.instance().installTranslator(self.translator)
         
     def enumerate_tts_engines(self):
         """枚举系统中已安装的TTS引擎"""
