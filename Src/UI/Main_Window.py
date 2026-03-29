@@ -62,7 +62,7 @@ class AudioProcessor(QThread):
                 return
             
             # 4. 加载并处理背景音乐
-            background_data = self.load_background_audio(len(affirmation_data['data']))
+            background_data = self.load_background_audio(affirmation_data['sample_rate'])
             self.progress_updated.emit(75)
             
             # 检查是否取消
@@ -206,7 +206,29 @@ class AudioProcessor(QThread):
                 raw_data.extend(struct.pack('<i', val))
         
         return bytes(raw_data)
-    
+
+    def _resample_audio(self, data, src_rate, dst_rate):
+        """重采样音频数据从源采样率到目标采样率"""
+        if src_rate == dst_rate:
+            return data
+
+        # 计算重采样后的长度
+        src_length = len(data)
+        dst_length = int(src_length * dst_rate / src_rate)
+
+        result = []
+        for i in range(dst_length):
+            src_idx = i * src_rate / dst_rate
+            idx_low = int(src_idx)
+            idx_high = min(idx_low + 1, src_length - 1)
+            frac = src_idx - idx_low
+
+            # 线性插值
+            val = data[idx_low] * (1 - frac) + data[idx_high] * frac
+            result.append(val)
+
+        return result
+
     def process_affirmation_effects(self, audio_data):
         """处理肯定语效果：音量、频率、倍速、倒放"""
         data = audio_data['data']
@@ -340,84 +362,71 @@ class AudioProcessor(QThread):
         audio_data['data'] = result
         return audio_data
     
-    def load_background_audio(self, target_length):
-        """加载并处理背景音乐"""
+    def load_background_audio(self, target_sample_rate):
+        """加载并处理背景音乐，保持原始时长"""
         file_path = self.params.get('background_file', '')
-        
+
         if not file_path or not os.path.exists(file_path):
-            # 如果没有背景音乐，返回静音
-            return {
-                'data': [0.0] * target_length,
-                'sample_rate': 44100,
-                'channels': 1,
-                'sample_width': 2
-            }
-        
+            # 如果没有背景音乐，返回None表示不需要背景音乐
+            return None
+
         try:
             logger.info(f"加载背景音乐: {file_path}")
-            
+
             with wave.open(file_path, 'rb') as wf:
                 n_channels = wf.getnchannels()
                 sample_width = wf.getsampwidth()
                 framerate = wf.getframerate()
                 n_frames = wf.getnframes()
-                
+
                 raw_data = wf.readframes(n_frames)
                 audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
-                
+
                 # 应用音量调整
                 bg_volume_db = self.params.get('background_volume', -30.0)
                 volume_factor = 10 ** (bg_volume_db / 20.0)
                 audio_data = [s * volume_factor for s in audio_data]
-                
-                # 循环或截断以匹配目标长度
-                if len(audio_data) < target_length:
-                    # 循环播放
-                    repeated = []
-                    while len(repeated) < target_length:
-                        repeated.extend(audio_data)
-                    audio_data = repeated[:target_length]
-                else:
-                    # 截断
-                    audio_data = audio_data[:target_length]
-                
+
+                # 重采样背景音乐以匹配肯定语的采样率
+                if framerate != target_sample_rate:
+                    audio_data = self._resample_audio(audio_data, framerate, target_sample_rate)
+
                 return {
                     'data': audio_data,
-                    'sample_rate': framerate,
+                    'sample_rate': target_sample_rate,
                     'channels': 1,
                     'sample_width': sample_width
                 }
-                
+
         except Exception as e:
             logger.error(f"加载背景音乐失败: {e}")
-            # 返回静音
-            return {
-                'data': [0.0] * target_length,
-                'sample_rate': 44100,
-                'channels': 1,
-                'sample_width': 2
-            }
+            return None
     
     def merge_audio(self, affirmation_data, background_data):
-        """合并肯定语和背景音乐"""
+        """合并肯定语和背景音乐，最终长度与背景音乐一致，肯定语循环播放"""
         logger.info("合并肯定语和背景音乐")
-        
+
         aff_data = affirmation_data['data']
+
+        # 如果没有背景音乐，只返回肯定语
+        if background_data is None:
+            return affirmation_data
+
         bg_data = background_data['data']
-        
-        # 确保长度相同
-        min_length = min(len(aff_data), len(bg_data))
-        aff_data = aff_data[:min_length]
-        bg_data = bg_data[:min_length]
-        
-        # 混合音频（简单相加）
+        bg_length = len(bg_data)
+        aff_length = len(aff_data)
+
+        # 混合音频（简单相加），以背景音乐长度为准
+        # 肯定语循环播放填满整个背景音乐长度
         result = []
-        for i in range(min_length):
-            mixed = aff_data[i] + bg_data[i]
+        for i in range(bg_length):
+            # 使用模运算实现循环播放
+            aff_idx = i % aff_length
+            mixed = aff_data[aff_idx] + bg_data[i]
             # 防止削波
             mixed = max(-1.0, min(1.0, mixed))
             result.append(mixed)
-        
+
         return {
             'data': result,
             'sample_rate': affirmation_data['sample_rate'],
