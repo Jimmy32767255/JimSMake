@@ -403,7 +403,7 @@ class AudioProcessor(QThread):
             return None
     
     def merge_audio(self, affirmation_data, background_data):
-        """合并肯定语和背景音乐，最终长度与背景音乐一致，肯定语循环播放"""
+        """合并肯定语和背景音乐，最终长度与背景音乐一致"""
         logger.info("合并肯定语和背景音乐")
 
         aff_data = affirmation_data['data']
@@ -416,16 +416,46 @@ class AudioProcessor(QThread):
         bg_length = len(bg_data)
         aff_length = len(aff_data)
 
-        # 混合音频（简单相加），以背景音乐长度为准
-        # 肯定语循环播放填满整个背景音乐长度
+        # 检查是否启用确保完整性
+        ensure_integrity = self.params.get('ensure_integrity', False)
+
         result = []
-        for i in range(bg_length):
-            # 使用模运算实现循环播放
-            aff_idx = i % aff_length
-            mixed = aff_data[aff_idx] + bg_data[i]
-            # 防止削波
-            mixed = max(-1.0, min(1.0, mixed))
-            result.append(mixed)
+
+        if ensure_integrity:
+            # 确保完整性模式：检测最后一次循环是否会被截断
+            # 计算可以完整播放的循环次数
+            full_cycles = bg_length // aff_length
+            remaining_samples = bg_length % aff_length
+
+            logger.info(f"确保完整性模式: 肯定语长度={aff_length}, 背景音乐长度={bg_length}, "
+                       f"完整循环次数={full_cycles}, 剩余样本数={remaining_samples}")
+
+            # 填充完整循环的肯定语
+            for cycle in range(full_cycles):
+                for j in range(aff_length):
+                    idx = cycle * aff_length + j
+                    mixed = aff_data[j] + bg_data[idx]
+                    mixed = max(-1.0, min(1.0, mixed))
+                    result.append(mixed)
+
+            # 处理剩余部分：如果会被截断，则填充静音
+            if remaining_samples > 0:
+                logger.info(f"最后一次循环会被截断（剩余{remaining_samples}样本），填充静音")
+                for i in range(remaining_samples):
+                    idx = full_cycles * aff_length + i
+                    # 只播放背景音乐（肯定语部分为静音）
+                    mixed = bg_data[idx]
+                    mixed = max(-1.0, min(1.0, mixed))
+                    result.append(mixed)
+        else:
+            # 普通模式：肯定语循环播放填满整个背景音乐长度
+            for i in range(bg_length):
+                # 使用模运算实现循环播放
+                aff_idx = i % aff_length
+                mixed = aff_data[aff_idx] + bg_data[i]
+                # 防止削波
+                mixed = max(-1.0, min(1.0, mixed))
+                result.append(mixed)
 
         return {
             'data': result,
@@ -1242,6 +1272,11 @@ class MainWindow(QMainWindow):
         self.overlay_group.setLayout(overlay_layout)
         layout.addWidget(self.overlay_group, 9, 0, 1, 3)
 
+        # 确保肯定语完整性复选框
+        self.ensure_integrity_check = QCheckBox(self.tr("确保肯定语完整性"))
+        self.ensure_integrity_check.setToolTip(self.tr("启用后，肯定语将在背景音乐中完整循环播放，不会被截断。如果肯定语比背景音乐长，将阻止生成。"))
+        layout.addWidget(self.ensure_integrity_check, 10, 0, 1, 3)
+
         self.affirmation_group.setLayout(layout)
         return self.affirmation_group
     
@@ -1735,6 +1770,71 @@ class MainWindow(QMainWindow):
         webbrowser.open(url)
         logger.info(f"打开浏览器搜索: {url}")
 
+    def get_audio_duration(self, file_path):
+        """获取音频文件时长（秒）"""
+        try:
+            with wave.open(file_path, 'rb') as wf:
+                frames = wf.getnframes()
+                rate = wf.getframerate()
+                return frames / float(rate)
+        except Exception as e:
+            logger.error(f"获取音频时长失败: {file_path}, 错误: {e}")
+            return None
+
+    def validate_affirmation_integrity(self):
+        """验证肯定语完整性
+        当启用确保完整性时，检查肯定语是否比背景音乐长
+        如果肯定语更长，阻止生成并提示用户
+        """
+        affirmation_file = self.affirmation_file.text()
+        background_file = self.background_file.text()
+
+        if not affirmation_file or not os.path.exists(affirmation_file):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("肯定语音频文件不存在！"))
+            return False
+
+        # 如果没有背景音乐，不需要检查
+        if not background_file or not os.path.exists(background_file):
+            return True
+
+        # 获取音频时长
+        aff_duration = self.get_audio_duration(affirmation_file)
+        bg_duration = self.get_audio_duration(background_file)
+
+        if aff_duration is None:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("无法读取肯定语音频文件！"))
+            return False
+
+        if bg_duration is None:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("无法读取背景音频文件！"))
+            return False
+
+        # 计算应用倍速后的肯定语时长
+        speed = self.speed_spin.value()
+        adjusted_aff_duration = aff_duration / speed
+
+        # 计算叠加后的总时长
+        overlay_times = self.overlay_times.value()
+        overlay_interval = self.overlay_interval.value()
+        total_aff_duration = adjusted_aff_duration + (overlay_times - 1) * overlay_interval
+
+        logger.info(f"验证完整性: 肯定语时长={adjusted_aff_duration:.2f}s, "
+                   f"叠加后总时长={total_aff_duration:.2f}s, 背景音乐时长={bg_duration:.2f}s")
+
+        if total_aff_duration > bg_duration:
+            warning_msg = self.tr("启用'确保肯定语完整性'时，肯定语（含叠加效果）不能比背景音乐长。\n\n"
+                                 f"肯定语时长: {total_aff_duration:.2f}秒\n"
+                                 f"背景音乐时长: {bg_duration:.2f}秒\n\n"
+                                 f"请缩短肯定语、减少叠加次数、减小叠加间隔，或选择更长的背景音乐。")
+            logger.warning(f"肯定语比背景音乐长，阻止生成: {total_aff_duration:.2f}s > {bg_duration:.2f}s")
+            QMessageBox.warning(self, self.tr("无法生成"), warning_msg)
+            return False
+
+        return True
+
     def generate_project(self):
         """生成项目"""
         # 验证至少选择了一项
@@ -1752,6 +1852,11 @@ class MainWindow(QMainWindow):
         # 检查是否选择了项目
         if not self.check_project_selected():
             return
+
+        # 如果启用了确保完整性检查，进行前置验证
+        if self.ensure_integrity_check.isChecked():
+            if not self.validate_affirmation_integrity():
+                return
 
         # 获取输出路径
         project_dir = self.get_current_project_dir()
@@ -1777,7 +1882,8 @@ class MainWindow(QMainWindow):
             'video_format': self.video_format.currentText(),
             'video_resolution': self.video_resolution.currentText(),
             'metadata_title': self.metadata_title.text(),
-            'metadata_author': self.metadata_author.text()
+            'metadata_author': self.metadata_author.text(),
+            'ensure_integrity': self.ensure_integrity_check.isChecked()
         }
 
         # 创建进度对话框
