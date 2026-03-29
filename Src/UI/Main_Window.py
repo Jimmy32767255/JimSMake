@@ -1978,6 +1978,18 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(self, self.tr("错误"),
                             self.tr(f"生成失败: {error_msg}"))
     
+    def get_available_translations(self):
+        """获取所有可用的翻译文件"""
+        translations = {}
+        translation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Translation")
+        if os.path.exists(translation_dir):
+            for filename in os.listdir(translation_dir):
+                if filename.endswith('.qm'):
+                    lang_code = filename[:-3]  # 移除 .qm 后缀
+                    file_path = os.path.join(translation_dir, filename)
+                    translations[lang_code] = file_path
+        return translations
+
     def create_settings_group(self):
         """创建设置组"""
         self.settings_group = QGroupBox(self.tr("设置"))
@@ -1987,8 +1999,11 @@ class MainWindow(QMainWindow):
         self.label_language = QLabel(self.tr("语言:"))
         layout.addWidget(self.label_language, 0, 0)
         self.language_combo = QComboBox()
-        self.language_combo.addItem("简体中文", "zh_CN")
-        self.language_combo.addItem("English", "en_US")
+
+        # 动态加载所有可用的翻译文件
+        available_translations = self.get_available_translations()
+        for lang_code in sorted(available_translations.keys()):
+            self.language_combo.addItem(lang_code, lang_code)
 
         # 设置当前选中的语言
         current_index = self.language_combo.findData(self.current_language)
