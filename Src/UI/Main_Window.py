@@ -1155,7 +1155,7 @@ class MainWindow(QMainWindow):
 
         self.affirmation_volume_spin = QDoubleSpinBox()
         self.affirmation_volume_spin.setRange(-60.0, 0.0)
-        self.affirmation_volume_spin.setValue(0.0)
+        self.affirmation_volume_spin.setValue(-24.0)
         self.affirmation_volume_spin.setSingleStep(0.5)
         self.affirmation_volume_spin.valueChanged.connect(
             lambda v: self.affirmation_volume.setValue(int(v * 10)))
@@ -1265,7 +1265,7 @@ class MainWindow(QMainWindow):
 
         self.background_volume_spin = QDoubleSpinBox()
         self.background_volume_spin.setRange(-60.0, 0.0)
-        self.background_volume_spin.setValue(-30.0)
+        self.background_volume_spin.setValue(0.0)
         self.background_volume_spin.setSingleStep(0.5)
         self.background_volume_spin.valueChanged.connect(
             lambda v: self.background_volume.setValue(int(v * 10)))
