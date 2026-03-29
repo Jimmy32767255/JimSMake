@@ -498,6 +498,123 @@ class AudioProcessor(QThread):
         logger.info("音频处理已取消")
 
 
+class VideoProcessor(QThread):
+    """视频处理线程 - 使用FFmpeg生成视频（静态图片+音频）"""
+    progress_updated = pyqtSignal(int)
+    processing_finished = pyqtSignal(str)
+    processing_error = pyqtSignal(str)
+
+    def __init__(self, params):
+        super().__init__()
+        self.params = params
+        self.is_cancelled = False
+
+    def run(self):
+        """执行视频生成"""
+        try:
+            logger.info("开始视频处理线程")
+            self.progress_updated.emit(10)
+
+            if self.is_cancelled:
+                return
+
+            # 获取参数
+            audio_path = self.params.get('audio_path')
+            image_path = self.params.get('video_image')
+            output_path = self.params.get('video_output_path')
+            video_format = self.params.get('video_format', 'MP4')
+            resolution = self.params.get('video_resolution', '1920x1080')
+
+            # 验证输入文件
+            if not audio_path or not os.path.exists(audio_path):
+                self.processing_error.emit(self.tr("音频文件不存在"))
+                return
+
+            if not image_path or not os.path.exists(image_path):
+                self.processing_error.emit(self.tr("视觉化图片不存在"))
+                return
+
+            self.progress_updated.emit(30)
+
+            if self.is_cancelled:
+                return
+
+            # 确保输出目录存在
+            output_dir = os.path.dirname(output_path)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+
+            # 构建FFmpeg命令
+            # 使用静态图片和音频生成视频
+            # -loop 1: 循环输入图片
+            # -i {image_path}: 输入图片
+            # -i {audio_path}: 输入音频
+            # -c:v libx264: 视频编码器
+            # -tune stillimage: 针对静态图片优化
+            # -c:a aac: 音频编码器
+            # -b:a 192k: 音频比特率
+            # -pix_fmt yuv420p: 像素格式（兼容性）
+            # -shortest: 以最短输入为准（音频长度）
+            ffmpeg_cmd = [
+                'ffmpeg',
+                '-y',  # 覆盖输出文件
+                '-loop', '1',
+                '-i', image_path,
+                '-i', audio_path,
+                '-c:v', 'libx264',
+                '-tune', 'stillimage',
+                '-c:a', 'aac',
+                '-b:a', '192k',
+                '-pix_fmt', 'yuv420p',
+                '-s', resolution,
+                '-shortest',
+                output_path
+            ]
+
+            logger.info(f"执行FFmpeg命令: {' '.join(ffmpeg_cmd)}")
+
+            self.progress_updated.emit(50)
+
+            if self.is_cancelled:
+                return
+
+            # 执行FFmpeg命令
+            import subprocess
+            result = subprocess.run(
+                ffmpeg_cmd,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5分钟超时
+            )
+
+            self.progress_updated.emit(80)
+
+            if self.is_cancelled:
+                return
+
+            if result.returncode != 0:
+                logger.error(f"FFmpeg执行失败: {result.stderr}")
+                self.processing_error.emit(f"FFmpeg错误: {result.stderr}")
+                return
+
+            self.progress_updated.emit(100)
+
+            logger.info(f"视频生成完成: {output_path}")
+            self.processing_finished.emit(output_path)
+
+        except subprocess.TimeoutExpired:
+            logger.error("视频生成超时")
+            self.processing_error.emit(self.tr("视频生成超时"))
+        except Exception as e:
+            logger.error(f"视频处理出错: {e}")
+            self.processing_error.emit(str(e))
+
+    def cancel(self):
+        """取消处理"""
+        self.is_cancelled = True
+        logger.info("视频处理已取消")
+
+
 class AudioRecorder(QThread):
     """音频录制线程"""
     recording_finished = pyqtSignal(str)
@@ -1894,7 +2011,21 @@ class MainWindow(QMainWindow):
         project_dir = self.get_current_project_dir()
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
+        # 判断是否生成音频文件
+        generate_audio = self.generate_audio.isChecked()
+        generate_video = self.generate_video.isChecked()
+
+        # 如果只生成视频不生成音频，使用临时文件路径
+        if generate_video and not generate_audio:
+            # 使用临时目录存放音频文件
+            import tempfile
+            temp_dir = tempfile.gettempdir()
+            audio_output_path = os.path.join(temp_dir, f"SMake_temp_audio_{timestamp}.wav")
+        else:
+            # 正常保存到项目目录
+            audio_output_path = os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.wav")
+
         # 准备参数
         params = {
             'affirmation_file': self.affirmation_file.text(),
@@ -1908,8 +2039,9 @@ class MainWindow(QMainWindow):
             'volume_decrease': self.volume_decrease.value(),
             'background_volume': self.background_volume_spin.value(),
             'output_format': self.audio_format.currentText(),
-            'output_path': os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.wav"),
-            'generate_video': self.generate_video.isChecked(),
+            'output_path': audio_output_path,
+            'generate_audio': generate_audio,
+            'generate_video': generate_video,
             'video_image': self.video_image.text(),
             'video_format': self.video_format.currentText(),
             'video_resolution': self.video_resolution.currentText(),
@@ -1925,6 +2057,9 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setValue(0)
         self.progress_dialog.canceled.connect(self.cancel_generation)
         self.progress_dialog.show()
+
+        # 保存参数供后续视频生成使用
+        self.current_generation_params = params
 
         # 创建并启动音频处理线程
         self.audio_processor = AudioProcessor(params)
@@ -1942,35 +2077,171 @@ class MainWindow(QMainWindow):
 
     def cancel_generation(self):
         """取消生成"""
-        if hasattr(self, 'audio_processor') and self.audio_processor:
+        if hasattr(self, 'audio_processor') and self.audio_processor and self.audio_processor.isRunning():
             self.audio_processor.cancel()
             self.audio_processor.wait()
-        logger.info("用户取消生成")
+            logger.info("用户取消音频生成")
+
+        if hasattr(self, 'video_processor') and self.video_processor and self.video_processor.isRunning():
+            self.video_processor.cancel()
+            self.video_processor.wait()
+            logger.info("用户取消视频生成")
 
     def on_generation_finished(self, output_path):
         """生成完成回调"""
+        logger.info(f"音频生成完成: {output_path}")
+
+        # 检查是否需要生成视频
+        if hasattr(self, 'current_generation_params') and self.current_generation_params.get('generate_video'):
+            # 需要生成视频，继续视频生成流程
+            self.start_video_generation(output_path)
+        else:
+            # 不需要生成视频，直接完成
+            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+                # 断开canceled信号，避免关闭对话框时触发cancel_generation
+                try:
+                    self.progress_dialog.canceled.disconnect(self.cancel_generation)
+                except:
+                    pass
+                self.progress_dialog.close()
+                self.progress_dialog = None
+
+            # 显示成功消息
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"音频生成成功！\n保存路径: {output_path}"))
+
+    def start_video_generation(self, audio_path):
+        """开始视频生成"""
+        try:
+            params = self.current_generation_params
+            project_dir = self.get_current_project_dir()
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # 确定视频格式扩展名
+            video_format = params.get('video_format', 'MP4')
+            format_ext = {
+                'MP4': '.mp4',
+                'AVI': '.avi',
+                'MKV': '.mkv'
+            }.get(video_format, '.mp4')
+
+            video_output_path = os.path.join(project_dir, "Releases", "Video", f"{timestamp}{format_ext}")
+
+            # 准备视频生成参数
+            video_params = {
+                'audio_path': audio_path,
+                'video_image': params.get('video_image'),
+                'video_output_path': video_output_path,
+                'video_format': video_format,
+                'video_resolution': params.get('video_resolution', '1920x1080')
+            }
+
+            logger.info(f"开始视频生成: {video_output_path}")
+
+            # 更新进度对话框
+            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+                self.progress_dialog.setLabelText(self.tr("正在生成视频..."))
+                self.progress_dialog.setValue(0)
+
+            # 创建并启动视频处理线程
+            self.video_processor = VideoProcessor(video_params)
+            self.video_processor.progress_updated.connect(self.update_progress)
+            self.video_processor.processing_finished.connect(self.on_video_generation_finished)
+            self.video_processor.processing_error.connect(self.on_video_generation_error)
+            self.video_processor.start()
+
+        except Exception as e:
+            logger.error(f"启动视频生成失败: {e}")
+
+            # 如果只生成视频不生成音频，删除临时音频文件
+            generate_audio = params.get('generate_audio', False)
+            if not generate_audio and audio_path and os.path.exists(audio_path):
+                try:
+                    os.remove(audio_path)
+                    logger.info(f"删除临时音频文件: {audio_path}")
+                except Exception as del_e:
+                    logger.warning(f"删除临时音频文件失败: {del_e}")
+
+            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+                try:
+                    self.progress_dialog.canceled.disconnect(self.cancel_generation)
+                except:
+                    pass
+                self.progress_dialog.close()
+                self.progress_dialog = None
+
+            QMessageBox.critical(self, self.tr("错误"),
+                                self.tr(f"视频生成失败。\n错误: {str(e)}"))
+
+    def on_video_generation_finished(self, video_path):
+        """视频生成完成回调"""
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
-            # 断开canceled信号，避免关闭对话框时触发cancel_generation
-            self.progress_dialog.canceled.disconnect(self.cancel_generation)
+            try:
+                self.progress_dialog.canceled.disconnect(self.cancel_generation)
+            except:
+                pass
             self.progress_dialog.close()
             self.progress_dialog = None
 
-        logger.info(f"项目生成完成: {output_path}")
-        
+        logger.info(f"视频生成完成: {video_path}")
+
+        # 获取音频路径
+        audio_path = self.current_generation_params.get('output_path', '')
+        generate_audio = self.current_generation_params.get('generate_audio', False)
+
+        # 如果只生成视频不生成音频，删除临时音频文件
+        if not generate_audio and audio_path and os.path.exists(audio_path):
+            try:
+                os.remove(audio_path)
+                logger.info(f"删除临时音频文件: {audio_path}")
+            except Exception as e:
+                logger.warning(f"删除临时音频文件失败: {e}")
+
         # 显示成功消息
-        QMessageBox.information(self, self.tr("成功"),
-                               self.tr(f"音频生成成功！\n保存路径: {output_path}"))
-        
-        # 如果选择了生成视频，提示视频功能待实现
-        if self.generate_video.isChecked():
-            QMessageBox.information(self, self.tr("提示"),
-                                   self.tr("视频生成功能将在后续版本中实现。"))
+        if generate_audio:
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"音频和视频生成成功！\n\n音频: {audio_path}\n视频: {video_path}"))
+        else:
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"视频生成成功！\n保存路径: {video_path}"))
+
+    def on_video_generation_error(self, error_msg):
+        """视频生成错误回调"""
+        if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            try:
+                self.progress_dialog.canceled.disconnect(self.cancel_generation)
+            except:
+                pass
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        logger.error(f"视频生成失败: {error_msg}")
+
+        # 获取音频路径和生成选项
+        audio_path = self.current_generation_params.get('output_path', '')
+        generate_audio = self.current_generation_params.get('generate_audio', False)
+
+        # 如果只生成视频不生成音频，删除临时音频文件
+        if not generate_audio and audio_path and os.path.exists(audio_path):
+            try:
+                os.remove(audio_path)
+                logger.info(f"删除临时音频文件: {audio_path}")
+            except Exception as e:
+                logger.warning(f"删除临时音频文件失败: {e}")
+
+        # 显示错误消息
+        QMessageBox.critical(self, self.tr("错误"),
+                            self.tr(f"视频生成失败。\n错误: {error_msg}"))
 
     def on_generation_error(self, error_msg):
         """生成错误回调"""
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
             # 断开canceled信号，避免关闭对话框时触发cancel_generation
-            self.progress_dialog.canceled.disconnect(self.cancel_generation)
+            try:
+                self.progress_dialog.canceled.disconnect(self.cancel_generation)
+            except:
+                pass
             self.progress_dialog.close()
             self.progress_dialog = None
 
