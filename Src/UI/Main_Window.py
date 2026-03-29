@@ -99,12 +99,13 @@ class MainWindow(QMainWindow):
         # 初始化设置
         self.settings = QSettings("JimSMake", "SMake")
         self.current_language = self.settings.value("language", "zh_CN")
-        logger.info(f"加载设置，当前语言: {self.current_language}")
-        
+        self.current_project_name = self.settings.value("current_project", "")
+        logger.info(f"加载设置，当前语言: {self.current_language}, 当前项目: {self.current_project_name}")
+
         # 初始化录音相关变量
         self.recorder = None
         self.is_recording = False
-        
+
         self.initUI()
         self.setupTranslations()
         self.enumerate_tts_engines()
@@ -153,9 +154,14 @@ class MainWindow(QMainWindow):
 
         if hasattr(self, 'tab_widget'):
             # 更新选项卡标题
-            self.tab_widget.setTabText(0, self.tr("肯定语"))
-            self.tab_widget.setTabText(1, self.tr("背景音"))
-            self.tab_widget.setTabText(2, self.tr("输出"))
+            if hasattr(self, 'project_tab_index'):
+                self.tab_widget.setTabText(self.project_tab_index, self.tr("项目"))
+            if hasattr(self, 'affirmation_tab_index'):
+                self.tab_widget.setTabText(self.affirmation_tab_index, self.tr("肯定语"))
+            if hasattr(self, 'background_tab_index'):
+                self.tab_widget.setTabText(self.background_tab_index, self.tr("背景音"))
+            if hasattr(self, 'output_tab_index'):
+                self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
             if hasattr(self, 'settings_tab_index'):
                 self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
             logger.debug("选项卡标题翻译完成")
@@ -258,8 +264,41 @@ class MainWindow(QMainWindow):
             self.about_group.setTitle(self.tr("关于"))
             self.about_label.setText(self.tr("SMake"))
 
+        # 更新项目组
+        if hasattr(self, 'project_group'):
+            self.project_group.setTitle(self.tr("项目管理"))
+            self.label_current_project.setText(self.tr("当前项目:"))
+            if not hasattr(self, 'current_project_name') or not self.current_project_name:
+                self.current_project_label.setText(self.tr("未选择项目"))
+            self.label_project_list.setText(self.tr("项目列表:"))
+            self.project_list.setToolTip(self.tr("选择或切换当前项目"))
+            self.refresh_projects_btn.setText(self.tr("刷新"))
+            self.refresh_projects_btn.setToolTip(self.tr("刷新项目列表"))
+            self.label_new_project.setText(self.tr("新建项目:"))
+            self.new_project_name.setToolTip(self.tr("输入新项目名称"))
+            self.new_project_name.setPlaceholderText(self.tr("输入项目名称"))
+            self.create_project_btn.setText(self.tr("创建项目"))
+            self.create_project_btn.setToolTip(self.tr("创建新项目"))
+            self.delete_project_btn.setText(self.tr("删除项目"))
+            self.delete_project_btn.setToolTip(self.tr("删除选中的项目"))
+            self.label_project_path.setText(self.tr("项目路径:"))
+            self.project_structure_group.setTitle(self.tr("项目结构"))
+            self.project_structure_label.setText(
+                self.tr("项目名称/\n"
+                       "  ├── README.md (项目描述)\n"
+                       "  ├── Assets/ (资产)\n"
+                       "  │   ├── BGM.wav (背景音乐)\n"
+                       "  │   ├── Visualization.png (视觉化图片)\n"
+                       "  │   └── Affirmation/ (肯定语)\n"
+                       "  │       ├── *.wav (肯定语音频)\n"
+                       "  │       └── Raw.txt (肯定语文本)\n"
+                       "  └── Releases/ (发行版)\n"
+                       "      ├── Audio/ (音频输出)\n"
+                       "      └── Video/ (视频输出)")
+            )
+
         logger.info("UI文本重新翻译完成")
-        
+
     def enumerate_tts_engines(self):
         """枚举系统中已安装的TTS引擎"""
         logger.debug("开始枚举TTS引擎")
@@ -348,20 +387,44 @@ class MainWindow(QMainWindow):
             self.record_device.addItem(self.tr("麦克风 (Realtek)"))
             logger.warning("使用默认音频设备选项")
     
+    def get_affirmation_output_dir(self):
+        """获取肯定语输出目录"""
+        project_dir = self.get_current_project_dir()
+        if project_dir:
+            return os.path.join(project_dir, "Assets", "Affirmation")
+        return None
+
+    def check_project_selected(self):
+        """检查是否选择了项目"""
+        if not hasattr(self, 'current_project_name') or not self.current_project_name:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请先选择一个项目！"))
+            return False
+        return True
+
     def generate_tts_audio(self):
         """使用TTS引擎生成肯定语音频"""
         logger.info("开始生成TTS音频")
-        
+
+        # 检查是否选择了项目
+        if not self.check_project_selected():
+            return
+
         try:
             # 检查是否有文本输入
             if not self.affirmation_text.text().strip():
                 logger.warning("未输入肯定语文本")
-                QMessageBox.warning(self, self.tr("警告"), 
+                QMessageBox.warning(self, self.tr("警告"),
                                    self.tr("请输入肯定语文本！"))
                 return
-            
+
             # 获取输出文件路径
-            output_dir = "Project/Assets/kdy"
+            output_dir = self.get_affirmation_output_dir()
+            if not output_dir:
+                QMessageBox.warning(self, self.tr("错误"),
+                                   self.tr("无法获取项目目录！"))
+                return
+
             import os
             if not os.path.exists(output_dir):
                 logger.debug(f"创建输出目录: {output_dir}")
@@ -446,30 +509,116 @@ class MainWindow(QMainWindow):
         scroll_area.setWidgetResizable(True)
         
         # 创建选项卡内容
+        project_widget = QWidget()
+        project_layout = QVBoxLayout(project_widget)
+        project_layout.addWidget(self.create_project_group())
+
         affirmation_widget = QWidget()
         affirmation_layout = QVBoxLayout(affirmation_widget)
         affirmation_layout.addWidget(self.create_affirmation_group())
-        
+
         background_widget = QWidget()
         background_layout = QVBoxLayout(background_widget)
         background_layout.addWidget(self.create_background_group())
-        
+
         output_widget = QWidget()
         output_layout = QVBoxLayout(output_widget)
         output_layout.addWidget(self.create_output_group())
-        
+
         settings_widget = QWidget()
         settings_layout = QVBoxLayout(settings_widget)
         settings_layout.addWidget(self.create_settings_group())
-        
+
         # 添加选项卡
-        self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
-        self.tab_widget.addTab(background_widget, self.tr("背景音"))
-        self.tab_widget.addTab(output_widget, self.tr("输出"))
+        self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
+        self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
+        self.background_tab_index = self.tab_widget.addTab(background_widget, self.tr("背景音"))
+        self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         
         main_layout.addWidget(self.tab_widget)
         
+    def create_project_group(self):
+        """创建项目组"""
+        self.project_group = QGroupBox(self.tr("项目管理"))
+        layout = QGridLayout()
+
+        # 当前项目显示
+        self.label_current_project = QLabel(self.tr("当前项目:"))
+        layout.addWidget(self.label_current_project, 0, 0)
+        self.current_project_label = QLabel(self.tr("未选择项目"))
+        self.current_project_label.setStyleSheet("font-weight: bold; color: #2196F3;")
+        layout.addWidget(self.current_project_label, 0, 1, 1, 2)
+
+        # 项目列表
+        self.label_project_list = QLabel(self.tr("项目列表:"))
+        layout.addWidget(self.label_project_list, 1, 0)
+        self.project_list = QComboBox()
+        self.project_list.setToolTip(self.tr("选择或切换当前项目"))
+        self.project_list.currentIndexChanged.connect(self.on_project_selected)
+        layout.addWidget(self.project_list, 1, 1, 1, 2)
+
+        # 刷新项目列表按钮
+        self.refresh_projects_btn = QPushButton(self.tr("刷新"))
+        self.refresh_projects_btn.setToolTip(self.tr("刷新项目列表"))
+        self.refresh_projects_btn.clicked.connect(self.refresh_project_list)
+        layout.addWidget(self.refresh_projects_btn, 2, 0)
+
+        # 新建项目
+        self.label_new_project = QLabel(self.tr("新建项目:"))
+        layout.addWidget(self.label_new_project, 3, 0)
+        self.new_project_name = QLineEdit()
+        self.new_project_name.setToolTip(self.tr("输入新项目名称"))
+        self.new_project_name.setPlaceholderText(self.tr("输入项目名称"))
+        layout.addWidget(self.new_project_name, 3, 1)
+
+        self.create_project_btn = QPushButton(self.tr("创建项目"))
+        self.create_project_btn.setToolTip(self.tr("创建新项目"))
+        self.create_project_btn.clicked.connect(self.create_project)
+        layout.addWidget(self.create_project_btn, 3, 2)
+
+        # 删除项目按钮
+        self.delete_project_btn = QPushButton(self.tr("删除项目"))
+        self.delete_project_btn.setToolTip(self.tr("删除选中的项目"))
+        self.delete_project_btn.clicked.connect(self.delete_project)
+        layout.addWidget(self.delete_project_btn, 4, 0, 1, 3)
+
+        # 项目路径信息
+        self.label_project_path = QLabel(self.tr("项目路径:"))
+        layout.addWidget(self.label_project_path, 5, 0)
+        self.project_path_label = QLabel("./Project/")
+        self.project_path_label.setStyleSheet("color: gray;")
+        self.project_path_label.setWordWrap(True)
+        layout.addWidget(self.project_path_label, 5, 1, 1, 2)
+
+        # 项目结构说明
+        self.project_structure_group = QGroupBox(self.tr("项目结构"))
+        structure_layout = QVBoxLayout()
+        self.project_structure_label = QLabel(
+            self.tr("项目名称/\n"
+                   "  ├── README.md (项目描述)\n"
+                   "  ├── Assets/ (资产)\n"
+                   "  │   ├── BGM.wav (背景音乐)\n"
+                   "  │   ├── Visualization.png (视觉化图片)\n"
+                   "  │   └── Affirmation/ (肯定语)\n"
+                   "  │       ├── *.wav (肯定语音频)\n"
+                   "  │       └── Raw.txt (肯定语文本)\n"
+                   "  └── Releases/ (发行版)\n"
+                   "      ├── Audio/ (音频输出)\n"
+                   "      └── Video/ (视频输出)")
+        )
+        self.project_structure_label.setStyleSheet("font-family: monospace; color: #666;")
+        structure_layout.addWidget(self.project_structure_label)
+        self.project_structure_group.setLayout(structure_layout)
+        layout.addWidget(self.project_structure_group, 6, 0, 1, 3)
+
+        self.project_group.setLayout(layout)
+
+        # 初始化时刷新项目列表
+        self.refresh_project_list()
+
+        return self.project_group
+
     def create_affirmation_group(self):
         """创建肯定语组"""
         self.affirmation_group = QGroupBox(self.tr("肯定语"))
@@ -828,6 +977,11 @@ class MainWindow(QMainWindow):
 
     def start_recording(self):
         """开始录制音频"""
+        # 检查是否选择了项目
+        if not self.check_project_selected():
+            self.record_btn.setChecked(False)
+            return
+
         try:
             # 获取选中的录音设备
             device_name = self.record_device.currentText()
@@ -844,7 +998,13 @@ class MainWindow(QMainWindow):
                 p.terminate()
 
             # 创建输出目录
-            output_dir = "Project/Assets/Affirmation"
+            output_dir = self.get_affirmation_output_dir()
+            if not output_dir:
+                QMessageBox.critical(self, self.tr("错误"),
+                                   self.tr("无法获取项目目录！"))
+                self.record_btn.setChecked(False)
+                return
+
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
 
@@ -1023,5 +1183,180 @@ class MainWindow(QMainWindow):
                 self.language_combo.setCurrentIndex(current_index)
             
             logger.info("设置重置完成")
-            QMessageBox.information(self, self.tr("成功"), 
+            QMessageBox.information(self, self.tr("成功"),
                                    self.tr("所有设置已重置为默认值。"))
+
+    # ==================== 项目管理方法 ====================
+
+    def get_project_base_dir(self):
+        """获取项目基础目录"""
+        return os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+
+    def get_current_project_dir(self):
+        """获取当前项目目录"""
+        if hasattr(self, 'current_project_name') and self.current_project_name:
+            return os.path.join(self.get_project_base_dir(), self.current_project_name)
+        return None
+
+    def refresh_project_list(self):
+        """刷新项目列表"""
+        logger.debug("刷新项目列表")
+        self.project_list.clear()
+
+        project_base = self.get_project_base_dir()
+        if not os.path.exists(project_base):
+            os.makedirs(project_base)
+            logger.debug(f"创建项目基础目录: {project_base}")
+
+        # 获取所有项目目录
+        projects = []
+        try:
+            for item in os.listdir(project_base):
+                item_path = os.path.join(project_base, item)
+                if os.path.isdir(item_path):
+                    projects.append(item)
+        except Exception as e:
+            logger.error(f"读取项目列表失败: {e}")
+
+        # 添加项目到列表
+        self.project_list.addItem(self.tr("-- 选择项目 --"), "")
+        for project in sorted(projects):
+            self.project_list.addItem(project, project)
+
+        # 如果有当前项目，选中它
+        if hasattr(self, 'current_project_name') and self.current_project_name:
+            index = self.project_list.findData(self.current_project_name)
+            if index >= 0:
+                self.project_list.setCurrentIndex(index)
+
+        logger.info(f"项目列表刷新完成，共 {len(projects)} 个项目")
+
+    def on_project_selected(self, index):
+        """项目选择改变"""
+        project_name = self.project_list.itemData(index)
+        if project_name:
+            self.switch_project(project_name)
+
+    def switch_project(self, project_name):
+        """切换到指定项目"""
+        logger.info(f"切换到项目: {project_name}")
+        self.current_project_name = project_name
+        self.current_project_label.setText(project_name)
+
+        # 更新项目路径显示
+        project_dir = self.get_current_project_dir()
+        if project_dir:
+            self.project_path_label.setText(project_dir)
+
+        # 保存当前项目到设置
+        self.settings.setValue("current_project", project_name)
+
+        logger.info(f"已切换到项目: {project_name}")
+
+    def create_project(self):
+        """创建新项目"""
+        project_name = self.new_project_name.text().strip()
+
+        if not project_name:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请输入项目名称！"))
+            return
+
+        # 检查项目名称是否合法
+        import re
+        if not re.match(r'^[\w\-\s]+$', project_name):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("项目名称只能包含字母、数字、下划线、横线和空格！"))
+            return
+
+        project_base = self.get_project_base_dir()
+        project_dir = os.path.join(project_base, project_name)
+
+        # 检查项目是否已存在
+        if os.path.exists(project_dir):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr(f"项目 '{project_name}' 已存在！"))
+            return
+
+        try:
+            # 创建项目目录结构
+            os.makedirs(project_dir)
+            os.makedirs(os.path.join(project_dir, "Assets", "Affirmation"))
+            os.makedirs(os.path.join(project_dir, "Releases", "Audio"))
+            os.makedirs(os.path.join(project_dir, "Releases", "Video"))
+
+            # 创建 README.md
+            readme_path = os.path.join(project_dir, "README.md")
+            with open(readme_path, 'w', encoding='utf-8') as f:
+                f.write(f"# {project_name}\n\n")
+                f.write(self.tr("项目描述\n\n"))
+                f.write(self.tr("## 肯定语\n\n"))
+                f.write(self.tr("在此添加肯定语描述...\n\n"))
+                f.write(self.tr("## 背景音乐\n\n"))
+                f.write(self.tr("在此添加背景音乐描述...\n\n"))
+
+            # 创建 Raw.txt
+            raw_path = os.path.join(project_dir, "Assets", "Affirmation", "Raw.txt")
+            with open(raw_path, 'w', encoding='utf-8') as f:
+                f.write(self.tr("# 在此输入肯定语文本\n"))
+
+            logger.info(f"项目创建成功: {project_name}")
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"项目 '{project_name}' 创建成功！"))
+
+            # 清空输入框
+            self.new_project_name.clear()
+
+            # 刷新项目列表并切换到新项目
+            self.refresh_project_list()
+            index = self.project_list.findData(project_name)
+            if index >= 0:
+                self.project_list.setCurrentIndex(index)
+
+        except Exception as e:
+            logger.error(f"创建项目失败: {e}")
+            QMessageBox.critical(self, self.tr("错误"),
+                               self.tr(f"创建项目失败: {str(e)}"))
+
+    def delete_project(self):
+        """删除项目"""
+        project_name = self.project_list.currentData()
+
+        if not project_name:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请先选择一个项目！"))
+            return
+
+        # 确认删除
+        reply = QMessageBox.question(self, self.tr("确认删除"),
+                                    self.tr(f"确定要删除项目 '{project_name}' 吗？\n")
+                                    + self.tr("此操作不可恢复！"),
+                                    QMessageBox.Yes | QMessageBox.No,
+                                    QMessageBox.No)
+
+        if reply != QMessageBox.Yes:
+            return
+
+        try:
+            project_dir = os.path.join(self.get_project_base_dir(), project_name)
+            import shutil
+            shutil.rmtree(project_dir)
+
+            logger.info(f"项目删除成功: {project_name}")
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"项目 '{project_name}' 已删除！"))
+
+            # 如果删除的是当前项目，清除当前项目
+            if self.current_project_name == project_name:
+                self.current_project_name = None
+                self.current_project_label.setText(self.tr("未选择项目"))
+                self.project_path_label.setText("./Project/")
+                self.settings.remove("current_project")
+
+            # 刷新项目列表
+            self.refresh_project_list()
+
+        except Exception as e:
+            logger.error(f"删除项目失败: {e}")
+            QMessageBox.critical(self, self.tr("错误"),
+                               self.tr(f"删除项目失败: {str(e)}"))
