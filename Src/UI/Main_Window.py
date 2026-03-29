@@ -611,7 +611,32 @@ class MainWindow(QMainWindow):
         self.setup_text_file_sync()    # 设置文本文件同步
 
         logger.info("主窗口初始化完成")
-        
+
+    def closeEvent(self, event):
+        """处理窗口关闭事件"""
+        logger.info("主窗口关闭，进行清理")
+
+        # 如果进度对话框存在，先断开信号再关闭
+        if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            try:
+                self.progress_dialog.canceled.disconnect(self.cancel_generation)
+            except:
+                pass  # 信号可能已经被断开
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        # 如果有正在运行的音频处理器，取消它
+        if hasattr(self, 'audio_processor') and self.audio_processor and self.audio_processor.isRunning():
+            self.audio_processor.cancel()
+            self.audio_processor.wait(1000)  # 等待最多1秒
+
+        # 如果有正在进行的录音，停止它
+        if hasattr(self, 'recorder') and self.recorder and self.recorder.isRunning():
+            self.recorder.stop()
+            self.recorder.wait(1000)
+
+        event.accept()
+
     def setupTranslations(self):
         """设置翻译支持"""
         logger.info(f"开始设置翻译支持，当前语言: {self.current_language}")
@@ -1918,6 +1943,8 @@ class MainWindow(QMainWindow):
     def on_generation_finished(self, output_path):
         """生成完成回调"""
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            # 断开canceled信号，避免关闭对话框时触发cancel_generation
+            self.progress_dialog.canceled.disconnect(self.cancel_generation)
             self.progress_dialog.close()
             self.progress_dialog = None
 
@@ -1935,6 +1962,8 @@ class MainWindow(QMainWindow):
     def on_generation_error(self, error_msg):
         """生成错误回调"""
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            # 断开canceled信号，避免关闭对话框时触发cancel_generation
+            self.progress_dialog.canceled.disconnect(self.cancel_generation)
             self.progress_dialog.close()
             self.progress_dialog = None
 
