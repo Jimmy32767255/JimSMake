@@ -610,6 +610,13 @@ class MainWindow(QMainWindow):
         self.enumerate_audio_devices()
         self.setup_text_file_sync()    # 设置文本文件同步
 
+        # UI初始化完成后，如果当前有项目，自动加载资源
+        if hasattr(self, 'current_project_name') and self.current_project_name:
+            project_dir = self.get_current_project_dir()
+            if project_dir:
+                logger.info(f"UI初始化完成，自动加载项目资源: {project_dir}")
+                self.load_project_resources(project_dir)
+
         logger.info("主窗口初始化完成")
 
     def closeEvent(self, event):
@@ -2132,23 +2139,116 @@ class MainWindow(QMainWindow):
         if project_dir:
             self.project_path_label.setText(project_dir)
 
-            # 自动加载项目的 Raw.txt 文件（如果UI已初始化）
-            if hasattr(self, 'text_file') and self.text_file is not None:
-                raw_txt_path = os.path.join(project_dir, "Assets", "Affirmation", "Raw.txt")
-                if os.path.exists(raw_txt_path):
-                    self.text_file.setText(raw_txt_path)
-                    self.load_text_from_file(raw_txt_path)
-                else:
-                    # 如果 Raw.txt 不存在，清空文本文件路径和输入框
-                    self.text_file.clear()
-                    self.current_text_file = None
-                    if hasattr(self, 'affirmation_text') and self.affirmation_text is not None:
-                        self.affirmation_text.clear()
+            # 自动加载项目资源（如果UI已初始化）
+            self.load_project_resources(project_dir)
 
         # 保存当前项目到设置
         self.settings.setValue("current_project", project_name)
 
         logger.info(f"已切换到项目: {project_name}")
+
+    def load_project_resources(self, project_dir):
+        """自动加载项目中的资源文件"""
+        if not project_dir or not os.path.exists(project_dir):
+            return
+
+        logger.info(f"加载项目资源: {project_dir}")
+
+        assets_dir = os.path.join(project_dir, "Assets")
+        affirmation_dir = os.path.join(assets_dir, "Affirmation")
+
+        # 1. 加载 Raw.txt 文本文件
+        if hasattr(self, 'text_file') and self.text_file is not None:
+            raw_txt_path = os.path.join(affirmation_dir, "Raw.txt")
+            if os.path.exists(raw_txt_path):
+                self.text_file.setText(raw_txt_path)
+                self.load_text_from_file(raw_txt_path)
+                logger.info(f"自动加载文本文件: {raw_txt_path}")
+            else:
+                self.text_file.clear()
+                self.current_text_file = None
+                if hasattr(self, 'affirmation_text') and self.affirmation_text is not None:
+                    self.affirmation_text.clear()
+
+        # 2. 自动检测并加载肯定语音频文件（Affirmation 目录中的 .wav 或 .mp3 文件，排除 Raw.txt）
+        if hasattr(self, 'affirmation_file') and self.affirmation_file is not None:
+            affirmation_audio = self.find_first_audio_file(affirmation_dir)
+            if affirmation_audio:
+                self.affirmation_file.setText(affirmation_audio)
+                logger.info(f"自动加载肯定语音频: {affirmation_audio}")
+            else:
+                self.affirmation_file.clear()
+
+        # 3. 自动检测并加载背景音乐（Assets 目录中的 BGM.wav 或其他音频文件）
+        if hasattr(self, 'background_file') and self.background_file is not None:
+            bgm_path = os.path.join(assets_dir, "BGM.wav")
+            if os.path.exists(bgm_path):
+                self.background_file.setText(bgm_path)
+                logger.info(f"自动加载背景音乐: {bgm_path}")
+            else:
+                # 尝试查找 Assets 目录中的其他音频文件
+                bg_audio = self.find_first_audio_file(assets_dir, exclude_names=["Raw.txt"])
+                if bg_audio and os.path.basename(bg_audio) != "Raw.txt":
+                    self.background_file.setText(bg_audio)
+                    logger.info(f"自动加载背景音乐: {bg_audio}")
+                else:
+                    self.background_file.clear()
+
+        # 4. 自动检测并加载视觉化图片（Assets 目录中的 Visualization.png 或其他图片文件）
+        if hasattr(self, 'video_image') and self.video_image is not None:
+            viz_path = os.path.join(assets_dir, "Visualization.png")
+            if os.path.exists(viz_path):
+                self.video_image.setText(viz_path)
+                logger.info(f"自动加载视觉化图片: {viz_path}")
+            else:
+                # 尝试查找 Assets 目录中的其他图片文件
+                image_file = self.find_first_image_file(assets_dir)
+                if image_file:
+                    self.video_image.setText(image_file)
+                    logger.info(f"自动加载视觉化图片: {image_file}")
+                else:
+                    self.video_image.clear()
+
+    def find_first_audio_file(self, directory, exclude_names=None):
+        """查找目录中的第一个音频文件"""
+        if not directory or not os.path.exists(directory):
+            return None
+
+        exclude_names = exclude_names or []
+        audio_extensions = ['.wav', '.mp3', '.flac', '.aac', '.ogg', '.m4a', '.wma']
+
+        try:
+            for filename in os.listdir(directory):
+                if filename in exclude_names:
+                    continue
+                file_path = os.path.join(directory, filename)
+                if os.path.isfile(file_path):
+                    ext = os.path.splitext(filename)[1].lower()
+                    if ext in audio_extensions:
+                        return file_path
+        except Exception as e:
+            logger.error(f"查找音频文件失败: {directory}, 错误: {e}")
+
+        return None
+
+    def find_first_image_file(self, directory):
+        """查找目录中的第一个图片文件"""
+        if not directory or not os.path.exists(directory):
+            return None
+
+        image_extensions = ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp', '.tiff', '.tif']
+
+        try:
+            for filename in os.listdir(directory):
+                file_path = os.path.join(directory, filename)
+                if os.path.isfile(file_path):
+                    ext = os.path.splitext(filename)[1].lower()
+                    if ext in image_extensions:
+                        return file_path
+        except Exception as e:
+            logger.error(f"查找图片文件失败: {directory}, 错误: {e}")
+
+        return None
 
     def create_project(self):
         """创建新项目"""
