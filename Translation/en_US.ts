@@ -468,8 +468,8 @@
         <translation>Project name can only contain letters, numbers, underscores, hyphens and spaces!</translation>
     </message>
     <message>
-        <source>项目 '{project_name}' 已存在！</source>
-        <translation>Project '{project_name}' already exists!</translation>
+        <source>项目 &apos;{project_name}&apos; 已存在！</source>
+        <translation>Project &apos;{project_name}&apos; already exists!</translation>
     </message>
     <message>
         <source>项目描述</source>
@@ -496,24 +496,24 @@
         <translation># Enter affirmation text here</translation>
     </message>
     <message>
-        <source>项目 '{project_name}' 创建成功！</source>
-        <translation>Project '{project_name}' created successfully!</translation>
+        <source>项目 &apos;{project_name}&apos; 创建成功！</source>
+        <translation>Project &apos;{project_name}&apos; created successfully!</translation>
     </message>
     <message>
         <source>确认删除</source>
         <translation>Confirm Delete</translation>
     </message>
     <message>
-        <source>确定要删除项目 '{project_name}' 吗？</source>
-        <translation>Are you sure you want to delete project '{project_name}'?</translation>
+        <source>确定要删除项目 &apos;{project_name}&apos; 吗？</source>
+        <translation>Are you sure you want to delete project &apos;{project_name}&apos;?</translation>
     </message>
     <message>
         <source>此操作不可恢复！</source>
         <translation>This action cannot be undone!</translation>
     </message>
     <message>
-        <source>项目 '{project_name}' 已删除！</source>
-        <translation>Project '{project_name}' has been deleted!</translation>
+        <source>项目 &apos;{project_name}&apos; 已删除！</source>
+        <translation>Project &apos;{project_name}&apos; has been deleted!</translation>
     </message>
     <message>
         <source>无法获取项目目录！</source>
