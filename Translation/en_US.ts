@@ -519,5 +519,9 @@
         <source>无法获取项目目录！</source>
         <translation>Cannot get project directory!</translation>
     </message>
+    <message>
+        <source>请输入搜索关键词！</source>
+        <translation>Please enter a search keyword!</translation>
+    </message>
 </context>
 </TS>

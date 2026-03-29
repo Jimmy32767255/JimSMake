@@ -890,6 +890,7 @@ class MainWindow(QMainWindow):
         # 联机搜索按钮
         self.search_btn = QPushButton(self.tr("联机搜索"))
         self.search_btn.setToolTip(self.tr("联机搜索视觉化图片。"))
+        self.search_btn.clicked.connect(self.search_visualization_image)
         video_layout.addWidget(self.search_btn, 2, 2, 1, 2)
 
         # 视频格式设置
@@ -1070,21 +1071,47 @@ class MainWindow(QMainWindow):
         logger.error(f"录音出错: {error_msg}")
         QMessageBox.critical(self, self.tr("错误"), self.tr(f"录音出错: {error_msg}"))
     
+    def search_visualization_image(self):
+        """联机搜索视觉化图片"""
+        keyword = self.search_keyword.text().strip()
+        if not keyword:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请输入搜索关键词！"))
+            return
+
+        # 获取选中的搜索引擎
+        search_engine = self.search_engine.currentText()
+
+        # 构建搜索URL
+        if search_engine == "Bing":
+            url = f"https://www.bing.com/images/search?q={keyword}"
+        elif search_engine == "Google":
+            url = f"https://www.google.com/search?tbm=isch&q={keyword}"
+        elif search_engine == "DuckDuckGo":
+            url = f"https://duckduckgo.com/?iax=images&ia=images&q={keyword}"
+        else:
+            url = f"https://www.bing.com/images/search?q={keyword}"
+
+        # 使用系统默认浏览器打开
+        import webbrowser
+        webbrowser.open(url)
+        logger.info(f"打开浏览器搜索: {url}")
+
     def generate_project(self):
         """生成项目"""
         # 验证至少选择了一项
         if not self.generate_audio.isChecked() and not self.generate_video.isChecked():
-            QMessageBox.warning(self, self.tr("警告"), 
+            QMessageBox.warning(self, self.tr("警告"),
                                self.tr("必须至少选择生成音频或生成视频一项！"))
             return
-        
+
         # 验证必要文件
         if self.generate_audio.isChecked() and not self.affirmation_file.text():
-            QMessageBox.warning(self, self.tr("警告"), 
+            QMessageBox.warning(self, self.tr("警告"),
                                self.tr("生成音频需要选择肯定语音频文件！"))
             return
-        
-        QMessageBox.information(self, self.tr("成功"), 
+
+        QMessageBox.information(self, self.tr("成功"),
                                self.tr("项目生成功能尚未实现，此版本为界面演示。"))
     
     def create_settings_group(self):
