@@ -2,11 +2,94 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton, 
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
                              QScrollArea, QGridLayout, QMessageBox, QTabWidget)
-from PyQt5.QtCore import Qt, QTranslator, QSettings
+from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal
 import pyttsx3
 import pyaudio
+import wave
 import os
 from loguru import logger
+
+
+class AudioRecorder(QThread):
+    """音频录制线程"""
+    recording_finished = pyqtSignal(str)
+    recording_error = pyqtSignal(str)
+    
+    def __init__(self, device_index=None, sample_rate=44100, channels=1):
+        super().__init__()
+        self.device_index = device_index
+        self.sample_rate = sample_rate
+        self.channels = channels
+        self.chunk_size = 1024
+        self.audio_format = pyaudio.paInt16
+        self.is_recording = False
+        self.frames = []
+        self.output_file = None
+        
+    def set_output_file(self, file_path):
+        """设置输出文件路径"""
+        self.output_file = file_path
+        
+    def run(self):
+        """开始录制"""
+        try:
+            self.frames = []
+            self.is_recording = True
+            
+            p = pyaudio.PyAudio()
+            
+            # 打开音频流
+            stream = p.open(
+                format=self.audio_format,
+                channels=self.channels,
+                rate=self.sample_rate,
+                input=True,
+                input_device_index=self.device_index,
+                frames_per_buffer=self.chunk_size
+            )
+            
+            logger.info("开始录制音频")
+            
+            while self.is_recording:
+                try:
+                    data = stream.read(self.chunk_size, exception_on_overflow=False)
+                    self.frames.append(data)
+                except Exception as e:
+                    logger.error(f"读取音频数据时出错: {e}")
+                    break
+            
+            # 停止并关闭音频流
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+            
+            # 保存音频文件
+            if self.output_file and self.frames:
+                self._save_audio()
+                self.recording_finished.emit(self.output_file)
+            
+        except Exception as e:
+            logger.error(f"录音过程中出错: {e}")
+            self.recording_error.emit(str(e))
+    
+    def _save_audio(self):
+        """保存录制的音频到文件"""
+        try:
+            wf = wave.open(self.output_file, 'wb')
+            wf.setnchannels(self.channels)
+            wf.setsampwidth(pyaudio.PyAudio().get_sample_size(self.audio_format))
+            wf.setframerate(self.sample_rate)
+            wf.writeframes(b''.join(self.frames))
+            wf.close()
+            logger.info(f"音频文件已保存: {self.output_file}")
+        except Exception as e:
+            logger.error(f"保存音频文件失败: {e}")
+            raise
+    
+    def stop(self):
+        """停止录制"""
+        self.is_recording = False
+        logger.info("停止录制音频")
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -17,6 +100,10 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("JimSMake", "SMake")
         self.current_language = self.settings.value("language", "zh_CN")
         logger.info(f"加载设置，当前语言: {self.current_language}")
+        
+        # 初始化录音相关变量
+        self.recorder = None
+        self.is_recording = False
         
         self.initUI()
         self.setupTranslations()
@@ -346,6 +433,7 @@ class MainWindow(QMainWindow):
         self.record_btn = QPushButton(self.tr("开始录制"))
         self.record_btn.setCheckable(True)
         self.record_btn.setToolTip(self.tr("开始/停止录制肯定语。"))
+        self.record_btn.clicked.connect(self.toggle_recording)
         layout.addWidget(self.record_btn, 4, 2)
         
         # 音量滑条
@@ -612,6 +700,97 @@ class MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, self.tr("选择文件"), "", file_filter)
         if file_path:
             line_edit.setText(file_path)
+
+    def toggle_recording(self):
+        """切换录音状态（开始/停止录制）"""
+        if not self.is_recording:
+            self.start_recording()
+        else:
+            self.stop_recording()
+
+    def start_recording(self):
+        """开始录制音频"""
+        try:
+            # 获取选中的录音设备
+            device_name = self.record_device.currentText()
+            device_index = None
+
+            # 如果不是系统默认，查找设备索引
+            if device_name != self.tr("系统默认"):
+                p = pyaudio.PyAudio()
+                for i in range(p.get_device_count()):
+                    device_info = p.get_device_info_by_index(i)
+                    if device_info['name'].strip() == device_name and device_info['maxInputChannels'] > 0:
+                        device_index = i
+                        break
+                p.terminate()
+
+            # 创建输出目录
+            output_dir = "Project/Assets/Affirmation"
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            # 生成输出文件名（使用时间戳）
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_file = os.path.join(output_dir, f"recorded_{timestamp}.wav")
+
+            # 创建录音器
+            self.recorder = AudioRecorder(device_index=device_index)
+            self.recorder.set_output_file(output_file)
+            self.recorder.recording_finished.connect(self.on_recording_finished)
+            self.recorder.recording_error.connect(self.on_recording_error)
+
+            # 开始录制
+            self.recorder.start()
+            self.is_recording = True
+
+            # 更新按钮状态
+            self.record_btn.setText(self.tr("停止录制"))
+            self.record_btn.setStyleSheet("QPushButton { background-color: #ff4444; color: white; }")
+
+            logger.info(f"开始录制，输出文件: {output_file}")
+
+        except Exception as e:
+            logger.error(f"开始录制失败: {e}")
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"开始录制失败: {str(e)}"))
+            self.record_btn.setChecked(False)
+
+    def stop_recording(self):
+        """停止录制音频"""
+        if self.recorder and self.is_recording:
+            self.recorder.stop()
+            self.recorder.wait()  # 等待线程结束
+
+        self.is_recording = False
+
+        # 恢复按钮状态
+        self.record_btn.setText(self.tr("开始录制"))
+        self.record_btn.setStyleSheet("")
+        self.record_btn.setChecked(False)
+
+        logger.info("停止录制")
+
+    def on_recording_finished(self, file_path):
+        """录音完成回调"""
+        # 更新音频文件路径输入框
+        self.affirmation_file.setText(file_path)
+
+        logger.info(f"录音完成，文件已保存: {file_path}")
+        QMessageBox.information(self, self.tr("成功"),
+                                self.tr(f"录音完成！文件已保存到: {file_path}"))
+
+    def on_recording_error(self, error_msg):
+        """录音错误回调"""
+        self.is_recording = False
+
+        # 恢复按钮状态
+        self.record_btn.setText(self.tr("开始录制"))
+        self.record_btn.setStyleSheet("")
+        self.record_btn.setChecked(False)
+
+        logger.error(f"录音出错: {error_msg}")
+        QMessageBox.critical(self, self.tr("错误"), self.tr(f"录音出错: {error_msg}"))
     
     def generate_project(self):
         """生成项目"""
