@@ -1,14 +1,462 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton,
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
-                             QScrollArea, QGridLayout, QMessageBox, QTabWidget)
+                             QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog)
 from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal, QTimer
 import pyttsx3
 import pyaudio
 import wave
 import os
 import chardet
+import struct
+import math
 from loguru import logger
+
+
+class AudioProcessor(QThread):
+    """音频处理线程 - 处理肯定语和背景音乐的合并"""
+    progress_updated = pyqtSignal(int)
+    processing_finished = pyqtSignal(str)
+    processing_error = pyqtSignal(str)
+    
+    def __init__(self, params):
+        super().__init__()
+        self.params = params
+        self.is_cancelled = False
+        
+    def run(self):
+        """执行音频处理"""
+        try:
+            logger.info("开始音频处理线程")
+            self.progress_updated.emit(5)
+            
+            # 检查是否取消
+            if self.is_cancelled:
+                return
+            
+            # 1. 加载肯定语音频
+            affirmation_data = self.load_affirmation_audio()
+            if affirmation_data is None:
+                self.processing_error.emit(self.tr("加载肯定语音频失败"))
+                return
+            self.progress_updated.emit(20)
+            
+            # 检查是否取消
+            if self.is_cancelled:
+                return
+            
+            # 2. 处理肯定语效果（音量、频率、倍速、倒放）
+            affirmation_data = self.process_affirmation_effects(affirmation_data)
+            self.progress_updated.emit(40)
+            
+            # 检查是否取消
+            if self.is_cancelled:
+                return
+            
+            # 3. 应用叠加效果
+            affirmation_data = self.apply_overlay(affirmation_data)
+            self.progress_updated.emit(60)
+            
+            # 检查是否取消
+            if self.is_cancelled:
+                return
+            
+            # 4. 加载并处理背景音乐
+            background_data = self.load_background_audio(len(affirmation_data['data']))
+            self.progress_updated.emit(75)
+            
+            # 检查是否取消
+            if self.is_cancelled:
+                return
+            
+            # 5. 合并音频
+            final_data = self.merge_audio(affirmation_data, background_data)
+            self.progress_updated.emit(90)
+            
+            # 检查是否取消
+            if self.is_cancelled:
+                return
+            
+            # 6. 保存输出文件
+            output_path = self.save_audio(final_data)
+            self.progress_updated.emit(100)
+            
+            if output_path:
+                self.processing_finished.emit(output_path)
+                logger.info(f"音频处理完成，输出: {output_path}")
+            else:
+                self.processing_error.emit(self.tr("保存音频文件失败"))
+                
+        except Exception as e:
+            logger.error(f"音频处理出错: {e}")
+            self.processing_error.emit(str(e))
+    
+    def load_affirmation_audio(self):
+        """加载肯定语音频文件"""
+        try:
+            file_path = self.params['affirmation_file']
+            logger.info(f"加载肯定语音频: {file_path}")
+            
+            if not os.path.exists(file_path):
+                logger.error(f"肯定语音频文件不存在: {file_path}")
+                return None
+            
+            # 读取WAV文件
+            with wave.open(file_path, 'rb') as wf:
+                n_channels = wf.getnchannels()
+                sample_width = wf.getsampwidth()
+                framerate = wf.getframerate()
+                n_frames = wf.getnframes()
+                
+                # 读取音频数据
+                raw_data = wf.readframes(n_frames)
+                
+                # 转换为numpy数组进行后续处理
+                audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                
+                return {
+                    'data': audio_data,
+                    'sample_rate': framerate,
+                    'channels': n_channels,
+                    'sample_width': sample_width
+                }
+                
+        except Exception as e:
+            logger.error(f"加载肯定语音频失败: {e}")
+            return None
+    
+    def _wav_to_array(self, raw_data, sample_width, channels):
+        """将WAV原始数据转换为列表"""
+        audio_data = []
+        
+        if sample_width == 1:  # 8-bit unsigned
+            for i in range(0, len(raw_data), channels):
+                if channels == 1:
+                    val = raw_data[i] - 128
+                    audio_data.append(val / 128.0)
+                else:
+                    # 多通道，取平均值转为单声道
+                    avg = sum(raw_data[i + j] - 128 for j in range(channels)) / channels
+                    audio_data.append(avg / 128.0)
+                    
+        elif sample_width == 2:  # 16-bit signed
+            fmt = '<h'  # little-endian short
+            for i in range(0, len(raw_data), sample_width * channels):
+                if channels == 1:
+                    val = struct.unpack(fmt, raw_data[i:i+sample_width])[0]
+                    audio_data.append(val / 32768.0)
+                else:
+                    # 多通道，取平均值转为单声道
+                    samples = [struct.unpack(fmt, raw_data[i + j*sample_width:i + (j+1)*sample_width])[0] 
+                              for j in range(channels)]
+                    avg = sum(samples) / channels
+                    audio_data.append(avg / 32768.0)
+                    
+        elif sample_width == 3:  # 24-bit
+            for i in range(0, len(raw_data), 3 * channels):
+                if channels == 1:
+                    sample = raw_data[i:i+3]
+                    val = int.from_bytes(sample, byteorder='little', signed=True)
+                    audio_data.append(val / 8388608.0)
+                else:
+                    samples = []
+                    for j in range(channels):
+                        sample = raw_data[i + j*3:i + (j+1)*3]
+                        val = int.from_bytes(sample, byteorder='little', signed=True)
+                        samples.append(val)
+                    avg = sum(samples) / channels
+                    audio_data.append(avg / 8388608.0)
+                    
+        elif sample_width == 4:  # 32-bit
+            fmt = '<i'  # little-endian int
+            for i in range(0, len(raw_data), 4 * channels):
+                if channels == 1:
+                    val = struct.unpack(fmt, raw_data[i:i+4])[0]
+                    audio_data.append(val / 2147483648.0)
+                else:
+                    samples = [struct.unpack(fmt, raw_data[i + j*4:i + (j+1)*4])[0] 
+                              for j in range(channels)]
+                    avg = sum(samples) / channels
+                    audio_data.append(avg / 2147483648.0)
+        
+        return audio_data
+    
+    def _array_to_wav(self, audio_data, sample_width):
+        """将列表转换回WAV原始数据"""
+        raw_data = bytearray()
+        
+        if sample_width == 1:  # 8-bit unsigned
+            for sample in audio_data:
+                val = int(max(-1.0, min(1.0, sample)) * 127 + 128)
+                raw_data.append(val & 0xFF)
+                
+        elif sample_width == 2:  # 16-bit signed
+            for sample in audio_data:
+                val = int(max(-1.0, min(1.0, sample)) * 32767)
+                raw_data.extend(struct.pack('<h', val))
+                
+        elif sample_width == 3:  # 24-bit
+            for sample in audio_data:
+                val = int(max(-1.0, min(1.0, sample)) * 8388607)
+                raw_data.extend(val.to_bytes(3, byteorder='little', signed=True))
+                
+        elif sample_width == 4:  # 32-bit
+            for sample in audio_data:
+                val = int(max(-1.0, min(1.0, sample)) * 2147483647)
+                raw_data.extend(struct.pack('<i', val))
+        
+        return bytes(raw_data)
+    
+    def process_affirmation_effects(self, audio_data):
+        """处理肯定语效果：音量、频率、倍速、倒放"""
+        data = audio_data['data']
+        sample_rate = audio_data['sample_rate']
+        
+        # 1. 应用倍速（时间拉伸/压缩）
+        speed = self.params.get('speed', 1.0)
+        if speed != 1.0:
+            logger.info(f"应用倍速: {speed}x")
+            data = self._change_speed(data, speed)
+            sample_rate = int(sample_rate * speed)
+        
+        # 2. 应用倒放
+        if self.params.get('reverse', False):
+            logger.info("应用倒放效果")
+            data = data[::-1]
+        
+        # 3. 应用频率变换
+        freq_mode = self.params.get('frequency_mode', 0)
+        if freq_mode == 1:  # UG（亚超声波）- 提升到17500-20000Hz范围
+            logger.info("应用UG频率模式（亚超声波）")
+            data = self._apply_ug_frequency(data, sample_rate)
+        elif freq_mode == 2:  # 传统（次声波）- 降低到100-300Hz范围
+            logger.info("应用传统频率模式（次声波）")
+            data = self._apply_traditional_frequency(data, sample_rate)
+        
+        # 4. 应用音量调整
+        volume_db = self.params.get('volume', 0.0)
+        if volume_db != 0.0:
+            volume_factor = 10 ** (volume_db / 20.0)
+            logger.info(f"应用音量调整: {volume_db}dB (因子: {volume_factor})")
+            data = [s * volume_factor for s in data]
+        
+        audio_data['data'] = data
+        audio_data['sample_rate'] = sample_rate
+        return audio_data
+    
+    def _change_speed(self, data, speed):
+        """改变音频速度（简单重采样）"""
+        if speed <= 0:
+            return data
+        
+        new_length = int(len(data) / speed)
+        result = []
+        
+        for i in range(new_length):
+            src_idx = i * speed
+            idx_low = int(src_idx)
+            idx_high = min(idx_low + 1, len(data) - 1)
+            frac = src_idx - idx_low
+            
+            # 线性插值
+            val = data[idx_low] * (1 - frac) + data[idx_high] * frac
+            result.append(val)
+        
+        return result
+    
+    def _apply_ug_frequency(self, data, sample_rate):
+        """应用UG频率模式（亚超声波：17500-20000Hz）"""
+        # 使用简单的AM调制将音频搬移到高频
+        # 载波频率：18750Hz（在17500-20000Hz范围内）
+        carrier_freq = 18750
+        
+        # 生成载波
+        result = []
+        for i, sample in enumerate(data):
+            t = i / sample_rate
+            carrier = math.sin(2 * math.pi * carrier_freq * t)
+            # AM调制
+            modulated = sample * carrier
+            result.append(modulated)
+        
+        return result
+    
+    def _apply_traditional_frequency(self, data, sample_rate):
+        """应用传统频率模式（次声波：100-300Hz）"""
+        # 使用低通滤波器效果（简单的平均滤波）
+        # 以及降采样来模拟低频效果
+        
+        # 先进行低通滤波（移动平均）
+        window_size = int(sample_rate / 300)  # 截止频率约300Hz
+        if window_size < 2:
+            window_size = 2
+        
+        filtered = []
+        for i in range(len(data)):
+            start = max(0, i - window_size // 2)
+            end = min(len(data), i + window_size // 2 + 1)
+            window = data[start:end]
+            filtered.append(sum(window) / len(window))
+        
+        return filtered
+    
+    def apply_overlay(self, audio_data):
+        """应用叠加效果"""
+        overlay_times = self.params.get('overlay_times', 1)
+        overlay_interval = self.params.get('overlay_interval', 1.0)
+        volume_decrease = self.params.get('volume_decrease', 0.0)
+        
+        if overlay_times <= 1:
+            return audio_data
+        
+        logger.info(f"应用叠加效果: {overlay_times}次, 间隔{overlay_interval}s, 音量递减{volume_decrease}dB")
+        
+        data = audio_data['data']
+        sample_rate = audio_data['sample_rate']
+        
+        # 计算每个叠加的样本偏移
+        interval_samples = int(overlay_interval * sample_rate)
+        
+        # 计算最终音频长度
+        final_length = len(data) + (overlay_times - 1) * interval_samples
+        result = [0.0] * final_length
+        
+        # 叠加音频
+        for i in range(overlay_times):
+            # 计算当前叠加的音量
+            current_volume_db = -i * volume_decrease
+            volume_factor = 10 ** (current_volume_db / 20.0)
+            
+            offset = i * interval_samples
+            for j, sample in enumerate(data):
+                if offset + j < final_length:
+                    result[offset + j] += sample * volume_factor
+        
+        # 归一化，防止削波
+        max_val = max(abs(s) for s in result) if result else 1.0
+        if max_val > 1.0:
+            result = [s / max_val for s in result]
+        
+        audio_data['data'] = result
+        return audio_data
+    
+    def load_background_audio(self, target_length):
+        """加载并处理背景音乐"""
+        file_path = self.params.get('background_file', '')
+        
+        if not file_path or not os.path.exists(file_path):
+            # 如果没有背景音乐，返回静音
+            return {
+                'data': [0.0] * target_length,
+                'sample_rate': 44100,
+                'channels': 1,
+                'sample_width': 2
+            }
+        
+        try:
+            logger.info(f"加载背景音乐: {file_path}")
+            
+            with wave.open(file_path, 'rb') as wf:
+                n_channels = wf.getnchannels()
+                sample_width = wf.getsampwidth()
+                framerate = wf.getframerate()
+                n_frames = wf.getnframes()
+                
+                raw_data = wf.readframes(n_frames)
+                audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                
+                # 应用音量调整
+                bg_volume_db = self.params.get('background_volume', -30.0)
+                volume_factor = 10 ** (bg_volume_db / 20.0)
+                audio_data = [s * volume_factor for s in audio_data]
+                
+                # 循环或截断以匹配目标长度
+                if len(audio_data) < target_length:
+                    # 循环播放
+                    repeated = []
+                    while len(repeated) < target_length:
+                        repeated.extend(audio_data)
+                    audio_data = repeated[:target_length]
+                else:
+                    # 截断
+                    audio_data = audio_data[:target_length]
+                
+                return {
+                    'data': audio_data,
+                    'sample_rate': framerate,
+                    'channels': 1,
+                    'sample_width': sample_width
+                }
+                
+        except Exception as e:
+            logger.error(f"加载背景音乐失败: {e}")
+            # 返回静音
+            return {
+                'data': [0.0] * target_length,
+                'sample_rate': 44100,
+                'channels': 1,
+                'sample_width': 2
+            }
+    
+    def merge_audio(self, affirmation_data, background_data):
+        """合并肯定语和背景音乐"""
+        logger.info("合并肯定语和背景音乐")
+        
+        aff_data = affirmation_data['data']
+        bg_data = background_data['data']
+        
+        # 确保长度相同
+        min_length = min(len(aff_data), len(bg_data))
+        aff_data = aff_data[:min_length]
+        bg_data = bg_data[:min_length]
+        
+        # 混合音频（简单相加）
+        result = []
+        for i in range(min_length):
+            mixed = aff_data[i] + bg_data[i]
+            # 防止削波
+            mixed = max(-1.0, min(1.0, mixed))
+            result.append(mixed)
+        
+        return {
+            'data': result,
+            'sample_rate': affirmation_data['sample_rate'],
+            'channels': 1,
+            'sample_width': affirmation_data['sample_width']
+        }
+    
+    def save_audio(self, audio_data):
+        """保存音频到文件"""
+        try:
+            output_path = self.params['output_path']
+            output_format = self.params.get('output_format', 'WAV')
+            
+            # 确保输出目录存在
+            output_dir = os.path.dirname(output_path)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+            
+            # 转换为WAV原始数据
+            raw_data = self._array_to_wav(audio_data['data'], audio_data['sample_width'])
+            
+            # 保存WAV文件
+            with wave.open(output_path, 'wb') as wf:
+                wf.setnchannels(audio_data['channels'])
+                wf.setsampwidth(audio_data['sample_width'])
+                wf.setframerate(audio_data['sample_rate'])
+                wf.writeframes(raw_data)
+            
+            logger.info(f"音频文件已保存: {output_path}")
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"保存音频文件失败: {e}")
+            return None
+    
+    def cancel(self):
+        """取消处理"""
+        self.is_cancelled = True
+        logger.info("音频处理已取消")
 
 
 class AudioRecorder(QThread):
@@ -1292,8 +1740,92 @@ class MainWindow(QMainWindow):
                                self.tr("生成音频需要选择肯定语音频文件！"))
             return
 
+        # 检查是否选择了项目
+        if not self.check_project_selected():
+            return
+
+        # 获取输出路径
+        project_dir = self.get_current_project_dir()
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # 准备参数
+        params = {
+            'affirmation_file': self.affirmation_file.text(),
+            'background_file': self.background_file.text(),
+            'volume': self.affirmation_volume_spin.value(),
+            'frequency_mode': self.frequency_mode.currentIndex(),
+            'speed': self.speed_spin.value(),
+            'reverse': self.reverse_check.isChecked(),
+            'overlay_times': self.overlay_times.value(),
+            'overlay_interval': self.overlay_interval.value(),
+            'volume_decrease': self.volume_decrease.value(),
+            'background_volume': self.background_volume_spin.value(),
+            'output_format': self.audio_format.currentText(),
+            'output_path': os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.wav"),
+            'generate_video': self.generate_video.isChecked(),
+            'video_image': self.video_image.text(),
+            'video_format': self.video_format.currentText(),
+            'video_resolution': self.video_resolution.currentText(),
+            'metadata_title': self.metadata_title.text(),
+            'metadata_author': self.metadata_author.text()
+        }
+
+        # 创建进度对话框
+        self.progress_dialog = QProgressDialog(self.tr("正在生成项目..."), self.tr("取消"), 0, 100, self)
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setValue(0)
+        self.progress_dialog.canceled.connect(self.cancel_generation)
+        self.progress_dialog.show()
+
+        # 创建并启动音频处理线程
+        self.audio_processor = AudioProcessor(params)
+        self.audio_processor.progress_updated.connect(self.update_progress)
+        self.audio_processor.processing_finished.connect(self.on_generation_finished)
+        self.audio_processor.processing_error.connect(self.on_generation_error)
+        self.audio_processor.start()
+
+        logger.info("开始生成项目")
+
+    def update_progress(self, value):
+        """更新进度"""
+        if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            self.progress_dialog.setValue(value)
+
+    def cancel_generation(self):
+        """取消生成"""
+        if hasattr(self, 'audio_processor') and self.audio_processor:
+            self.audio_processor.cancel()
+            self.audio_processor.wait()
+        logger.info("用户取消生成")
+
+    def on_generation_finished(self, output_path):
+        """生成完成回调"""
+        if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        logger.info(f"项目生成完成: {output_path}")
+        
+        # 显示成功消息
         QMessageBox.information(self, self.tr("成功"),
-                               self.tr("项目生成功能尚未实现，此版本为界面演示。"))
+                               self.tr(f"音频生成成功！\n保存路径: {output_path}"))
+        
+        # 如果选择了生成视频，提示视频功能待实现
+        if self.generate_video.isChecked():
+            QMessageBox.information(self, self.tr("提示"),
+                                   self.tr("视频生成功能将在后续版本中实现。"))
+
+    def on_generation_error(self, error_msg):
+        """生成错误回调"""
+        if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        logger.error(f"项目生成失败: {error_msg}")
+        QMessageBox.critical(self, self.tr("错误"),
+                            self.tr(f"生成失败: {error_msg}"))
     
     def create_settings_group(self):
         """创建设置组"""
@@ -1456,16 +1988,18 @@ class MainWindow(QMainWindow):
         if project_dir:
             self.project_path_label.setText(project_dir)
 
-            # 自动加载项目的 Raw.txt 文件
-            raw_txt_path = os.path.join(project_dir, "Assets", "Affirmation", "Raw.txt")
-            if os.path.exists(raw_txt_path):
-                self.text_file.setText(raw_txt_path)
-                self.load_text_from_file(raw_txt_path)
-            else:
-                # 如果 Raw.txt 不存在，清空文本文件路径和输入框
-                self.text_file.clear()
-                self.current_text_file = None
-                self.affirmation_text.clear()
+            # 自动加载项目的 Raw.txt 文件（如果UI已初始化）
+            if hasattr(self, 'text_file') and self.text_file is not None:
+                raw_txt_path = os.path.join(project_dir, "Assets", "Affirmation", "Raw.txt")
+                if os.path.exists(raw_txt_path):
+                    self.text_file.setText(raw_txt_path)
+                    self.load_text_from_file(raw_txt_path)
+                else:
+                    # 如果 Raw.txt 不存在，清空文本文件路径和输入框
+                    self.text_file.clear()
+                    self.current_text_file = None
+                    if hasattr(self, 'affirmation_text') and self.affirmation_text is not None:
+                        self.affirmation_text.clear()
 
         # 保存当前项目到设置
         self.settings.setValue("current_project", project_name)
