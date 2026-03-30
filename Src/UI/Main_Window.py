@@ -744,13 +744,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.label_volume, 5, 0)
         self.affirmation_volume = QSlider(Qt.Horizontal)
         self.affirmation_volume.setRange(-600, 0)  # -60.0 to 0.0 dB (乘以10)
-        self.affirmation_volume.setValue(-240)
+        self.affirmation_volume.setValue(-230)
         self.affirmation_volume.setToolTip(self.tr("改变肯定语音轨的音量。（单位为分贝）"))
         layout.addWidget(self.affirmation_volume, 5, 1)
 
         self.affirmation_volume_spin = QDoubleSpinBox()
         self.affirmation_volume_spin.setRange(-60.0, 0.0)
-        self.affirmation_volume_spin.setValue(-24.0)
+        self.affirmation_volume_spin.setValue(-23.0)
         self.affirmation_volume_spin.setSingleStep(0.5)
         self.affirmation_volume_spin.valueChanged.connect(
             lambda v: self.affirmation_volume.setValue(int(v * 10)))
