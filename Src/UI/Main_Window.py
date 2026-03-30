@@ -210,6 +210,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.affirmation_tab_index, self.tr("肯定语"))
             if hasattr(self, 'background_tab_index'):
                 self.tab_widget.setTabText(self.background_tab_index, self.tr("背景音"))
+            if hasattr(self, 'brainwave_tab_index'):
+                self.tab_widget.setTabText(self.brainwave_tab_index, self.tr("脑波音频"))
             if hasattr(self, 'output_tab_index'):
                 self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
             if hasattr(self, 'settings_tab_index'):
@@ -275,6 +277,8 @@ class MainWindow(QMainWindow):
             self.btn_browse_bg.setToolTip(self.tr("选择背景音频文件"))
             self.label_bg_volume.setText(self.tr("音量:"))
             self.background_volume.setToolTip(self.tr("改变背景音音轨的音量。（单位为分贝）"))
+
+
 
         # 更新输出组
         if hasattr(self, 'output_group'):
@@ -584,10 +588,16 @@ class MainWindow(QMainWindow):
         settings_layout = QVBoxLayout(settings_widget)
         settings_layout.addWidget(self.create_settings_group())
 
+        # 创建脑波音频选项卡内容
+        brainwave_widget = QWidget()
+        brainwave_layout = QVBoxLayout(brainwave_widget)
+        brainwave_layout.addWidget(self.create_brainwave_group())
+
         # 添加选项卡
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
         self.background_tab_index = self.tab_widget.addTab(background_widget, self.tr("背景音"))
+        self.brainwave_tab_index = self.tab_widget.addTab(brainwave_widget, self.tr("脑波音频"))
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         
@@ -875,6 +885,13 @@ class MainWindow(QMainWindow):
 
         self.background_group.setLayout(layout)
         return self.background_group
+    
+    def create_brainwave_group(self):
+        """创建脑波音频组"""
+        self.brainwave_group = QGroupBox(self.tr("脑波音频"))
+        layout = QVBoxLayout()
+        self.brainwave_group.setLayout(layout)
+        return self.brainwave_group
     
     def create_output_group(self):
         """创建输出组"""
