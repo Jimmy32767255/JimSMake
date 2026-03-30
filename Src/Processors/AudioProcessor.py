@@ -468,26 +468,95 @@ class AudioProcessor(QThread):
             if output_dir and not os.path.exists(output_dir):
                 os.makedirs(output_dir, exist_ok=True)
 
-            # 转换为WAV原始数据
-            raw_data = self._array_to_wav(audio_data['data'], audio_data['sample_width'])
+            # 根据格式选择保存方式
+            if output_format.upper() == 'MP3':
+                return self._save_audio_mp3(audio_data, output_path)
+            else:
+                return self._save_audio_wav(audio_data, output_path)
 
-            # 保存WAV文件
-            with wave.open(output_path, 'wb') as wf:
+        except Exception as e:
+            logger.error(f"保存音频文件失败: {e}")
+            return None
+
+    def _save_audio_wav(self, audio_data, output_path):
+        """保存为WAV格式"""
+        # 转换为WAV原始数据
+        raw_data = self._array_to_wav(audio_data['data'], audio_data['sample_width'])
+
+        # 保存WAV文件
+        with wave.open(output_path, 'wb') as wf:
+            wf.setnchannels(audio_data['channels'])
+            wf.setsampwidth(audio_data['sample_width'])
+            wf.setframerate(audio_data['sample_rate'])
+            wf.writeframes(raw_data)
+
+        logger.info(f"WAV音频文件已保存: {output_path}")
+
+        # 写入元数据（如果指定了标题或作者）
+        self._write_metadata(output_path)
+
+        return output_path
+
+    def _save_audio_mp3(self, audio_data, output_path):
+        """使用FFmpeg保存为MP3格式"""
+        import subprocess
+        import tempfile
+
+        # 先创建临时WAV文件
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+            temp_wav_path = temp_wav.name
+
+        try:
+            # 保存为临时WAV
+            raw_data = self._array_to_wav(audio_data['data'], audio_data['sample_width'])
+            with wave.open(temp_wav_path, 'wb') as wf:
                 wf.setnchannels(audio_data['channels'])
                 wf.setsampwidth(audio_data['sample_width'])
                 wf.setframerate(audio_data['sample_rate'])
                 wf.writeframes(raw_data)
 
-            logger.info(f"音频文件已保存: {output_path}")
+            # 获取元数据
+            metadata_title = self.params.get('metadata_title', '').strip()
+            metadata_author = self.params.get('metadata_author', '').strip()
 
-            # 写入元数据（如果指定了标题或作者）
-            self._write_metadata(output_path)
+            # 构建FFmpeg命令转换为MP3
+            ffmpeg_cmd = [
+                'ffmpeg',
+                '-y',
+                '-i', temp_wav_path,
+                '-codec:a', 'libmp3lame',
+                '-q:a', '2',  # 高质量
+            ]
 
-            return output_path
+            # 添加元数据
+            if metadata_title:
+                ffmpeg_cmd.extend(['-metadata', f'title={metadata_title}'])
+            if metadata_author:
+                ffmpeg_cmd.extend(['-metadata', f'artist={metadata_author}'])
 
-        except Exception as e:
-            logger.error(f"保存音频文件失败: {e}")
-            return None
+            ffmpeg_cmd.append(output_path)
+
+            logger.info(f"使用FFmpeg转换为MP3: {output_path}")
+
+            # 执行FFmpeg命令
+            result = subprocess.run(
+                ffmpeg_cmd,
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+
+            if result.returncode == 0:
+                logger.info(f"MP3音频文件已保存: {output_path}")
+                return output_path
+            else:
+                logger.error(f"FFmpeg转换MP3失败: {result.stderr}")
+                return None
+
+        finally:
+            # 清理临时文件
+            if os.path.exists(temp_wav_path):
+                os.remove(temp_wav_path)
 
     def _write_metadata(self, audio_path):
         """使用FFmpeg写入元数据"""

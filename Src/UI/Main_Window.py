@@ -1418,6 +1418,10 @@ class MainWindow(QMainWindow):
         generate_audio = self.generate_audio.isChecked()
         generate_video = self.generate_video.isChecked()
 
+        # 获取选择的音频格式
+        audio_format = self.audio_format.currentText()
+        format_ext = audio_format.lower()
+
         # 如果只生成视频不生成音频，使用临时文件路径
         if generate_video and not generate_audio:
             # 使用临时目录存放音频文件
@@ -1425,8 +1429,8 @@ class MainWindow(QMainWindow):
             temp_dir = tempfile.gettempdir()
             audio_output_path = os.path.join(temp_dir, f"SMake_temp_audio_{timestamp}.wav")
         else:
-            # 正常保存到项目目录
-            audio_output_path = os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.wav")
+            # 正常保存到项目目录，使用选择的格式扩展名
+            audio_output_path = os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.{format_ext}")
 
         # 准备参数
         params = {
