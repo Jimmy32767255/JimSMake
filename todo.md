@@ -79,3 +79,9 @@
 - [x] Linux 启动脚本改为 Start.sh
 
 - [x] 重构：将音频和视频处理器拆分到单独的 Processors 模块
+  
+- [ ] 编译 en_US.ts
+
+- [ ] 编译 zh_CN.ts
+
+- [ ] 编译 zh_TW.ts
