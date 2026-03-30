@@ -260,6 +260,11 @@ class MainWindow(QMainWindow):
             self.overlay_interval.setToolTip(self.tr("每次叠加后，下一个叠加音轨应比上一个延后多少时间？"))
             self.label_volume_decrease.setText(self.tr("音量递减:"))
             self.volume_decrease.setToolTip(self.tr("每次叠加后，下一个叠加音轨应比上一个音量降低多少？"))
+            
+            # 更新确保肯定语完整性复选框
+            if hasattr(self, 'ensure_integrity_check'):
+                self.ensure_integrity_check.setText(self.tr("确保肯定语完整性"))
+                self.ensure_integrity_check.setToolTip(self.tr("启用后，肯定语将在背景音乐中完整循环播放，不会被截断。如果肯定语比背景音乐长，将阻止生成。"))
 
         # 更新背景音组
         if hasattr(self, 'background_group'):
