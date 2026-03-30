@@ -1536,7 +1536,9 @@ class MainWindow(QMainWindow):
                 'video_image': params.get('video_image'),
                 'video_output_path': video_output_path,
                 'video_format': video_format,
-                'video_resolution': params.get('video_resolution', '1920x1080')
+                'video_resolution': params.get('video_resolution', '1920x1080'),
+                'metadata_title': params.get('metadata_title', ''),
+                'metadata_author': params.get('metadata_author', '')
             }
 
             logger.info(f"开始视频生成: {video_output_path}")

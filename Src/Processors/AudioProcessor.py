@@ -479,11 +479,72 @@ class AudioProcessor(QThread):
                 wf.writeframes(raw_data)
 
             logger.info(f"音频文件已保存: {output_path}")
+
+            # 写入元数据（如果指定了标题或作者）
+            self._write_metadata(output_path)
+
             return output_path
 
         except Exception as e:
             logger.error(f"保存音频文件失败: {e}")
             return None
+
+    def _write_metadata(self, audio_path):
+        """使用FFmpeg写入元数据"""
+        try:
+            metadata_title = self.params.get('metadata_title', '').strip()
+            metadata_author = self.params.get('metadata_author', '').strip()
+
+            # 如果没有元数据需要写入，直接返回
+            if not metadata_title and not metadata_author:
+                return
+
+            # 获取文件扩展名
+            file_ext = os.path.splitext(audio_path)[1].lower()
+
+            # 构建FFmpeg元数据参数
+            metadata_args = []
+            if metadata_title:
+                metadata_args.extend(['-metadata', f'title={metadata_title}'])
+            if metadata_author:
+                metadata_args.extend(['-metadata', f'artist={metadata_author}'])
+
+            # 创建临时文件路径
+            temp_path = audio_path + '.temp' + file_ext
+
+            # 构建FFmpeg命令
+            ffmpeg_cmd = [
+                'ffmpeg',
+                '-y',
+                '-i', audio_path,
+                '-c', 'copy',  # 直接复制，不重新编码
+            ] + metadata_args + [
+                temp_path
+            ]
+
+            logger.info(f"写入音频元数据: title={metadata_title}, artist={metadata_author}")
+
+            # 执行FFmpeg命令
+            import subprocess
+            result = subprocess.run(
+                ffmpeg_cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+
+            if result.returncode == 0:
+                # 替换原文件
+                os.replace(temp_path, audio_path)
+                logger.info(f"音频元数据写入成功: {audio_path}")
+            else:
+                logger.warning(f"写入音频元数据失败: {result.stderr}")
+                # 清理临时文件
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+
+        except Exception as e:
+            logger.warning(f"写入音频元数据时出错: {e}")
 
     def cancel(self):
         """取消处理"""

@@ -50,6 +50,10 @@ class VideoProcessor(QThread):
             if output_dir and not os.path.exists(output_dir):
                 os.makedirs(output_dir, exist_ok=True)
 
+            # 获取元数据
+            metadata_title = self.params.get('metadata_title', '').strip()
+            metadata_author = self.params.get('metadata_author', '').strip()
+
             # 构建FFmpeg命令
             # 使用静态图片和音频生成视频
             # -loop 1: 循环输入图片
@@ -73,9 +77,17 @@ class VideoProcessor(QThread):
                 '-b:a', '192k',
                 '-pix_fmt', 'yuv420p',
                 '-s', resolution,
-                '-shortest',
-                output_path
             ]
+
+            # 添加元数据（如果指定了）
+            if metadata_title:
+                ffmpeg_cmd.extend(['-metadata', f'title={metadata_title}'])
+            if metadata_author:
+                ffmpeg_cmd.extend(['-metadata', f'artist={metadata_author}'])
+
+            ffmpeg_cmd.extend(['-shortest', output_path])
+
+            logger.info(f"视频元数据: title={metadata_title}, artist={metadata_author}")
 
             logger.info(f"执行FFmpeg命令: {' '.join(ffmpeg_cmd)}")
 
