@@ -72,7 +72,7 @@
 
 - [x] 修复 .mp3 格式输出问题
   
-- [ ] 修复 DirInfo.txt 中没有 Processors 目录及目录下文件问题
+- [x] 修复 DirInfo.txt 中没有 Processors 目录及目录下文件问题
 
 - [x] 修复“确保肯定语完整性”复选框翻译问题不生效的问题
 
