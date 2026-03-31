@@ -14,6 +14,9 @@ Project：项目
                 $版本号.mkv
 Qt：Qt 界面设计文件
 Src：SMake 源代码文件
+    Procwaaors：处理器
+        AudioProcwaaors.py：音频处理器代码文件
+        VideoProcwaaors.py：视频处理器代码文件
     UI:UI 代码文件
         Main_Windows.py：主窗口代码文件
     Main.py：程序入口点
