@@ -22,23 +22,35 @@ class SMakeCLI:
         self.video_processor = VideoCore()
 
     def run(self, args=None):
-        """运行CLI"""
-        parser = self._create_parser()
-        parsed_args = parser.parse_args(args)
+        """运行CLI
+        
+        Args:
+            args: 可以是参数列表(list)或已解析的argparse.Namespace对象
+        """
+        if args is None:
+            args = sys.argv[1:]
 
-        if parsed_args.version:
-            print("SMake CLI v1.0")
-            return 0
+        # 如果传入的是已解析的Namespace对象，直接使用
+        if isinstance(args, argparse.Namespace):
+            parsed_args = args
+        else:
+            # 否则解析参数列表
+            parser = self._create_parser()
+            parsed_args = parser.parse_args(args)
 
-        if not parsed_args.affirmation:
-            print("错误: 必须指定肯定语音频文件 (-a/--affirmation)")
-            parser.print_help()
-            return 1
+            if parsed_args.version:
+                print("SMake CLI v1.0")
+                return 0
 
-        if not parsed_args.output:
-            print("错误: 必须指定输出文件路径 (-o/--output)")
-            parser.print_help()
-            return 1
+            if not parsed_args.affirmation:
+                print("错误: 必须指定肯定语音频文件 (-a/--affirmation)")
+                parser.print_help()
+                return 1
+
+            if not parsed_args.output:
+                print("错误: 必须指定输出文件路径 (-o/--output)")
+                parser.print_help()
+                return 1
 
         params = {
             'affirmation_file': parsed_args.affirmation,

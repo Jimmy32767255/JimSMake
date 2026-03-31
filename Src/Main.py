@@ -89,36 +89,8 @@ def run_cli(args):
         print("使用 --help 查看帮助信息")
         return 1
 
-    cli_args = [
-        '-a', args.affirmation,
-        '-o', args.output,
-        '-f', args.format,
-        '--volume', str(args.volume),
-        '--bg-volume', str(args.bg_volume),
-        '--freq-mode', str(args.freq_mode),
-        '--speed', str(args.speed),
-        '--overlay-times', str(args.overlay_times),
-        '--overlay-interval', str(args.overlay_interval),
-        '--volume-decrease', str(args.volume_decrease),
-        '--resolution', args.resolution
-    ]
-
-    if args.background:
-        cli_args.extend(['-b', args.background])
-    if args.reverse:
-        cli_args.append('--reverse')
-    if args.ensure_integrity:
-        cli_args.append('--ensure-integrity')
-    if args.image:
-        cli_args.extend(['-v', args.image])
-    if args.video:
-        cli_args.append('--video')
-    if args.title:
-        cli_args.extend(['--title', args.title])
-    if args.author:
-        cli_args.extend(['--author', args.author])
-
-    return cli.run(cli_args)
+    # 直接传递已解析的args对象，避免手动参数转换
+    return cli.run(args)
 
 
 def run_gui():
