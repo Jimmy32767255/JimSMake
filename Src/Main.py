@@ -93,6 +93,18 @@ def run_cli(args):
     return cli.run(args)
 
 
+def get_resource_path():
+    """获取资源路径，支持打包版本和开发版本"""
+    import os
+
+    if getattr(sys, 'frozen', False):
+        # 打包版本：使用 PyInstaller 的 _MEIPASS
+        return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+    else:
+        # 开发版本：使用项目根目录
+        return os.path.join(os.path.dirname(__file__), "..")
+
+
 def run_gui():
     """运行GUI模式"""
     from PyQt5.QtWidgets import QApplication
@@ -106,8 +118,11 @@ def run_gui():
     logger.info(f"检测到系统语言: {locale}")
 
     import os
-    translation_dir = os.path.join(os.path.dirname(__file__), "..", "Translation")
+    # 使用统一的资源路径获取函数
+    base_dir = get_resource_path()
+    translation_dir = os.path.join(base_dir, "Translation")
     logger.debug(f"翻译文件目录: {translation_dir}")
+    logger.debug(f"基础目录: {base_dir}, 是否打包: {getattr(sys, 'frozen', False)}")
 
     available_translations = {}
     if os.path.exists(translation_dir):

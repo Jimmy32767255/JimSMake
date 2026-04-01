@@ -312,7 +312,7 @@ build.bat -g
 
 如有问题或建议，请通过以下方式联系我们：
 
-- 提交 [Issue](https://github.com/Jimmy32767255/JimSMake/issues/new)
+- 创建一个[议题](https://github.com/Jimmy32767255/JimSMake/issues/new)
 - 发送邮件至：Jimmy32767255@outlook.com
 
 ---
