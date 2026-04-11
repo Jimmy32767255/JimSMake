@@ -163,22 +163,35 @@ class MainWindow(QMainWindow):
 
         event.accept()
 
+    def get_resource_path(self):
+        """获取资源路径，支持打包版本和开发版本"""
+        import sys
+
+        if getattr(sys, 'frozen', False):
+            # 打包版本：使用 PyInstaller 的 _MEIPASS
+            return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        else:
+            # 开发版本：使用项目根目录
+            return os.path.join(os.path.dirname(__file__), "..", "..")
+
     def setupTranslations(self):
         """设置翻译支持"""
         logger.info(f"开始设置翻译支持，当前语言: {self.current_language}")
-        
+
         # 移除现有的翻译器
         app = QApplication.instance()
         if hasattr(self, 'translator') and self.translator:
             logger.debug("移除现有翻译器")
             app.removeTranslator(self.translator)
-        
+
         # 创建新的翻译器
         self.translator = QTranslator()
-        
+
         # 构建翻译文件路径
-        translation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Translation")
+        base_dir = self.get_resource_path()
+        translation_dir = os.path.join(base_dir, "Translation")
         logger.debug(f"翻译文件目录: {translation_dir}")
+        logger.debug(f"基础目录: {base_dir}, 是否打包: {getattr(sys, 'frozen', False)}")
         
         # 根据当前语言设置加载翻译文件
         translation_file = os.path.join(translation_dir, f"{self.current_language}.qm")
@@ -1682,7 +1695,8 @@ class MainWindow(QMainWindow):
     def get_available_translations(self):
         """获取所有可用的翻译文件"""
         translations = {}
-        translation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Translation")
+        base_dir = self.get_resource_path()
+        translation_dir = os.path.join(base_dir, "Translation")
         if os.path.exists(translation_dir):
             for filename in os.listdir(translation_dir):
                 if filename.endswith('.qm'):
@@ -1797,7 +1811,17 @@ class MainWindow(QMainWindow):
 
     def get_project_base_dir(self):
         """获取项目基础目录"""
-        return os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+        # 项目目录需要存储在用户可写的位置，而不是打包的临时目录
+        # 使用应用程序数据目录
+        import sys
+
+        if getattr(sys, 'frozen', False):
+            # 打包版本：使用可执行文件所在目录
+            exe_dir = os.path.dirname(sys.executable)
+            return os.path.join(exe_dir, "Project")
+        else:
+            # 开发版本：使用项目根目录
+            return os.path.join(os.path.dirname(__file__), "..", "..", "Project")
 
     def get_current_project_dir(self):
         """获取当前项目目录"""
