@@ -417,38 +417,59 @@ class MainWindow(QMainWindow):
     def enumerate_audio_devices(self):
         """枚举系统中可用的音频输入设备"""
         logger.debug("开始枚举音频输入设备")
-        
+
         try:
             # 清空现有选项
             self.record_device.clear()
-            
+
             # 添加默认选项
             self.record_device.addItem(self.tr("系统默认"))
-            
+
             # 使用pyaudio枚举音频设备
             p = pyaudio.PyAudio()
             device_count = p.get_device_count()
             logger.debug(f"系统中共有 {device_count} 个音频设备")
-            
+
             input_devices = []
+            seen_names = set()  # 用于去重
+
             for i in range(device_count):
                 device_info = p.get_device_info_by_index(i)
-                
+
                 # 只显示输入设备（麦克风）
                 if device_info['maxInputChannels'] > 0:
                     device_name = device_info['name']
                     # 清理设备名称中的特殊字符
                     device_name = device_name.strip()
-                    
-                    # 添加设备到下拉列表
-                    self.record_device.addItem(device_name)
-                    input_devices.append(device_name)
-                    logger.debug(f"添加音频输入设备: {device_name}")
-            
+
+                    # 跳过重复设备
+                    if device_name in seen_names:
+                        logger.debug(f"跳过重复设备: {device_name}")
+                        continue
+
+                    # 过滤掉虚拟设备和监控设备
+                    skip_keywords = ['monitor', 'loopback', 'null', 'dummy', 'pulseaudio',
+                                     'default', 'hw:', 'surround', 'hdmi', 'spdif', 'sysdefault',
+                                     'front:', 'rear:', 'center_lfe:', 'side:', 'iec958',
+                                     'dmix', 'dsnoop', 'plughw', 'usbstream', 'jack',
+                                     'alsa', 'oss', 'a52', 'vdownmix', 'upmix', 'Chromium',
+                                     'Firefox', 'lavrate', 'samplerate', 'speexrate',
+                                     'pulse', 'speex', 'pipewire']
+                    if any(keyword in device_name.lower() for keyword in skip_keywords):
+                        logger.debug(f"过滤掉虚拟/监控设备: {device_name}")
+                        continue
+
+                    seen_names.add(device_name)
+
+                    # 添加设备到下拉列表，同时存储设备索引
+                    self.record_device.addItem(device_name, i)
+                    input_devices.append((device_name, i))
+                    logger.debug(f"添加音频输入设备: {device_name} (索引: {i})")
+
             # 释放pyaudio资源
             p.terminate()
             logger.info(f"音频设备枚举完成，共找到 {len(input_devices)} 个输入设备")
-            
+
         except Exception as e:
             # 如果枚举失败，保留默认选项
             logger.error(f"音频设备枚举失败: {e}")
@@ -1268,18 +1289,21 @@ class MainWindow(QMainWindow):
 
         try:
             # 获取选中的录音设备
-            device_name = self.record_device.currentText()
             device_index = None
 
-            # 如果不是系统默认，查找设备索引
-            if device_name != self.tr("系统默认"):
-                p = pyaudio.PyAudio()
-                for i in range(p.get_device_count()):
-                    device_info = p.get_device_info_by_index(i)
-                    if device_info['name'].strip() == device_name and device_info['maxInputChannels'] > 0:
-                        device_index = i
-                        break
-                p.terminate()
+            # 如果不是系统默认，获取设备索引（存储在itemData中）
+            if self.record_device.currentText() != self.tr("系统默认"):
+                device_index = self.record_device.currentData()
+                if device_index is None:
+                    # 兼容旧逻辑：如果data为None，尝试通过名称查找
+                    device_name = self.record_device.currentText()
+                    p = pyaudio.PyAudio()
+                    for i in range(p.get_device_count()):
+                        device_info = p.get_device_info_by_index(i)
+                        if device_info['name'].strip() == device_name and device_info['maxInputChannels'] > 0:
+                            device_index = i
+                            break
+                    p.terminate()
 
             # 创建输出目录
             output_dir = self.get_affirmation_output_dir()
