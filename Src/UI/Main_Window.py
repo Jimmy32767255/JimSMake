@@ -291,8 +291,6 @@ class MainWindow(QMainWindow):
             self.label_bg_volume.setText(self.tr("音量:"))
             self.background_volume.setToolTip(self.tr("改变背景音音轨的音量。（单位为分贝）"))
 
-
-
         # 更新输出组
         if hasattr(self, 'output_group'):
             self.output_group.setTitle(self.tr("输出"))
@@ -917,6 +915,7 @@ class MainWindow(QMainWindow):
         self.generate_audio = QCheckBox(self.tr("生成音频"))
         self.generate_audio.setChecked(True)
         self.generate_audio.setToolTip(self.tr("是否生成音频。"))
+        self.generate_audio.toggled.connect(self.on_generate_audio_toggled)
         layout.addWidget(self.generate_audio, row, 0, 1, 2)
 
         # 音频设置组
@@ -943,6 +942,7 @@ class MainWindow(QMainWindow):
         # 生成视频复选框
         self.generate_video = QCheckBox(self.tr("生成视频"))
         self.generate_video.setToolTip(self.tr("是否生成视频。"))
+        self.generate_video.toggled.connect(self.on_generate_video_toggled)
         layout.addWidget(self.generate_video, row, 0, 1, 2)
 
         # 视频设置组
@@ -1051,7 +1051,25 @@ class MainWindow(QMainWindow):
         self.output_group.setLayout(layout)
         return self.output_group
 
-# ---以上为界面部分，使用QtDesigner时请将生成的代码粘贴覆盖到上方，本界面相关逻辑即将在下方实现。---
+    def on_generate_audio_toggled(self, checked):
+        """生成音频复选框状态变化处理"""
+        # 如果取消勾选音频，且视频也未勾选，则阻止取消勾选并提示
+        if not checked and not self.generate_video.isChecked():
+            # 阻止信号递归
+            self.generate_audio.blockSignals(True)
+            self.generate_audio.setChecked(True)
+            self.generate_audio.blockSignals(False)
+            QMessageBox.warning(self, self.tr("提示"), self.tr("必须至少选择生成音频或生成视频一项！"))
+
+    def on_generate_video_toggled(self, checked):
+        """生成视频复选框状态变化处理"""
+        # 如果取消勾选视频，且音频也未勾选，则阻止取消勾选并提示
+        if not checked and not self.generate_audio.isChecked():
+            # 阻止信号递归
+            self.generate_video.blockSignals(True)
+            self.generate_video.setChecked(True)
+            self.generate_video.blockSignals(False)
+            QMessageBox.warning(self, self.tr("提示"), self.tr("必须至少选择生成音频或生成视频一项！"))
 
     def browse_file(self, line_edit, file_filter):
         """浏览文件对话框"""
