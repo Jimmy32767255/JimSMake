@@ -100,7 +100,7 @@ class AudioRecorder(QThread):
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
-    MAX_TEXT_LENGTH = 10000  # 最大文本长度限制
+    MAX_TEXT_SIZE_BYTES = 1024 * 1024  # 最大文本大小限制：1 MB
     TEXT_FILE_ENCODING = 'utf-8'  # 默认编码
     SUPPORTED_ENCODINGS = ['utf-8', 'gbk', 'gb2312', 'utf-16', 'latin-1', 'ascii']
 
@@ -1146,12 +1146,15 @@ class MainWindow(QMainWindow):
             if content is None:
                 raise Exception("无法使用任何支持的编码读取文件")
 
-            # 检查长度限制
-            if len(content) > self.MAX_TEXT_LENGTH:
-                content = content[:self.MAX_TEXT_LENGTH]
-                logger.warning(f"文本内容超过最大长度限制({self.MAX_TEXT_LENGTH})，已截断")
+            # 检查内存大小限制（1MB）
+            content_bytes = content.encode(self.TEXT_FILE_ENCODING, errors='ignore')
+            if len(content_bytes) > self.MAX_TEXT_SIZE_BYTES:
+                # 截断到大约1MB（考虑UTF-8编码，一个字符最多4字节）
+                safe_length = self.MAX_TEXT_SIZE_BYTES // 4
+                content = content[:safe_length]
+                logger.warning(f"文本内容超过最大大小限制({self.MAX_TEXT_SIZE_BYTES / 1024 / 1024:.1f}MB)，已截断")
                 QMessageBox.warning(self, self.tr("警告"),
-                                   self.tr(f"文本内容过长，已截断至{self.MAX_TEXT_LENGTH}个字符"))
+                                   self.tr(f"文本内容过大，已截断至安全长度"))
 
             # 更新输入框内容
             self.affirmation_text.setText(content)
@@ -1175,14 +1178,17 @@ class MainWindow(QMainWindow):
         if self.is_loading_text:
             return
 
-        # 检查长度限制
-        if len(text) > self.MAX_TEXT_LENGTH:
-            # 截断文本
-            self.affirmation_text.setText(text[:self.MAX_TEXT_LENGTH])
-            self.affirmation_text.setCursorPosition(self.MAX_TEXT_LENGTH)
-            logger.warning(f"输入文本超过最大长度限制({self.MAX_TEXT_LENGTH})，已截断")
+        # 检查内存大小限制（1MB）
+        text_bytes = text.encode(self.TEXT_FILE_ENCODING, errors='ignore')
+        if len(text_bytes) > self.MAX_TEXT_SIZE_BYTES:
+            # 截断到大约1MB（考虑UTF-8编码，一个字符最多4字节）
+            safe_length = self.MAX_TEXT_SIZE_BYTES // 4
+            truncated_text = text[:safe_length]
+            self.affirmation_text.setText(truncated_text)
+            self.affirmation_text.setCursorPosition(len(truncated_text))
+            logger.warning(f"输入文本超过最大大小限制({self.MAX_TEXT_SIZE_BYTES / 1024 / 1024:.1f}MB)，已截断")
             QMessageBox.warning(self, self.tr("警告"),
-                               self.tr(f"文本内容超过最大长度限制({self.MAX_TEXT_LENGTH}个字符)，已自动截断"))
+                               self.tr(f"文本内容过大（超过1MB），已自动截断至安全长度"))
             return
 
         # 如果有关联的文本文件，启动延迟保存
