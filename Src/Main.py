@@ -187,8 +187,20 @@ def run_gui():
 def main():
     """主入口函数"""
     logger.remove()
-    logger.add(sys.stderr, level="INFO",
-               format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+    try:
+        # 尝试添加 stderr 日志处理器
+        if sys.stderr is not None:
+            logger.add(sys.stderr, level="INFO",
+                       format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+        else:
+            # 无控制台环境（如打包后的 GUI 应用），使用文件日志
+            import tempfile
+            log_path = os.path.join(tempfile.gettempdir(), "SMake.log")
+            logger.add(log_path, level="INFO", rotation="10 MB",
+                       format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
+    except Exception:
+        # 如果添加日志处理器失败，静默处理
+        pass
 
     logger.info("应用程序启动")
 

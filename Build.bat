@@ -122,5 +122,3 @@ echo [成功] 打包完成！
 echo 输出目录: %OUTPUT_DIR%\
 echo 可执行文件: %OUTPUT_DIR%\SMake.exe
 echo ==========================================
-
-pause
