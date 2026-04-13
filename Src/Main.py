@@ -65,6 +65,9 @@ CLI模式示例:
                         help='CLI: 音频/视频作者元数据')
     parser.add_argument('--version', action='store_true',
                         help='显示版本信息')
+    parser.add_argument('--log-level', default='INFO',
+                        choices=['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNING', 'ERROR', 'CRITICAL'],
+                        help='设置日志级别 (默认: INFO)')
 
     return parser.parse_args()
 
@@ -186,25 +189,26 @@ def run_gui():
 
 def main():
     """主入口函数"""
+    # 先解析参数以获取日志级别
+    args = parse_args()
+
     logger.remove()
     try:
         # 尝试添加 stderr 日志处理器
         if sys.stderr is not None:
-            logger.add(sys.stderr, level="INFO",
+            logger.add(sys.stderr, level=args.log_level,
                        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
         else:
             # 无控制台环境（如打包后的 GUI 应用），使用文件日志
             import tempfile
             log_path = os.path.join(tempfile.gettempdir(), "SMake.log")
-            logger.add(log_path, level="INFO", rotation="10 MB",
+            logger.add(log_path, level=args.log_level, rotation="10 MB",
                        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
     except Exception:
         # 如果添加日志处理器失败，静默处理
         pass
 
-    logger.info("应用程序启动")
-
-    args = parse_args()
+    logger.info(f"应用程序启动，日志级别: {args.log_level}")
 
     if args.version:
         print("SMake v1.0")
