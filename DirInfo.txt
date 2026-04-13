@@ -1,3 +1,7 @@
+Assets: 资产
+    SMakelcon256.png：256×256像素图标
+    SMakelconOutput.ico：图标最终输出版本
+    SMakelconRaw.svg：图标原始矢量图
 Project：项目
     $项目名
         README.md：项目描述
