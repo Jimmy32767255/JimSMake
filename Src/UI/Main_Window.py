@@ -170,8 +170,13 @@ class MainWindow(QMainWindow):
         import sys
 
         if getattr(sys, 'frozen', False):
-            # 打包版本：使用 PyInstaller 的 _MEIPASS
-            return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+            # 打包版本：优先使用可执行文件所在目录，便于用户自定义资源
+            exe_dir = os.path.dirname(sys.executable)
+            # 检查可执行文件所在目录是否有 Translation 文件夹
+            if os.path.exists(os.path.join(exe_dir, "Translation")):
+                return exe_dir
+            # 否则使用 PyInstaller 的 _MEIPASS 临时目录
+            return getattr(sys, '_MEIPASS', exe_dir)
         else:
             # 开发版本：使用项目根目录
             return os.path.join(os.path.dirname(__file__), "..", "..")

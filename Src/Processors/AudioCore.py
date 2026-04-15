@@ -50,6 +50,40 @@ class AudioCore:
         """检查是否已取消"""
         return self.is_cancelled
 
+    def _get_ffmpeg_path(self):
+        """查找 ffmpeg 可执行文件路径"""
+        import sys
+
+        # 可能的 ffmpeg 可执行文件名
+        ffmpeg_names = ['ffmpeg.exe', 'ffmpeg'] if sys.platform == 'win32' else ['ffmpeg']
+
+        # 检查系统 PATH
+        for name in ffmpeg_names:
+            try:
+                result = subprocess.run(['where', name] if sys.platform == 'win32' else ['which', name],
+                                      capture_output=True, text=True)
+                if result.returncode == 0:
+                    ffmpeg_path = result.stdout.strip().split('\n')[0].strip()
+                    if ffmpeg_path:
+                        logger.debug(f"找到 ffmpeg (系统 PATH): {ffmpeg_path}")
+                        return ffmpeg_path
+            except Exception:
+                pass
+
+        # 尝试直接使用 ffmpeg（如果在 PATH 中）
+        for name in ffmpeg_names:
+            try:
+                result = subprocess.run([name, '-version'],
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    logger.debug(f"找到 ffmpeg (直接调用): {name}")
+                    return name
+            except Exception:
+                pass
+
+        logger.warning("未找到 ffmpeg 可执行文件")
+        return None
+
     def _wav_to_array(self, raw_data, sample_width, channels):
         """将WAV原始数据转换为列表"""
         audio_data = []
@@ -219,7 +253,7 @@ class AudioCore:
 
             # 检查文件是否为WAV格式
             file_ext = os.path.splitext(file_path)[1].lower()
-            
+
             # 如果是WAV格式，直接使用wave模块加载
             if file_ext == '.wav':
                 with wave.open(file_path, 'rb') as wf:
@@ -227,8 +261,8 @@ class AudioCore:
                     sample_width = wf.getsampwidth()
                     framerate = wf.getframerate()
                     n_frames = wf.getnframes()
-                logger.debug(f"WAV文件信息 - 通道数: {n_channels}, 采样宽度: {sample_width}, 采样率: {framerate}, 帧数: {n_frames}")
-                raw_data = wf.readframes(n_frames)
+                    logger.debug(f"WAV文件信息 - 通道数: {n_channels}, 采样宽度: {sample_width}, 采样率: {framerate}, 帧数: {n_frames}")
+                    raw_data = wf.readframes(n_frames)
                 logger.debug(f"WAV原始数据大小: {len(raw_data)} bytes")
                 audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
                 logger.debug(f"转换后的音频数据长度: {len(audio_data)} samples")
@@ -236,21 +270,28 @@ class AudioCore:
                 # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
                 with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
                     temp_wav_path = temp_wav.name
-                
+
                 try:
+                    # 查找 ffmpeg 可执行文件
+                    ffmpeg_exe = self._get_ffmpeg_path()
+                    if not ffmpeg_exe:
+                        logger.error("未找到 ffmpeg 可执行文件，请确保 ffmpeg 在系统 PATH 中或放在应用程序目录")
+                        return None
+
                     ffmpeg_cmd = [
-                        'ffmpeg', '-y', '-i', file_path,
+                        ffmpeg_exe, '-y', '-i', file_path,
                         '-codec:a', 'pcm_s16le', temp_wav_path
                     ]
-                    
+
+                    logger.debug(f"执行 FFmpeg 命令: {' '.join(ffmpeg_cmd)}")
                     result = subprocess.run(
                         ffmpeg_cmd, capture_output=True, text=True, timeout=60
                     )
-                    
+
                     if result.returncode != 0:
                         logger.error(f"FFmpeg转换失败: {result.stderr}")
                         return None
-                    
+
                     # 加载转换后的WAV文件
                     with wave.open(temp_wav_path, 'rb') as wf:
                         n_channels = wf.getnchannels()
@@ -387,18 +428,25 @@ class AudioCore:
                 # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
                 with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
                     temp_wav_path = temp_wav.name
-                
+
                 try:
+                    # 查找 ffmpeg 可执行文件
+                    ffmpeg_exe = self._get_ffmpeg_path()
+                    if not ffmpeg_exe:
+                        logger.error("未找到 ffmpeg 可执行文件，请确保 ffmpeg 在系统 PATH 中或放在应用程序目录")
+                        return None
+
                     ffmpeg_cmd = [
-                        'ffmpeg', '-y', '-i', file_path,
+                        ffmpeg_exe, '-y', '-i', file_path,
                         '-ac', '1', '-ar', str(target_sample_rate),
                         '-codec:a', 'pcm_s16le', temp_wav_path
                     ]
-                    
+
+                    logger.debug(f"执行 FFmpeg 命令: {' '.join(ffmpeg_cmd)}")
                     result = subprocess.run(
                         ffmpeg_cmd, capture_output=True, text=True, timeout=60
                     )
-                    
+
                     if result.returncode != 0:
                         logger.error(f"FFmpeg转换失败: {result.stderr}")
                         return None
