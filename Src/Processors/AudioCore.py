@@ -186,21 +186,63 @@ class AudioCore:
             if not file_path or not os.path.exists(file_path):
                 logger.error(f"肯定语音频文件不存在: {file_path}")
                 return None
+            
+            # 确保路径格式正确
+            file_path = os.path.abspath(file_path)
 
-            with wave.open(file_path, 'rb') as wf:
-                n_channels = wf.getnchannels()
-                sample_width = wf.getsampwidth()
-                framerate = wf.getframerate()
-                n_frames = wf.getnframes()
-                raw_data = wf.readframes(n_frames)
-                audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+            # 检查文件是否为WAV格式
+            import os
+            file_ext = os.path.splitext(file_path)[1].lower()
+            
+            # 如果是WAV格式，直接使用wave模块加载
+            if file_ext == '.wav':
+                with wave.open(file_path, 'rb') as wf:
+                    n_channels = wf.getnchannels()
+                    sample_width = wf.getsampwidth()
+                    framerate = wf.getframerate()
+                    n_frames = wf.getnframes()
+                    raw_data = wf.readframes(n_frames)
+                    audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+            else:
+                # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
+                import tempfile
+                import subprocess
+                
+                with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+                    temp_wav_path = temp_wav.name
+                
+                try:
+                    ffmpeg_cmd = [
+                        'ffmpeg', '-y', '-i', file_path,
+                        '-codec:a', 'pcm_s16le', temp_wav_path
+                    ]
+                    
+                    result = subprocess.run(
+                        ffmpeg_cmd, capture_output=True, text=True, timeout=60
+                    )
+                    
+                    if result.returncode != 0:
+                        logger.error(f"FFmpeg转换失败: {result.stderr}")
+                        return None
+                    
+                    # 加载转换后的WAV文件
+                    with wave.open(temp_wav_path, 'rb') as wf:
+                        n_channels = wf.getnchannels()
+                        sample_width = wf.getsampwidth()
+                        framerate = wf.getframerate()
+                        n_frames = wf.getnframes()
+                        raw_data = wf.readframes(n_frames)
+                        audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                finally:
+                    if os.path.exists(temp_wav_path):
+                        os.remove(temp_wav_path)
 
-                return {
-                    'data': audio_data,
-                    'sample_rate': framerate,
-                    'channels': n_channels,
-                    'sample_width': sample_width
-                }
+            return {
+                'data': audio_data,
+                'sample_rate': framerate,
+                'channels': n_channels,
+                'sample_width': sample_width
+            }
 
         except Exception as e:
             logger.error(f"加载肯定语音频失败: {e}")
@@ -292,28 +334,70 @@ class AudioCore:
             return None
 
         try:
+            # 确保路径格式正确
+            file_path = os.path.abspath(file_path)
             logger.info(f"加载背景音乐: {file_path}")
 
-            with wave.open(file_path, 'rb') as wf:
-                n_channels = wf.getnchannels()
-                sample_width = wf.getsampwidth()
-                framerate = wf.getframerate()
-                n_frames = wf.getnframes()
-                raw_data = wf.readframes(n_frames)
-                audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+            # 检查文件是否为WAV格式
+            import os
+            file_ext = os.path.splitext(file_path)[1].lower()
+            
+            # 如果是WAV格式，直接使用wave模块加载
+            if file_ext == '.wav':
+                with wave.open(file_path, 'rb') as wf:
+                    n_channels = wf.getnchannels()
+                    sample_width = wf.getsampwidth()
+                    framerate = wf.getframerate()
+                    n_frames = wf.getnframes()
+                    raw_data = wf.readframes(n_frames)
+                    audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+            else:
+                # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
+                import tempfile
+                import subprocess
+                
+                with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+                    temp_wav_path = temp_wav.name
+                
+                try:
+                    ffmpeg_cmd = [
+                        'ffmpeg', '-y', '-i', file_path,
+                        '-ac', '1', '-ar', str(target_sample_rate),
+                        '-codec:a', 'pcm_s16le', temp_wav_path
+                    ]
+                    
+                    result = subprocess.run(
+                        ffmpeg_cmd, capture_output=True, text=True, timeout=60
+                    )
+                    
+                    if result.returncode != 0:
+                        logger.error(f"FFmpeg转换失败: {result.stderr}")
+                        return None
+                    
+                    # 加载转换后的WAV文件
+                    with wave.open(temp_wav_path, 'rb') as wf:
+                        n_channels = wf.getnchannels()
+                        sample_width = wf.getsampwidth()
+                        framerate = wf.getframerate()
+                        n_frames = wf.getnframes()
+                        raw_data = wf.readframes(n_frames)
+                        audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                finally:
+                    if os.path.exists(temp_wav_path):
+                        os.remove(temp_wav_path)
 
-                volume_factor = 10 ** (bg_volume_db / 20.0)
-                audio_data = [s * volume_factor for s in audio_data]
+            volume_factor = 10 ** (bg_volume_db / 20.0)
+            audio_data = [s * volume_factor for s in audio_data]
 
-                if framerate != target_sample_rate:
-                    audio_data = self._resample_audio(audio_data, framerate, target_sample_rate)
+            if framerate != target_sample_rate:
+                audio_data = self._resample_audio(audio_data, framerate, target_sample_rate)
 
-                return {
-                    'data': audio_data,
-                    'sample_rate': target_sample_rate,
-                    'channels': 1,
-                    'sample_width': sample_width
-                }
+            return {
+                'data': audio_data,
+                'sample_rate': target_sample_rate,
+                'channels': 1,
+                'sample_width': sample_width
+            }
 
         except Exception as e:
             logger.error(f"加载背景音乐失败: {e}")

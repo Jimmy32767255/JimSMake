@@ -1407,10 +1407,33 @@ class MainWindow(QMainWindow):
     def get_audio_duration(self, file_path):
         """获取音频文件时长（秒）"""
         try:
-            with wave.open(file_path, 'rb') as wf:
-                frames = wf.getnframes()
-                rate = wf.getframerate()
-                return frames / float(rate)
+            import os
+            # 检查文件是否存在
+            if not file_path or not os.path.exists(file_path):
+                logger.error(f"音频文件不存在: {file_path}")
+                return None
+            
+            import subprocess
+            import json
+            # 确保路径格式正确
+            file_path = os.path.abspath(file_path)
+            cmd = [
+                'ffmpeg', '-i', file_path,
+                '-f', 'json', '-show_entries', 'format=duration',
+                '-loglevel', 'quiet'
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                output = json.loads(result.stdout)
+                duration = float(output['format']['duration'])
+                return duration
+            else:
+                # 如果ffmpeg失败，尝试使用wave模块（仅WAV文件）
+                import wave
+                with wave.open(file_path, 'rb') as wf:
+                    frames = wf.getnframes()
+                    rate = wf.getframerate()
+                    return frames / float(rate)
         except Exception as e:
             logger.error(f"获取音频时长失败: {file_path}, 错误: {e}")
             return None
