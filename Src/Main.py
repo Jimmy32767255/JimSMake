@@ -1,4 +1,5 @@
 import sys
+import os
 import argparse
 from loguru import logger
 
@@ -228,8 +229,13 @@ def main():
         # 始终添加文件日志处理器（./SMake.log）
         log_path = os.path.join(os.path.dirname(__file__), "..", "SMake.log")
         log_path = os.path.abspath(log_path)
+        # 确保日志目录存在
+        log_dir = os.path.dirname(log_path)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
         logger.add(log_path, level=args.log_level, rotation="10 MB", encoding="utf-8",
                    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
+        logger.debug(f"日志文件路径: {log_path}")
 
         # 如果有控制台，同时添加 stderr 日志处理器
         if sys.stderr is not None:

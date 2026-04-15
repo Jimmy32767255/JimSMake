@@ -1137,32 +1137,56 @@ class MainWindow(QMainWindow):
 
             def write(self, message):
                 """写入日志消息"""
-                # 解析日志级别
-                level = "INFO"
-                if "ERROR" in message:
-                    level = "ERROR"
-                elif "WARNING" in message:
-                    level = "WARNING"
-                elif "DEBUG" in message:
-                    level = "DEBUG"
-                elif "CRITICAL" in message:
-                    level = "CRITICAL"
-
-                # 提取消息内容（移除日志格式中的时间等级等前缀）
+                # 直接传递原始消息，不做任何处理
                 clean_message = message.strip()
                 if clean_message:
                     # 使用 QTimer.singleShot 确保在主线程中更新UI
                     from PyQt5.QtCore import QTimer
-                    QTimer.singleShot(0, lambda msg=clean_message, lvl=level: 
-                        self.main_window.append_log_message(msg, lvl))
+                    QTimer.singleShot(0, lambda msg=clean_message: 
+                        self.main_window.append_log_message(msg))
 
             def flush(self):
                 pass
 
-        # 添加自定义处理器到 loguru
+        # 添加自定义处理器到 loguru，使用原始格式
         self.ui_log_handler = UILogHandler(self)
-        logger.add(self.ui_log_handler, format="{message}", level="DEBUG")
+        logger.add(self.ui_log_handler, 
+                   format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}", 
+                   level="DEBUG")
+        
+        # 显示缓存的UI初始化前日志
+        self._display_cached_logs()
+        
         logger.info("UI日志处理器已设置")
+
+    def _display_cached_logs(self):
+        """显示UI初始化之前缓存的日志"""
+        from loguru import logger
+        
+        # 获取日志文件路径
+        log_file = os.path.join(os.path.dirname(__file__), "..", "..", "SMake.log")
+        log_file = os.path.abspath(log_file)
+        
+        if os.path.exists(log_file) and hasattr(self, 'log_text_edit'):
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    # 读取最后100行（避免加载过多）
+                    lines = f.readlines()
+                    last_lines = lines[-100:] if len(lines) > 100 else lines
+                    
+                    for line in last_lines:
+                        line = line.strip()
+                        if line:
+                            self.log_text_edit.append(line)
+                    
+                    # 添加分隔线
+                    if last_lines:
+                        self.log_text_edit.append("-" * 80)
+                        self.log_text_edit.append("[历史日志结束，以下为实时日志]")
+                        self.log_text_edit.append("")
+                        
+            except Exception as e:
+                logger.error(f"读取历史日志失败: {e}")
 
     # ==================== 文本文件同步方法 ====================
 
@@ -2035,33 +2059,17 @@ class MainWindow(QMainWindow):
             self.log_text_edit.clear()
             logger.info("日志显示区域已清空")
 
-    def append_log_message(self, message, level="INFO"):
+    def append_log_message(self, message):
         """添加日志消息到显示区域
         
         Args:
-            message: 日志消息内容
-            level: 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            message: 日志消息内容（原始格式）
         """
         if not hasattr(self, 'log_text_edit'):
             return
 
-        # 根据日志级别设置颜色
-        color_map = {
-            "DEBUG": "#808080",      # 灰色
-            "INFO": "#d4d4d4",       # 白色
-            "WARNING": "#ffcc00",    # 黄色
-            "ERROR": "#ff6b6b",      # 红色
-            "CRITICAL": "#ff0000"    # 深红色
-        }
-        color = color_map.get(level.upper(), "#d4d4d4")
-
-        # 格式化消息
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        formatted_message = f'<span style="color: {color}">[{timestamp}] [{level.upper()}] {message}</span>'
-
-        # 添加到文本编辑区域
-        self.log_text_edit.append(formatted_message)
+        # 直接显示原始消息，不做任何颜色或格式处理
+        self.log_text_edit.append(message)
 
         # 自动滚动到底部
         scrollbar = self.log_text_edit.verticalScrollBar()
