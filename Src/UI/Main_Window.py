@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton,
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
-                             QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog)
+                             QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog,
+                             QTextEdit)
 from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal, QTimer
 import pyttsx3
 import pyaudio
@@ -128,6 +129,7 @@ class MainWindow(QMainWindow):
         self.enumerate_tts_engines()
         self.enumerate_audio_devices()
         self.setup_text_file_sync()    # 设置文本文件同步
+        self.setup_log_handler()       # 设置日志处理器
 
         # UI初始化完成后，如果当前有项目，自动加载资源
         if hasattr(self, 'current_project_name') and self.current_project_name:
@@ -229,6 +231,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
             if hasattr(self, 'settings_tab_index'):
                 self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
+            if hasattr(self, 'log_tab_index'):
+                self.tab_widget.setTabText(self.log_tab_index, self.tr("日志"))
             logger.debug("选项卡标题翻译完成")
 
         # 更新窗口标题
@@ -333,6 +337,12 @@ class MainWindow(QMainWindow):
             self.reset_settings_btn.setText(self.tr("重置设置"))
             self.about_group.setTitle(self.tr("关于"))
             self.about_label.setText(self.tr("SMake"))
+
+        # 更新日志组
+        if hasattr(self, 'log_group'):
+            self.log_group.setTitle(self.tr("日志输出"))
+            self.clear_log_btn.setText(self.tr("清空日志"))
+            self.clear_log_btn.setToolTip(self.tr("清空日志显示区域"))
 
         # 更新项目组
         if hasattr(self, 'project_group'):
@@ -625,6 +635,11 @@ class MainWindow(QMainWindow):
         brainwave_layout = QVBoxLayout(brainwave_widget)
         brainwave_layout.addWidget(self.create_brainwave_group())
 
+        # 创建日志选项卡内容
+        log_widget = QWidget()
+        log_layout = QVBoxLayout(log_widget)
+        log_layout.addWidget(self.create_log_group())
+
         # 添加选项卡
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
@@ -632,6 +647,7 @@ class MainWindow(QMainWindow):
         self.brainwave_tab_index = self.tab_widget.addTab(brainwave_widget, self.tr("脑波音频"))
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
+        self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
         
         main_layout.addWidget(self.tab_widget)
         
@@ -1106,6 +1122,47 @@ class MainWindow(QMainWindow):
             # 如果是文本文件输入框，自动加载文件内容
             if line_edit == self.text_file:
                 self.load_text_from_file(file_path)
+
+    # ==================== 日志处理相关方法 ====================
+
+    def setup_log_handler(self):
+        """设置日志处理器，将日志输出到UI"""
+        from loguru import logger
+        import sys
+
+        class UILogHandler:
+            """自定义日志处理器，将日志发送到UI"""
+            def __init__(self, main_window):
+                self.main_window = main_window
+
+            def write(self, message):
+                """写入日志消息"""
+                # 解析日志级别
+                level = "INFO"
+                if "ERROR" in message:
+                    level = "ERROR"
+                elif "WARNING" in message:
+                    level = "WARNING"
+                elif "DEBUG" in message:
+                    level = "DEBUG"
+                elif "CRITICAL" in message:
+                    level = "CRITICAL"
+
+                # 提取消息内容（移除日志格式中的时间等级等前缀）
+                clean_message = message.strip()
+                if clean_message:
+                    # 使用 QTimer.singleShot 确保在主线程中更新UI
+                    from PyQt5.QtCore import QTimer
+                    QTimer.singleShot(0, lambda msg=clean_message, lvl=level: 
+                        self.main_window.append_log_message(msg, lvl))
+
+            def flush(self):
+                pass
+
+        # 添加自定义处理器到 loguru
+        self.ui_log_handler = UILogHandler(self)
+        logger.add(self.ui_log_handler, format="{message}", level="DEBUG")
+        logger.info("UI日志处理器已设置")
 
     # ==================== 文本文件同步方法 ====================
 
@@ -1935,6 +1992,80 @@ class MainWindow(QMainWindow):
             logger.info("设置重置完成")
             QMessageBox.information(self, self.tr("成功"),
                                    self.tr("所有设置已重置为默认值。"))
+
+    def create_log_group(self):
+        """创建日志输出组"""
+        self.log_group = QGroupBox(self.tr("日志输出"))
+        layout = QVBoxLayout()
+
+        # 日志显示区域
+        self.log_text_edit = QTextEdit()
+        self.log_text_edit.setReadOnly(True)
+        self.log_text_edit.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.log_text_edit.setStyleSheet("""
+            QTextEdit {
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+                font-family: Consolas, Monaco, monospace;
+                font-size: 12px;
+                border: 1px solid #3c3c3c;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
+        layout.addWidget(self.log_text_edit)
+
+        # 清空日志按钮
+        button_layout = QGridLayout()
+        self.clear_log_btn = QPushButton(self.tr("清空日志"))
+        self.clear_log_btn.setToolTip(self.tr("清空日志显示区域"))
+        self.clear_log_btn.clicked.connect(self.clear_log_display)
+        button_layout.addWidget(self.clear_log_btn, 0, 0)
+
+        # 添加弹性空间
+        button_layout.setColumnStretch(1, 1)
+        layout.addLayout(button_layout)
+
+        self.log_group.setLayout(layout)
+        return self.log_group
+
+    def clear_log_display(self):
+        """清空日志显示区域"""
+        if hasattr(self, 'log_text_edit'):
+            self.log_text_edit.clear()
+            logger.info("日志显示区域已清空")
+
+    def append_log_message(self, message, level="INFO"):
+        """添加日志消息到显示区域
+        
+        Args:
+            message: 日志消息内容
+            level: 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        """
+        if not hasattr(self, 'log_text_edit'):
+            return
+
+        # 根据日志级别设置颜色
+        color_map = {
+            "DEBUG": "#808080",      # 灰色
+            "INFO": "#d4d4d4",       # 白色
+            "WARNING": "#ffcc00",    # 黄色
+            "ERROR": "#ff6b6b",      # 红色
+            "CRITICAL": "#ff0000"    # 深红色
+        }
+        color = color_map.get(level.upper(), "#d4d4d4")
+
+        # 格式化消息
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        formatted_message = f'<span style="color: {color}">[{timestamp}] [{level.upper()}] {message}</span>'
+
+        # 添加到文本编辑区域
+        self.log_text_edit.append(formatted_message)
+
+        # 自动滚动到底部
+        scrollbar = self.log_text_edit.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
 
     # ==================== 项目管理方法 ====================
 

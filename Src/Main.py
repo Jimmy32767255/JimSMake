@@ -225,16 +225,16 @@ def main():
 
     logger.remove()
     try:
-        # 尝试添加 stderr 日志处理器
+        # 始终添加文件日志处理器（./SMake.log）
+        log_path = os.path.join(os.path.dirname(__file__), "..", "SMake.log")
+        log_path = os.path.abspath(log_path)
+        logger.add(log_path, level=args.log_level, rotation="10 MB", encoding="utf-8",
+                   format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
+
+        # 如果有控制台，同时添加 stderr 日志处理器
         if sys.stderr is not None:
             logger.add(sys.stderr, level=args.log_level,
                        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
-        else:
-            # 无控制台环境（如打包后的 GUI 应用），使用文件日志
-            import tempfile
-            log_path = os.path.join(tempfile.gettempdir(), "SMake.log")
-            logger.add(log_path, level=args.log_level, rotation="10 MB",
-                       format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
     except Exception:
         # 如果添加日志处理器失败，静默处理
         pass
