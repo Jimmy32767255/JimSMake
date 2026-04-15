@@ -1094,8 +1094,14 @@ class MainWindow(QMainWindow):
 
     def browse_file(self, line_edit, file_filter):
         """浏览文件对话框"""
+        logger.debug(f"打开文件浏览对话框 - 过滤器: {file_filter}")
         file_path, _ = QFileDialog.getOpenFileName(self, self.tr("选择文件"), "", file_filter)
         if file_path:
+            logger.debug(f"选择的文件路径: {file_path}")
+            logger.debug(f"文件绝对路径: {os.path.abspath(file_path)}")
+            logger.debug(f"文件是否存在: {os.path.exists(file_path)}")
+            if os.path.exists(file_path):
+                logger.debug(f"文件大小: {os.path.getsize(file_path)} bytes")
             line_edit.setText(file_path)
             # 如果是文本文件输入框，自动加载文件内容
             if line_edit == self.text_file:
@@ -1156,8 +1162,11 @@ class MainWindow(QMainWindow):
 
     def load_text_from_file(self, file_path):
         """从文本文件加载内容到输入框"""
+        logger.debug(f"开始加载文本文件: {file_path}")
         if not file_path or not os.path.exists(file_path):
             logger.warning(f"文本文件不存在: {file_path}")
+            if file_path:
+                logger.debug(f"文本文件绝对路径: {os.path.abspath(file_path)}")
             return
 
         try:
@@ -1167,6 +1176,8 @@ class MainWindow(QMainWindow):
             # 检测文件编码
             encoding = self.detect_file_encoding(file_path)
             logger.info(f"加载文本文件: {file_path}, 编码: {encoding}")
+            logger.debug(f"文本文件绝对路径: {os.path.abspath(file_path)}")
+            logger.debug(f"文本文件大小: {os.path.getsize(file_path)} bytes")
 
             # 尝试使用检测到的编码读取
             content = None
@@ -1239,7 +1250,10 @@ class MainWindow(QMainWindow):
     def save_text_to_file(self):
         """将输入框内容保存到文本文件"""
         if not self.current_text_file:
+            logger.debug("没有关联的文本文件，跳过保存")
             return
+
+        logger.debug(f"开始保存文本到文件: {self.current_text_file}")
 
         try:
             text = self.affirmation_text.text()
@@ -1247,6 +1261,7 @@ class MainWindow(QMainWindow):
             # 确保目录存在
             dir_path = os.path.dirname(self.current_text_file)
             if dir_path and not os.path.exists(dir_path):
+                logger.debug(f"创建目录: {os.path.abspath(dir_path)}")
                 os.makedirs(dir_path, exist_ok=True)
 
             # 使用UTF-8编码保存
@@ -1254,6 +1269,8 @@ class MainWindow(QMainWindow):
                 f.write(text)
 
             logger.debug(f"文本已保存到文件: {self.current_text_file}, 长度: {len(text)}")
+            logger.debug(f"文本文件绝对路径: {os.path.abspath(self.current_text_file)}")
+            logger.debug(f"保存后的文件大小: {os.path.getsize(self.current_text_file)} bytes")
 
         except PermissionError:
             logger.error(f"没有权限写入文件: {self.current_text_file}")
@@ -1471,6 +1488,8 @@ class MainWindow(QMainWindow):
 
     def generate_project(self):
         """生成项目"""
+        logger.debug("开始生成项目")
+
         # 验证至少选择了一项
         if not self.generate_audio.isChecked() and not self.generate_video.isChecked():
             QMessageBox.warning(self, self.tr("警告"),
@@ -1478,10 +1497,16 @@ class MainWindow(QMainWindow):
             return
 
         # 验证必要文件
-        if self.generate_audio.isChecked() and not self.affirmation_file.text():
+        affirmation_file = self.affirmation_file.text()
+        if self.generate_audio.isChecked() and not affirmation_file:
             QMessageBox.warning(self, self.tr("警告"),
                                self.tr("生成音频需要选择肯定语音频文件！"))
             return
+
+        logger.debug(f"肯定语文件路径: {affirmation_file}")
+        if affirmation_file:
+            logger.debug(f"肯定语文件绝对路径: {os.path.abspath(affirmation_file)}")
+            logger.debug(f"肯定语文件是否存在: {os.path.exists(affirmation_file)}")
 
         # 检查是否选择了项目
         if not self.check_project_selected():
@@ -1501,6 +1526,8 @@ class MainWindow(QMainWindow):
         generate_audio = self.generate_audio.isChecked()
         generate_video = self.generate_video.isChecked()
 
+        logger.debug(f"生成选项 - 音频: {generate_audio}, 视频: {generate_video}")
+
         # 获取选择的音频格式
         audio_format = self.audio_format.currentText()
         format_ext = audio_format.lower()
@@ -1511,13 +1538,21 @@ class MainWindow(QMainWindow):
             import tempfile
             temp_dir = tempfile.gettempdir()
             audio_output_path = os.path.join(temp_dir, f"SMake_temp_audio_{timestamp}.wav")
+            logger.debug(f"使用临时音频路径: {audio_output_path}")
         else:
             # 正常保存到项目目录，使用选择的格式扩展名
             audio_output_path = os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.{format_ext}")
+            logger.debug(f"使用项目音频路径: {audio_output_path}")
+
+        # 确保输出目录存在
+        output_dir = os.path.dirname(audio_output_path)
+        if output_dir and not os.path.exists(output_dir):
+            logger.debug(f"创建输出目录: {os.path.abspath(output_dir)}")
+            os.makedirs(output_dir, exist_ok=True)
 
         # 准备参数
         params = {
-            'affirmation_file': self.affirmation_file.text(),
+            'affirmation_file': affirmation_file,
             'background_file': self.background_file.text(),
             'volume': self.affirmation_volume_spin.value(),
             'frequency_mode': self.frequency_mode.currentIndex(),
@@ -1538,6 +1573,11 @@ class MainWindow(QMainWindow):
             'metadata_author': self.metadata_author.text(),
             'ensure_integrity': self.ensure_integrity_check.isChecked()
         }
+
+        logger.debug(f"生成项目参数 - output_path: {audio_output_path}")
+        logger.debug(f"生成项目参数 - affirmation_file: {affirmation_file}")
+        logger.debug(f"生成项目参数 - background_file: {self.background_file.text()}")
+        logger.debug(f"生成项目参数 - video_image: {self.video_image.text()}")
 
         # 创建进度对话框
         self.progress_dialog = QProgressDialog(self.tr("正在生成项目..."), self.tr("取消"), 0, 100, self)
@@ -1607,6 +1647,10 @@ class MainWindow(QMainWindow):
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+            logger.debug(f"start_video_generation - audio_path: {audio_path}")
+            logger.debug(f"start_video_generation - audio_path绝对路径: {os.path.abspath(audio_path)}")
+            logger.debug(f"start_video_generation - audio_path是否存在: {os.path.exists(audio_path)}")
+
             # 确定视频格式扩展名
             video_format = params.get('video_format', 'MP4')
             format_ext = {
@@ -1616,17 +1660,31 @@ class MainWindow(QMainWindow):
             }.get(video_format, '.mp4')
 
             video_output_path = os.path.join(project_dir, "Releases", "Video", f"{timestamp}{format_ext}")
+            logger.debug(f"视频输出路径: {video_output_path}")
+            logger.debug(f"视频输出绝对路径: {os.path.abspath(video_output_path)}")
+
+            # 确保视频输出目录存在
+            video_output_dir = os.path.dirname(video_output_path)
+            if video_output_dir and not os.path.exists(video_output_dir):
+                logger.debug(f"创建视频输出目录: {os.path.abspath(video_output_dir)}")
+                os.makedirs(video_output_dir, exist_ok=True)
 
             # 准备视频生成参数
+            video_image = params.get('video_image')
             video_params = {
                 'audio_path': audio_path,
-                'video_image': params.get('video_image'),
+                'video_image': video_image,
                 'video_output_path': video_output_path,
                 'video_format': video_format,
                 'video_resolution': params.get('video_resolution', '1920x1080'),
                 'metadata_title': params.get('metadata_title', ''),
                 'metadata_author': params.get('metadata_author', '')
             }
+
+            logger.debug(f"视频生成参数 - video_image: {video_image}")
+            if video_image:
+                logger.debug(f"视频生成参数 - video_image绝对路径: {os.path.abspath(video_image)}")
+                logger.debug(f"视频生成参数 - video_image是否存在: {os.path.exists(video_image)}")
 
             logger.info(f"开始视频生成: {video_output_path}")
 
@@ -1874,7 +1932,12 @@ class MainWindow(QMainWindow):
     def get_current_project_dir(self):
         """获取当前项目目录"""
         if hasattr(self, 'current_project_name') and self.current_project_name:
-            return os.path.join(self.get_project_base_dir(), self.current_project_name)
+            project_dir = os.path.join(self.get_project_base_dir(), self.current_project_name)
+            logger.debug(f"获取当前项目目录: {project_dir}")
+            logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
+            logger.debug(f"项目目录是否存在: {os.path.exists(project_dir)}")
+            return project_dir
+        logger.debug("没有当前项目，返回None")
         return None
 
     def refresh_project_list(self):
@@ -1938,16 +2001,22 @@ class MainWindow(QMainWindow):
     def load_project_resources(self, project_dir):
         """自动加载项目中的资源文件"""
         if not project_dir or not os.path.exists(project_dir):
+            logger.debug(f"项目目录不存在: {project_dir}")
             return
 
         logger.info(f"加载项目资源: {project_dir}")
+        logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
 
         assets_dir = os.path.join(project_dir, "Assets")
         affirmation_dir = os.path.join(assets_dir, "Affirmation")
 
+        logger.debug(f"Assets目录: {assets_dir}, 是否存在: {os.path.exists(assets_dir)}")
+        logger.debug(f"Affirmation目录: {affirmation_dir}, 是否存在: {os.path.exists(affirmation_dir)}")
+
         # 1. 加载 Raw.txt 文本文件
         if hasattr(self, 'text_file') and self.text_file is not None:
             raw_txt_path = os.path.join(affirmation_dir, "Raw.txt")
+            logger.debug(f"查找文本文件: {raw_txt_path}, 是否存在: {os.path.exists(raw_txt_path)}")
             if os.path.exists(raw_txt_path):
                 self.text_file.setText(raw_txt_path)
                 self.load_text_from_file(raw_txt_path)
@@ -1961,39 +2030,49 @@ class MainWindow(QMainWindow):
         # 2. 自动检测并加载肯定语音频文件（Affirmation 目录中的 .wav 或 .mp3 文件，排除 Raw.txt）
         if hasattr(self, 'affirmation_file') and self.affirmation_file is not None:
             affirmation_audio = self.find_first_audio_file(affirmation_dir)
+            logger.debug(f"查找肯定语音频文件: {affirmation_audio}")
             if affirmation_audio:
                 self.affirmation_file.setText(affirmation_audio)
                 logger.info(f"自动加载肯定语音频: {affirmation_audio}")
+                logger.debug(f"肯定语音频绝对路径: {os.path.abspath(affirmation_audio)}")
             else:
                 self.affirmation_file.clear()
 
         # 3. 自动检测并加载背景音乐（Assets 目录中的 BGM.wav 或其他音频文件）
         if hasattr(self, 'background_file') and self.background_file is not None:
             bgm_path = os.path.join(assets_dir, "BGM.wav")
+            logger.debug(f"查找背景音乐文件: {bgm_path}, 是否存在: {os.path.exists(bgm_path)}")
             if os.path.exists(bgm_path):
                 self.background_file.setText(bgm_path)
                 logger.info(f"自动加载背景音乐: {bgm_path}")
+                logger.debug(f"背景音乐绝对路径: {os.path.abspath(bgm_path)}")
             else:
                 # 尝试查找 Assets 目录中的其他音频文件
                 bg_audio = self.find_first_audio_file(assets_dir, exclude_names=["Raw.txt"])
+                logger.debug(f"查找其他背景音乐文件: {bg_audio}")
                 if bg_audio and os.path.basename(bg_audio) != "Raw.txt":
                     self.background_file.setText(bg_audio)
                     logger.info(f"自动加载背景音乐: {bg_audio}")
+                    logger.debug(f"背景音乐绝对路径: {os.path.abspath(bg_audio)}")
                 else:
                     self.background_file.clear()
 
         # 4. 自动检测并加载视觉化图片（Assets 目录中的 Visualization.png 或其他图片文件）
         if hasattr(self, 'video_image') and self.video_image is not None:
             viz_path = os.path.join(assets_dir, "Visualization.png")
+            logger.debug(f"查找视觉化图片: {viz_path}, 是否存在: {os.path.exists(viz_path)}")
             if os.path.exists(viz_path):
                 self.video_image.setText(viz_path)
                 logger.info(f"自动加载视觉化图片: {viz_path}")
+                logger.debug(f"视觉化图片绝对路径: {os.path.abspath(viz_path)}")
             else:
                 # 尝试查找 Assets 目录中的其他图片文件
                 image_file = self.find_first_image_file(assets_dir)
+                logger.debug(f"查找其他视觉化图片: {image_file}")
                 if image_file:
                     self.video_image.setText(image_file)
                     logger.info(f"自动加载视觉化图片: {image_file}")
+                    logger.debug(f"视觉化图片绝对路径: {os.path.abspath(image_file)}")
                 else:
                     self.video_image.clear()
 

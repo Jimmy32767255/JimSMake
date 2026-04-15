@@ -92,6 +92,20 @@ def run_cli(args):
         print("使用 --help 查看帮助信息")
         return 1
 
+    logger.debug(f"run_cli - affirmation: {args.affirmation}")
+    logger.debug(f"run_cli - affirmation绝对路径: {os.path.abspath(args.affirmation)}")
+    logger.debug(f"run_cli - affirmation是否存在: {os.path.exists(args.affirmation)}")
+    logger.debug(f"run_cli - output: {args.output}")
+    logger.debug(f"run_cli - output绝对路径: {os.path.abspath(args.output)}")
+    output_dir = os.path.dirname(args.output)
+    logger.debug(f"run_cli - output_dir: {output_dir}")
+    logger.debug(f"run_cli - output_dir绝对路径: {os.path.abspath(output_dir) if output_dir else 'None'}")
+    logger.debug(f"run_cli - output_dir是否存在: {os.path.exists(output_dir) if output_dir else False}")
+    if args.background:
+        logger.debug(f"run_cli - background: {args.background}")
+        logger.debug(f"run_cli - background绝对路径: {os.path.abspath(args.background)}")
+        logger.debug(f"run_cli - background是否存在: {os.path.exists(args.background)}")
+
     # 直接传递已解析的args对象，避免手动参数转换
     return cli.run(args)
 
@@ -102,10 +116,18 @@ def get_resource_path():
 
     if getattr(sys, 'frozen', False):
         # 打包版本：使用 PyInstaller 的 _MEIPASS
-        return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        resource_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        logger.debug(f"获取资源路径(打包版本): {resource_path}")
+        logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
+        logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
+        return resource_path
     else:
         # 开发版本：使用项目根目录
-        return os.path.join(os.path.dirname(__file__), "..")
+        resource_path = os.path.join(os.path.dirname(__file__), "..")
+        logger.debug(f"获取资源路径(开发版本): {resource_path}")
+        logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
+        logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
+        return resource_path
 
 
 def run_gui():
@@ -125,16 +147,25 @@ def run_gui():
     base_dir = get_resource_path()
     translation_dir = os.path.join(base_dir, "Translation")
     logger.debug(f"翻译文件目录: {translation_dir}")
+    logger.debug(f"翻译文件目录绝对路径: {os.path.abspath(translation_dir)}")
+    logger.debug(f"翻译文件目录是否存在: {os.path.exists(translation_dir)}")
     logger.debug(f"基础目录: {base_dir}, 是否打包: {getattr(sys, 'frozen', False)}")
 
     available_translations = {}
     if os.path.exists(translation_dir):
-        for filename in os.listdir(translation_dir):
-            if filename.endswith('.qm'):
-                lang_code = filename[:-3]
-                file_path = os.path.join(translation_dir, filename)
-                available_translations[lang_code] = file_path
-                logger.debug(f"发现翻译文件: {lang_code} -> {file_path}")
+        try:
+            translation_files = os.listdir(translation_dir)
+            logger.debug(f"翻译目录内容: {translation_files}")
+            for filename in translation_files:
+                if filename.endswith('.qm'):
+                    lang_code = filename[:-3]
+                    file_path = os.path.join(translation_dir, filename)
+                    available_translations[lang_code] = file_path
+                    logger.debug(f"发现翻译文件: {lang_code} -> {file_path}")
+                    logger.debug(f"翻译文件绝对路径: {os.path.abspath(file_path)}")
+                    logger.debug(f"翻译文件大小: {os.path.getsize(file_path)} bytes")
+        except Exception as e:
+            logger.error(f"读取翻译目录失败: {e}")
 
     logger.info(f"可用翻译文件: {list(available_translations.keys())}")
 
