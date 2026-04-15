@@ -218,7 +218,6 @@ class AudioCore:
             file_path = os.path.abspath(file_path)
 
             # 检查文件是否为WAV格式
-            import os
             file_ext = os.path.splitext(file_path)[1].lower()
             
             # 如果是WAV格式，直接使用wave模块加载
@@ -235,9 +234,6 @@ class AudioCore:
                 logger.debug(f"转换后的音频数据长度: {len(audio_data)} samples")
             else:
                 # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
-                import tempfile
-                import subprocess
-                
                 with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
                     temp_wav_path = temp_wav.name
                 
@@ -373,9 +369,8 @@ class AudioCore:
             logger.debug(f"背景音文件大小: {os.path.getsize(file_path)} bytes")
 
             # 检查文件是否为WAV格式
-            import os
             file_ext = os.path.splitext(file_path)[1].lower()
-            
+
             # 如果是WAV格式，直接使用wave模块加载
             if file_ext == '.wav':
                 with wave.open(file_path, 'rb') as wf:
@@ -390,9 +385,6 @@ class AudioCore:
                 logger.debug(f"背景音转换后的音频数据长度: {len(audio_data)} samples")
             else:
                 # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
-                import tempfile
-                import subprocess
-                
                 with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
                     temp_wav_path = temp_wav.name
                 
