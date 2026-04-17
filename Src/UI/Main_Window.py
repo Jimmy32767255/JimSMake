@@ -2085,16 +2085,35 @@ class MainWindow(QMainWindow):
     def get_project_base_dir(self):
         """获取项目基础目录"""
         # 项目目录需要存储在用户可写的位置，而不是打包的临时目录
-        # 使用应用程序数据目录
         import sys
+        import platform
 
-        if getattr(sys, 'frozen', False):
-            # 打包版本：使用可执行文件所在目录
+        # 检测是否在 AppImage 环境中运行
+        # AppImage 会设置 APPIMAGE 环境变量
+        is_appimage = os.environ.get('APPIMAGE') is not None
+        
+        # 检测是否是 PyInstaller 打包的 Windows exe
+        is_pyinstaller = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+        
+        if is_appimage:
+            # AppImage 环境：sys.executable 指向挂载的只读目录
+            # 使用当前工作目录作为项目存储位置
+            cwd = os.getcwd()
+            project_dir = os.path.join(cwd, "Project")
+            logger.debug(f"AppImage 模式项目目录: {project_dir}")
+            return project_dir
+        elif is_pyinstaller:
+            # PyInstaller 打包的 Windows exe
+            # 使用可执行文件所在目录（Windows 上通常是可写的）
             exe_dir = os.path.dirname(sys.executable)
-            return os.path.join(exe_dir, "Project")
+            project_dir = os.path.join(exe_dir, "Project")
+            logger.debug(f"PyInstaller 模式项目目录: {project_dir}")
+            return project_dir
         else:
             # 开发版本：使用项目根目录
-            return os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+            project_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+            logger.debug(f"开发模式项目目录: {project_dir}")
+            return project_dir
 
     def get_current_project_dir(self):
         """获取当前项目目录"""

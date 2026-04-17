@@ -1,0 +1,128 @@
+# AppImage Builder 配置文件
+# 用于构建 JimSMake 的 AppImage 包
+
+version: 1
+
+script:
+  # 创建 AppDir 结构
+  - rm -rf $TARGET_APPDIR || true
+  - mkdir -p $TARGET_APPDIR/usr/share/jimsmake
+  - mkdir -p $TARGET_APPDIR/usr/bin
+  - mkdir -p $TARGET_APPDIR/usr/share/applications
+  - mkdir -p $TARGET_APPDIR/usr/share/icons/hicolor/256x256/apps
+  - mkdir -p $TARGET_APPDIR/usr/share/pixmaps
+
+  # 复制程序文件
+  - cp -r $SOURCE_DIR/Src $TARGET_APPDIR/usr/share/jimsmake/
+  - cp -r $SOURCE_DIR/Assets $TARGET_APPDIR/usr/share/jimsmake/
+  - cp -r $SOURCE_DIR/Translation $TARGET_APPDIR/usr/share/jimsmake/
+
+  # 复制图标
+  - cp $SOURCE_DIR/Assets/SMakeIcon256.png $TARGET_APPDIR/usr/share/icons/hicolor/256x256/apps/jimsmake.png
+  - cp $SOURCE_DIR/Assets/SMakeIcon256.png $TARGET_APPDIR/usr/share/pixmaps/jimsmake.png
+
+  # 创建启动脚本
+  - |
+    cat > $TARGET_APPDIR/usr/bin/jimsmake << 'EOF'
+    #!/bin/bash
+    # JimSMake AppImage 启动脚本
+
+    # 获取 AppDir 路径
+    APP_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
+
+    # 设置 Python 路径
+    export PYTHONPATH="$APP_DIR/usr/share/jimsmake:$PYTHONPATH"
+
+    # 检查 FFmpeg
+    if ! command -v ffmpeg &> /dev/null; then
+        echo "警告: 未检测到 FFmpeg，请确保已安装 FFmpeg"
+        echo "您可以通过包管理器安装: sudo apt install ffmpeg (Debian/Ubuntu) 或 sudo pacman -S ffmpeg (Arch)"
+    fi
+
+    # 启动程序
+    exec python3 "$APP_DIR/usr/share/jimsmake/Src/Main.py" "$@"
+    EOF
+  - chmod +x $TARGET_APPDIR/usr/bin/jimsmake
+
+  # 创建桌面文件
+  - |
+    cat > $TARGET_APPDIR/usr/share/applications/jimsmake.desktop << 'EOF'
+    [Desktop Entry]
+    Name=JimSMake
+    Comment=一站式潜意识音频制作工具
+    Exec=jimsmake
+    Icon=jimsmake
+    Terminal=false
+    Type=Application
+    Categories=Utility
+    StartupNotify=true
+    EOF
+
+  # 创建 AppRun 脚本
+  - |
+    cat > $TARGET_APPDIR/AppRun << 'EOF'
+    #!/bin/bash
+    # AppImage 入口点
+
+    # 获取 AppDir 路径
+    SELF=$(readlink -f "$0")
+    HERE=${SELF%/*}
+
+    # 设置环境变量
+    export PATH="$HERE/usr/bin:$PATH"
+    export PYTHONPATH="$HERE/usr/share/jimsmake:$PYTHONPATH"
+
+    # 检查 FFmpeg
+    if ! command -v ffmpeg &> /dev/null; then
+        echo "警告: 未检测到 FFmpeg，请确保已安装 FFmpeg"
+        echo "您可以通过包管理器安装: sudo apt install ffmpeg (Debian/Ubuntu) 或 sudo pacman -S ffmpeg (Arch)"
+    fi
+
+    # 启动程序
+    exec python3 "$HERE/usr/share/jimsmake/Src/Main.py" "$@"
+    EOF
+  - chmod +x $TARGET_APPDIR/AppRun
+
+  # 创建 .desktop 文件到根目录
+  - cp $TARGET_APPDIR/usr/share/applications/jimsmake.desktop $TARGET_APPDIR/jimsmake.desktop
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: com.github.jimmy32767255.jimsmake
+    name: JimSMake
+    icon: jimsmake
+    version: 1.2.0
+    exec: usr/bin/jimsmake
+    exec_args: "$@"
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C'
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse'
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse'
+
+    include:
+      - python3
+      - python3-pyqt5
+      - python3-pyqt5.sip
+      - libportaudio2
+      - libqt5core5a
+      - libqt5gui5
+      - libqt5widgets5
+
+  files:
+    exclude:
+      - usr/share/man
+      - usr/share/doc/*/README.*
+      - usr/share/doc/*/changelog.*
+      - usr/share/doc/*/NEWS.*
+      - usr/share/doc/*/TODO.*
+
+AppImage:
+  arch: x86_64
+  update-information: guess
+  sign-key: None
