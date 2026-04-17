@@ -18,9 +18,11 @@ Project：项目
                 $版本号.mkv
 Qt：Qt 界面设计文件
 Src：SMake 源代码文件
-    Procwaaors：处理器
-        AudioProcwaaors.py：音频处理器代码文件
-        VideoProcwaaors.py：视频处理器代码文件
+    Processors：处理器
+        AudioCore.py: 音频处理核心模块
+        AudioProcessors.py：音频处理器代码文件
+        VideoCore.py: 视频处理核心模块
+        VideoProcessors.py：视频处理器代码文件
     UI:UI 代码文件
         Main_Windows.py：主窗口代码文件
     Cli.py：命令行支持模块代码文件
@@ -32,7 +34,13 @@ Translation：UI 翻译文件
     SMake.pro：翻译集合文件
 .gitattributes：git 大文件加速列表
 .gitignore：git 忽略追踪列表
+AppImageBuilder.yml: AppImage构建配置
+Build.bat: Windows 构建脚本
+Build.sh: GNU/Linux 构建脚本
+Build.spec: PyInstall 打包配置
 DirInfo.txt：目录信息
+LICENSE: 开源许可证
+PKGBUILD: Arch Linux / AUR 包构建配置
 README.md：项目描述
 requirements.txt：项目依赖列表
 Start.sh：Linux 启动脚本

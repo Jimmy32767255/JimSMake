@@ -1,8 +1,14 @@
 # JimSMake - 一站式潜意识音频制作工具
 
+简体中文 | [English](./Docs/README_en-US.md)
+
 ## 项目简介
 
 JimSMake 是一款专业的潜意识音频制作工具，提供直观的图形界面和命令行界面，帮助用户轻松创建潜意识音频内容。
+
+[目录信息](DirInfo.txt)
+[许可证](LICENSE)
+[待办事项](todo.md)
 
 ### 主要特性
 
@@ -39,13 +45,13 @@ makepkg -si
 **其他 Linux 发行版 (AppImage):**
 ```bash
 # 下载 AppImage 文件
-wget https://github.com/Jimmy32767255/JimSMake/releases/latest/download/JimSMake-x86_64.AppImage
+wget https://github.com/Jimmy32767255/JimSMake/releases/latest/download/GNU-Linux-amd64.AppImage
 
 # 添加执行权限
-chmod +x JimSMake-x86_64.AppImage
+chmod +x GNU-Linux-amd64.AppImage
 
 # 运行
-./JimSMake-x86_64.AppImage
+./GNU-Linux-amd64.AppImage
 ```
 
 对于解释执行版本则需要以下额外条件：
@@ -272,7 +278,7 @@ build.bat
 ./Build.sh
 ```
 
-构建完成后会生成 `JimSMake-x86_64.AppImage` 文件。
+构建产物生成于 `./dist/Linux/GNU-Linux-amd64.AppImage` 。
 
 #### 构建 Arch Linux 包
 
@@ -333,10 +339,6 @@ build.bat -g
    ```bash
    lrelease ./Translation/SMake.pro
    ```
-
-## 许可证
-
-本项目采用 GPLv3 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 联系方式
 
