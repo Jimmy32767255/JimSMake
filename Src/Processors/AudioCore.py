@@ -419,11 +419,11 @@ class AudioCore:
                     sample_width = wf.getsampwidth()
                     framerate = wf.getframerate()
                     n_frames = wf.getnframes()
-                logger.debug(f"背景音WAV文件信息 - 通道数: {n_channels}, 采样宽度: {sample_width}, 采样率: {framerate}, 帧数: {n_frames}")
-                raw_data = wf.readframes(n_frames)
-                logger.debug(f"背景音WAV原始数据大小: {len(raw_data)} bytes")
-                audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
-                logger.debug(f"背景音转换后的音频数据长度: {len(audio_data)} samples")
+                    logger.debug(f"背景音WAV文件信息 - 通道数: {n_channels}, 采样宽度: {sample_width}, 采样率: {framerate}, 帧数: {n_frames}")
+                    raw_data = wf.readframes(n_frames)
+                    logger.debug(f"背景音WAV原始数据大小: {len(raw_data)} bytes")
+                    audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                    logger.debug(f"背景音转换后的音频数据长度: {len(audio_data)} samples")
             else:
                 # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
                 with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
