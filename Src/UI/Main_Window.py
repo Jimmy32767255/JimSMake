@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton,
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
-                             QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog)
+                             QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog,
+                             QTextEdit)
 from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal, QTimer
 import pyttsx3
 import pyaudio
@@ -100,7 +101,7 @@ class AudioRecorder(QThread):
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
-    MAX_TEXT_LENGTH = 10000  # 最大文本长度限制
+    MAX_TEXT_SIZE_BYTES = 1024 * 1024  # 最大文本大小限制：1 MB
     TEXT_FILE_ENCODING = 'utf-8'  # 默认编码
     SUPPORTED_ENCODINGS = ['utf-8', 'gbk', 'gb2312', 'utf-16', 'latin-1', 'ascii']
 
@@ -128,6 +129,7 @@ class MainWindow(QMainWindow):
         self.enumerate_tts_engines()
         self.enumerate_audio_devices()
         self.setup_text_file_sync()    # 设置文本文件同步
+        self.setup_log_handler()       # 设置日志处理器
 
         # UI初始化完成后，如果当前有项目，自动加载资源
         if hasattr(self, 'current_project_name') and self.current_project_name:
@@ -168,8 +170,13 @@ class MainWindow(QMainWindow):
         import sys
 
         if getattr(sys, 'frozen', False):
-            # 打包版本：使用 PyInstaller 的 _MEIPASS
-            return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+            # 打包版本：优先使用可执行文件所在目录，便于用户自定义资源
+            exe_dir = os.path.dirname(sys.executable)
+            # 检查可执行文件所在目录是否有 Translation 文件夹
+            if os.path.exists(os.path.join(exe_dir, "Translation")):
+                return exe_dir
+            # 否则使用 PyInstaller 的 _MEIPASS 临时目录
+            return getattr(sys, '_MEIPASS', exe_dir)
         else:
             # 开发版本：使用项目根目录
             return os.path.join(os.path.dirname(__file__), "..", "..")
@@ -229,6 +236,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
             if hasattr(self, 'settings_tab_index'):
                 self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
+            if hasattr(self, 'log_tab_index'):
+                self.tab_widget.setTabText(self.log_tab_index, self.tr("日志"))
             logger.debug("选项卡标题翻译完成")
 
         # 更新窗口标题
@@ -291,8 +300,6 @@ class MainWindow(QMainWindow):
             self.label_bg_volume.setText(self.tr("音量:"))
             self.background_volume.setToolTip(self.tr("改变背景音音轨的音量。（单位为分贝）"))
 
-
-
         # 更新输出组
         if hasattr(self, 'output_group'):
             self.output_group.setTitle(self.tr("输出"))
@@ -335,6 +342,12 @@ class MainWindow(QMainWindow):
             self.reset_settings_btn.setText(self.tr("重置设置"))
             self.about_group.setTitle(self.tr("关于"))
             self.about_label.setText(self.tr("SMake"))
+
+        # 更新日志组
+        if hasattr(self, 'log_group'):
+            self.log_group.setTitle(self.tr("日志输出"))
+            self.clear_log_btn.setText(self.tr("清空日志"))
+            self.clear_log_btn.setToolTip(self.tr("清空日志显示区域"))
 
         # 更新项目组
         if hasattr(self, 'project_group'):
@@ -419,38 +432,59 @@ class MainWindow(QMainWindow):
     def enumerate_audio_devices(self):
         """枚举系统中可用的音频输入设备"""
         logger.debug("开始枚举音频输入设备")
-        
+
         try:
             # 清空现有选项
             self.record_device.clear()
-            
+
             # 添加默认选项
             self.record_device.addItem(self.tr("系统默认"))
-            
+
             # 使用pyaudio枚举音频设备
             p = pyaudio.PyAudio()
             device_count = p.get_device_count()
             logger.debug(f"系统中共有 {device_count} 个音频设备")
-            
+
             input_devices = []
+            seen_names = set()  # 用于去重
+
             for i in range(device_count):
                 device_info = p.get_device_info_by_index(i)
-                
+
                 # 只显示输入设备（麦克风）
                 if device_info['maxInputChannels'] > 0:
                     device_name = device_info['name']
                     # 清理设备名称中的特殊字符
                     device_name = device_name.strip()
-                    
-                    # 添加设备到下拉列表
-                    self.record_device.addItem(device_name)
-                    input_devices.append(device_name)
-                    logger.debug(f"添加音频输入设备: {device_name}")
-            
+
+                    # 跳过重复设备
+                    if device_name in seen_names:
+                        logger.debug(f"跳过重复设备: {device_name}")
+                        continue
+
+                    # 过滤掉虚拟设备和监控设备
+                    skip_keywords = ['monitor', 'loopback', 'null', 'dummy', 'pulseaudio',
+                                     'default', 'hw:', 'surround', 'hdmi', 'spdif', 'sysdefault',
+                                     'front:', 'rear:', 'center_lfe:', 'side:', 'iec958',
+                                     'dmix', 'dsnoop', 'plughw', 'usbstream', 'jack',
+                                     'alsa', 'oss', 'a52', 'vdownmix', 'upmix', 'Chromium',
+                                     'Firefox', 'lavrate', 'samplerate', 'speexrate',
+                                     'pulse', 'speex', 'pipewire']
+                    if any(keyword in device_name.lower() for keyword in skip_keywords):
+                        logger.debug(f"过滤掉虚拟/监控设备: {device_name}")
+                        continue
+
+                    seen_names.add(device_name)
+
+                    # 添加设备到下拉列表，同时存储设备索引
+                    self.record_device.addItem(device_name, i)
+                    input_devices.append((device_name, i))
+                    logger.debug(f"添加音频输入设备: {device_name} (索引: {i})")
+
             # 释放pyaudio资源
             p.terminate()
             logger.info(f"音频设备枚举完成，共找到 {len(input_devices)} 个输入设备")
-            
+
         except Exception as e:
             # 如果枚举失败，保留默认选项
             logger.error(f"音频设备枚举失败: {e}")
@@ -606,6 +640,11 @@ class MainWindow(QMainWindow):
         brainwave_layout = QVBoxLayout(brainwave_widget)
         brainwave_layout.addWidget(self.create_brainwave_group())
 
+        # 创建日志选项卡内容
+        log_widget = QWidget()
+        log_layout = QVBoxLayout(log_widget)
+        log_layout.addWidget(self.create_log_group())
+
         # 添加选项卡
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
@@ -613,6 +652,7 @@ class MainWindow(QMainWindow):
         self.brainwave_tab_index = self.tab_widget.addTab(brainwave_widget, self.tr("脑波音频"))
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
+        self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
         
         main_layout.addWidget(self.tab_widget)
         
@@ -917,6 +957,7 @@ class MainWindow(QMainWindow):
         self.generate_audio = QCheckBox(self.tr("生成音频"))
         self.generate_audio.setChecked(True)
         self.generate_audio.setToolTip(self.tr("是否生成音频。"))
+        self.generate_audio.toggled.connect(self.on_generate_audio_toggled)
         layout.addWidget(self.generate_audio, row, 0, 1, 2)
 
         # 音频设置组
@@ -943,6 +984,7 @@ class MainWindow(QMainWindow):
         # 生成视频复选框
         self.generate_video = QCheckBox(self.tr("生成视频"))
         self.generate_video.setToolTip(self.tr("是否生成视频。"))
+        self.generate_video.toggled.connect(self.on_generate_video_toggled)
         layout.addWidget(self.generate_video, row, 0, 1, 2)
 
         # 视频设置组
@@ -1051,16 +1093,105 @@ class MainWindow(QMainWindow):
         self.output_group.setLayout(layout)
         return self.output_group
 
-# ---以上为界面部分，使用QtDesigner时请将生成的代码粘贴覆盖到上方，本界面相关逻辑即将在下方实现。---
+    def on_generate_audio_toggled(self, checked):
+        """生成音频复选框状态变化处理"""
+        # 如果取消勾选音频，且视频也未勾选，则阻止取消勾选并提示
+        if not checked and not self.generate_video.isChecked():
+            # 阻止信号递归
+            self.generate_audio.blockSignals(True)
+            self.generate_audio.setChecked(True)
+            self.generate_audio.blockSignals(False)
+            QMessageBox.warning(self, self.tr("提示"), self.tr("必须至少选择生成音频或生成视频一项！"))
+
+    def on_generate_video_toggled(self, checked):
+        """生成视频复选框状态变化处理"""
+        # 如果取消勾选视频，且音频也未勾选，则阻止取消勾选并提示
+        if not checked and not self.generate_audio.isChecked():
+            # 阻止信号递归
+            self.generate_video.blockSignals(True)
+            self.generate_video.setChecked(True)
+            self.generate_video.blockSignals(False)
+            QMessageBox.warning(self, self.tr("提示"), self.tr("必须至少选择生成音频或生成视频一项！"))
 
     def browse_file(self, line_edit, file_filter):
         """浏览文件对话框"""
+        logger.debug(f"打开文件浏览对话框 - 过滤器: {file_filter}")
         file_path, _ = QFileDialog.getOpenFileName(self, self.tr("选择文件"), "", file_filter)
         if file_path:
+            logger.debug(f"选择的文件路径: {file_path}")
+            logger.debug(f"文件绝对路径: {os.path.abspath(file_path)}")
+            logger.debug(f"文件是否存在: {os.path.exists(file_path)}")
+            if os.path.exists(file_path):
+                logger.debug(f"文件大小: {os.path.getsize(file_path)} bytes")
             line_edit.setText(file_path)
             # 如果是文本文件输入框，自动加载文件内容
             if line_edit == self.text_file:
                 self.load_text_from_file(file_path)
+
+    # ==================== 日志处理相关方法 ====================
+
+    def setup_log_handler(self):
+        """设置日志处理器，将日志输出到UI"""
+        from loguru import logger
+        import sys
+
+        class UILogHandler:
+            """自定义日志处理器，将日志发送到UI"""
+            def __init__(self, main_window):
+                self.main_window = main_window
+
+            def write(self, message):
+                """写入日志消息"""
+                # 直接传递原始消息，不做任何处理
+                clean_message = message.strip()
+                if clean_message:
+                    # 使用 QTimer.singleShot 确保在主线程中更新UI
+                    from PyQt5.QtCore import QTimer
+                    QTimer.singleShot(0, lambda msg=clean_message: 
+                        self.main_window.append_log_message(msg))
+
+            def flush(self):
+                pass
+
+        # 添加自定义处理器到 loguru，使用原始格式
+        self.ui_log_handler = UILogHandler(self)
+        logger.add(self.ui_log_handler, 
+                   format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}", 
+                   level="DEBUG")
+        
+        # 显示缓存的UI初始化前日志
+        self._display_cached_logs()
+        
+        logger.info("UI日志处理器已设置")
+
+    def _display_cached_logs(self):
+        """显示UI初始化之前缓存的日志"""
+        from loguru import logger
+        
+        # 获取日志文件路径
+        log_file = os.path.join(os.path.dirname(__file__), "..", "..", "SMake.log")
+        log_file = os.path.abspath(log_file)
+        
+        if os.path.exists(log_file) and hasattr(self, 'log_text_edit'):
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    # 读取最后100行（避免加载过多）
+                    lines = f.readlines()
+                    last_lines = lines[-100:] if len(lines) > 100 else lines
+                    
+                    for line in last_lines:
+                        line = line.strip()
+                        if line:
+                            self.log_text_edit.append(line)
+                    
+                    # 添加分隔线
+                    if last_lines:
+                        self.log_text_edit.append("-" * 80)
+                        self.log_text_edit.append("[历史日志结束，以下为实时日志]")
+                        self.log_text_edit.append("")
+                        
+            except Exception as e:
+                logger.error(f"读取历史日志失败: {e}")
 
     # ==================== 文本文件同步方法 ====================
 
@@ -1117,8 +1248,11 @@ class MainWindow(QMainWindow):
 
     def load_text_from_file(self, file_path):
         """从文本文件加载内容到输入框"""
+        logger.debug(f"开始加载文本文件: {file_path}")
         if not file_path or not os.path.exists(file_path):
             logger.warning(f"文本文件不存在: {file_path}")
+            if file_path:
+                logger.debug(f"文本文件绝对路径: {os.path.abspath(file_path)}")
             return
 
         try:
@@ -1128,6 +1262,8 @@ class MainWindow(QMainWindow):
             # 检测文件编码
             encoding = self.detect_file_encoding(file_path)
             logger.info(f"加载文本文件: {file_path}, 编码: {encoding}")
+            logger.debug(f"文本文件绝对路径: {os.path.abspath(file_path)}")
+            logger.debug(f"文本文件大小: {os.path.getsize(file_path)} bytes")
 
             # 尝试使用检测到的编码读取
             content = None
@@ -1146,12 +1282,15 @@ class MainWindow(QMainWindow):
             if content is None:
                 raise Exception("无法使用任何支持的编码读取文件")
 
-            # 检查长度限制
-            if len(content) > self.MAX_TEXT_LENGTH:
-                content = content[:self.MAX_TEXT_LENGTH]
-                logger.warning(f"文本内容超过最大长度限制({self.MAX_TEXT_LENGTH})，已截断")
+            # 检查内存大小限制（1MB）
+            content_bytes = content.encode(self.TEXT_FILE_ENCODING, errors='ignore')
+            if len(content_bytes) > self.MAX_TEXT_SIZE_BYTES:
+                # 截断到大约1MB（考虑UTF-8编码，一个字符最多4字节）
+                safe_length = self.MAX_TEXT_SIZE_BYTES // 4
+                content = content[:safe_length]
+                logger.warning(f"文本内容超过最大大小限制({self.MAX_TEXT_SIZE_BYTES / 1024 / 1024:.1f}MB)，已截断")
                 QMessageBox.warning(self, self.tr("警告"),
-                                   self.tr(f"文本内容过长，已截断至{self.MAX_TEXT_LENGTH}个字符"))
+                                   self.tr(f"文本内容过大，已截断至安全长度"))
 
             # 更新输入框内容
             self.affirmation_text.setText(content)
@@ -1175,14 +1314,17 @@ class MainWindow(QMainWindow):
         if self.is_loading_text:
             return
 
-        # 检查长度限制
-        if len(text) > self.MAX_TEXT_LENGTH:
-            # 截断文本
-            self.affirmation_text.setText(text[:self.MAX_TEXT_LENGTH])
-            self.affirmation_text.setCursorPosition(self.MAX_TEXT_LENGTH)
-            logger.warning(f"输入文本超过最大长度限制({self.MAX_TEXT_LENGTH})，已截断")
+        # 检查内存大小限制（1MB）
+        text_bytes = text.encode(self.TEXT_FILE_ENCODING, errors='ignore')
+        if len(text_bytes) > self.MAX_TEXT_SIZE_BYTES:
+            # 截断到大约1MB（考虑UTF-8编码，一个字符最多4字节）
+            safe_length = self.MAX_TEXT_SIZE_BYTES // 4
+            truncated_text = text[:safe_length]
+            self.affirmation_text.setText(truncated_text)
+            self.affirmation_text.setCursorPosition(len(truncated_text))
+            logger.warning(f"输入文本超过最大大小限制({self.MAX_TEXT_SIZE_BYTES / 1024 / 1024:.1f}MB)，已截断")
             QMessageBox.warning(self, self.tr("警告"),
-                               self.tr(f"文本内容超过最大长度限制({self.MAX_TEXT_LENGTH}个字符)，已自动截断"))
+                               self.tr(f"文本内容过大（超过1MB），已自动截断至安全长度"))
             return
 
         # 如果有关联的文本文件，启动延迟保存
@@ -1194,7 +1336,10 @@ class MainWindow(QMainWindow):
     def save_text_to_file(self):
         """将输入框内容保存到文本文件"""
         if not self.current_text_file:
+            logger.debug("没有关联的文本文件，跳过保存")
             return
+
+        logger.debug(f"开始保存文本到文件: {self.current_text_file}")
 
         try:
             text = self.affirmation_text.text()
@@ -1202,6 +1347,7 @@ class MainWindow(QMainWindow):
             # 确保目录存在
             dir_path = os.path.dirname(self.current_text_file)
             if dir_path and not os.path.exists(dir_path):
+                logger.debug(f"创建目录: {os.path.abspath(dir_path)}")
                 os.makedirs(dir_path, exist_ok=True)
 
             # 使用UTF-8编码保存
@@ -1209,6 +1355,8 @@ class MainWindow(QMainWindow):
                 f.write(text)
 
             logger.debug(f"文本已保存到文件: {self.current_text_file}, 长度: {len(text)}")
+            logger.debug(f"文本文件绝对路径: {os.path.abspath(self.current_text_file)}")
+            logger.debug(f"保存后的文件大小: {os.path.getsize(self.current_text_file)} bytes")
 
         except PermissionError:
             logger.error(f"没有权限写入文件: {self.current_text_file}")
@@ -1244,18 +1392,21 @@ class MainWindow(QMainWindow):
 
         try:
             # 获取选中的录音设备
-            device_name = self.record_device.currentText()
             device_index = None
 
-            # 如果不是系统默认，查找设备索引
-            if device_name != self.tr("系统默认"):
-                p = pyaudio.PyAudio()
-                for i in range(p.get_device_count()):
-                    device_info = p.get_device_info_by_index(i)
-                    if device_info['name'].strip() == device_name and device_info['maxInputChannels'] > 0:
-                        device_index = i
-                        break
-                p.terminate()
+            # 如果不是系统默认，获取设备索引（存储在itemData中）
+            if self.record_device.currentText() != self.tr("系统默认"):
+                device_index = self.record_device.currentData()
+                if device_index is None:
+                    # 兼容旧逻辑：如果data为None，尝试通过名称查找
+                    device_name = self.record_device.currentText()
+                    p = pyaudio.PyAudio()
+                    for i in range(p.get_device_count()):
+                        device_info = p.get_device_info_by_index(i)
+                        if device_info['name'].strip() == device_name and device_info['maxInputChannels'] > 0:
+                            device_index = i
+                            break
+                    p.terminate()
 
             # 创建输出目录
             output_dir = self.get_affirmation_output_dir()
@@ -1359,10 +1510,33 @@ class MainWindow(QMainWindow):
     def get_audio_duration(self, file_path):
         """获取音频文件时长（秒）"""
         try:
-            with wave.open(file_path, 'rb') as wf:
-                frames = wf.getnframes()
-                rate = wf.getframerate()
-                return frames / float(rate)
+            import os
+            # 检查文件是否存在
+            if not file_path or not os.path.exists(file_path):
+                logger.error(f"音频文件不存在: {file_path}")
+                return None
+            
+            import subprocess
+            import json
+            # 确保路径格式正确
+            file_path = os.path.abspath(file_path)
+            cmd = [
+                'ffmpeg', '-i', file_path,
+                '-f', 'json', '-show_entries', 'format=duration',
+                '-loglevel', 'quiet'
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                output = json.loads(result.stdout)
+                duration = float(output['format']['duration'])
+                return duration
+            else:
+                # 如果ffmpeg失败，尝试使用wave模块（仅WAV文件）
+                import wave
+                with wave.open(file_path, 'rb') as wf:
+                    frames = wf.getnframes()
+                    rate = wf.getframerate()
+                    return frames / float(rate)
         except Exception as e:
             logger.error(f"获取音频时长失败: {file_path}, 错误: {e}")
             return None
@@ -1423,6 +1597,8 @@ class MainWindow(QMainWindow):
 
     def generate_project(self):
         """生成项目"""
+        logger.debug("开始生成项目")
+
         # 验证至少选择了一项
         if not self.generate_audio.isChecked() and not self.generate_video.isChecked():
             QMessageBox.warning(self, self.tr("警告"),
@@ -1430,10 +1606,16 @@ class MainWindow(QMainWindow):
             return
 
         # 验证必要文件
-        if self.generate_audio.isChecked() and not self.affirmation_file.text():
+        affirmation_file = self.affirmation_file.text()
+        if self.generate_audio.isChecked() and not affirmation_file:
             QMessageBox.warning(self, self.tr("警告"),
                                self.tr("生成音频需要选择肯定语音频文件！"))
             return
+
+        logger.debug(f"肯定语文件路径: {affirmation_file}")
+        if affirmation_file:
+            logger.debug(f"肯定语文件绝对路径: {os.path.abspath(affirmation_file)}")
+            logger.debug(f"肯定语文件是否存在: {os.path.exists(affirmation_file)}")
 
         # 检查是否选择了项目
         if not self.check_project_selected():
@@ -1453,6 +1635,8 @@ class MainWindow(QMainWindow):
         generate_audio = self.generate_audio.isChecked()
         generate_video = self.generate_video.isChecked()
 
+        logger.debug(f"生成选项 - 音频: {generate_audio}, 视频: {generate_video}")
+
         # 获取选择的音频格式
         audio_format = self.audio_format.currentText()
         format_ext = audio_format.lower()
@@ -1463,13 +1647,21 @@ class MainWindow(QMainWindow):
             import tempfile
             temp_dir = tempfile.gettempdir()
             audio_output_path = os.path.join(temp_dir, f"SMake_temp_audio_{timestamp}.wav")
+            logger.debug(f"使用临时音频路径: {audio_output_path}")
         else:
             # 正常保存到项目目录，使用选择的格式扩展名
             audio_output_path = os.path.join(project_dir, "Releases", "Audio", f"{timestamp}.{format_ext}")
+            logger.debug(f"使用项目音频路径: {audio_output_path}")
+
+        # 确保输出目录存在
+        output_dir = os.path.dirname(audio_output_path)
+        if output_dir and not os.path.exists(output_dir):
+            logger.debug(f"创建输出目录: {os.path.abspath(output_dir)}")
+            os.makedirs(output_dir, exist_ok=True)
 
         # 准备参数
         params = {
-            'affirmation_file': self.affirmation_file.text(),
+            'affirmation_file': affirmation_file,
             'background_file': self.background_file.text(),
             'volume': self.affirmation_volume_spin.value(),
             'frequency_mode': self.frequency_mode.currentIndex(),
@@ -1490,6 +1682,11 @@ class MainWindow(QMainWindow):
             'metadata_author': self.metadata_author.text(),
             'ensure_integrity': self.ensure_integrity_check.isChecked()
         }
+
+        logger.debug(f"生成项目参数 - output_path: {audio_output_path}")
+        logger.debug(f"生成项目参数 - affirmation_file: {affirmation_file}")
+        logger.debug(f"生成项目参数 - background_file: {self.background_file.text()}")
+        logger.debug(f"生成项目参数 - video_image: {self.video_image.text()}")
 
         # 创建进度对话框
         self.progress_dialog = QProgressDialog(self.tr("正在生成项目..."), self.tr("取消"), 0, 100, self)
@@ -1559,6 +1756,10 @@ class MainWindow(QMainWindow):
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+            logger.debug(f"start_video_generation - audio_path: {audio_path}")
+            logger.debug(f"start_video_generation - audio_path绝对路径: {os.path.abspath(audio_path)}")
+            logger.debug(f"start_video_generation - audio_path是否存在: {os.path.exists(audio_path)}")
+
             # 确定视频格式扩展名
             video_format = params.get('video_format', 'MP4')
             format_ext = {
@@ -1568,17 +1769,31 @@ class MainWindow(QMainWindow):
             }.get(video_format, '.mp4')
 
             video_output_path = os.path.join(project_dir, "Releases", "Video", f"{timestamp}{format_ext}")
+            logger.debug(f"视频输出路径: {video_output_path}")
+            logger.debug(f"视频输出绝对路径: {os.path.abspath(video_output_path)}")
+
+            # 确保视频输出目录存在
+            video_output_dir = os.path.dirname(video_output_path)
+            if video_output_dir and not os.path.exists(video_output_dir):
+                logger.debug(f"创建视频输出目录: {os.path.abspath(video_output_dir)}")
+                os.makedirs(video_output_dir, exist_ok=True)
 
             # 准备视频生成参数
+            video_image = params.get('video_image')
             video_params = {
                 'audio_path': audio_path,
-                'video_image': params.get('video_image'),
+                'video_image': video_image,
                 'video_output_path': video_output_path,
                 'video_format': video_format,
                 'video_resolution': params.get('video_resolution', '1920x1080'),
                 'metadata_title': params.get('metadata_title', ''),
                 'metadata_author': params.get('metadata_author', '')
             }
+
+            logger.debug(f"视频生成参数 - video_image: {video_image}")
+            if video_image:
+                logger.debug(f"视频生成参数 - video_image绝对路径: {os.path.abspath(video_image)}")
+                logger.debug(f"视频生成参数 - video_image是否存在: {os.path.exists(video_image)}")
 
             logger.info(f"开始视频生成: {video_output_path}")
 
@@ -1807,26 +2022,108 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, self.tr("成功"),
                                    self.tr("所有设置已重置为默认值。"))
 
+    def create_log_group(self):
+        """创建日志输出组"""
+        self.log_group = QGroupBox(self.tr("日志输出"))
+        layout = QVBoxLayout()
+
+        # 日志显示区域
+        self.log_text_edit = QTextEdit()
+        self.log_text_edit.setReadOnly(True)
+        self.log_text_edit.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.log_text_edit.setStyleSheet("""
+            QTextEdit {
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+                font-family: Consolas, Monaco, monospace;
+                font-size: 12px;
+                border: 1px solid #3c3c3c;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
+        layout.addWidget(self.log_text_edit)
+
+        # 清空日志按钮
+        button_layout = QGridLayout()
+        self.clear_log_btn = QPushButton(self.tr("清空日志"))
+        self.clear_log_btn.setToolTip(self.tr("清空日志显示区域"))
+        self.clear_log_btn.clicked.connect(self.clear_log_display)
+        button_layout.addWidget(self.clear_log_btn, 0, 0)
+
+        # 添加弹性空间
+        button_layout.setColumnStretch(1, 1)
+        layout.addLayout(button_layout)
+
+        self.log_group.setLayout(layout)
+        return self.log_group
+
+    def clear_log_display(self):
+        """清空日志显示区域"""
+        if hasattr(self, 'log_text_edit'):
+            self.log_text_edit.clear()
+            logger.info("日志显示区域已清空")
+
+    def append_log_message(self, message):
+        """添加日志消息到显示区域
+        
+        Args:
+            message: 日志消息内容（原始格式）
+        """
+        if not hasattr(self, 'log_text_edit'):
+            return
+
+        # 直接显示原始消息，不做任何颜色或格式处理
+        self.log_text_edit.append(message)
+
+        # 自动滚动到底部
+        scrollbar = self.log_text_edit.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
     # ==================== 项目管理方法 ====================
 
     def get_project_base_dir(self):
         """获取项目基础目录"""
         # 项目目录需要存储在用户可写的位置，而不是打包的临时目录
-        # 使用应用程序数据目录
         import sys
+        import platform
 
-        if getattr(sys, 'frozen', False):
-            # 打包版本：使用可执行文件所在目录
+        # 检测是否在 AppImage 环境中运行
+        # AppImage 会设置 APPIMAGE 环境变量
+        is_appimage = os.environ.get('APPIMAGE') is not None
+        
+        # 检测是否是 PyInstaller 打包的 Windows exe
+        is_pyinstaller = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+        
+        if is_appimage:
+            # AppImage 环境：sys.executable 指向挂载的只读目录
+            # 使用当前工作目录作为项目存储位置
+            cwd = os.getcwd()
+            project_dir = os.path.join(cwd, "Project")
+            logger.debug(f"AppImage 模式项目目录: {project_dir}")
+            return project_dir
+        elif is_pyinstaller:
+            # PyInstaller 打包的 Windows exe
+            # 使用可执行文件所在目录（Windows 上通常是可写的）
             exe_dir = os.path.dirname(sys.executable)
-            return os.path.join(exe_dir, "Project")
+            project_dir = os.path.join(exe_dir, "Project")
+            logger.debug(f"PyInstaller 模式项目目录: {project_dir}")
+            return project_dir
         else:
             # 开发版本：使用项目根目录
-            return os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+            project_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+            logger.debug(f"开发模式项目目录: {project_dir}")
+            return project_dir
 
     def get_current_project_dir(self):
         """获取当前项目目录"""
         if hasattr(self, 'current_project_name') and self.current_project_name:
-            return os.path.join(self.get_project_base_dir(), self.current_project_name)
+            project_dir = os.path.join(self.get_project_base_dir(), self.current_project_name)
+            logger.debug(f"获取当前项目目录: {project_dir}")
+            logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
+            logger.debug(f"项目目录是否存在: {os.path.exists(project_dir)}")
+            return project_dir
+        logger.debug("没有当前项目，返回None")
         return None
 
     def refresh_project_list(self):
@@ -1890,16 +2187,22 @@ class MainWindow(QMainWindow):
     def load_project_resources(self, project_dir):
         """自动加载项目中的资源文件"""
         if not project_dir or not os.path.exists(project_dir):
+            logger.debug(f"项目目录不存在: {project_dir}")
             return
 
         logger.info(f"加载项目资源: {project_dir}")
+        logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
 
         assets_dir = os.path.join(project_dir, "Assets")
         affirmation_dir = os.path.join(assets_dir, "Affirmation")
 
+        logger.debug(f"Assets目录: {assets_dir}, 是否存在: {os.path.exists(assets_dir)}")
+        logger.debug(f"Affirmation目录: {affirmation_dir}, 是否存在: {os.path.exists(affirmation_dir)}")
+
         # 1. 加载 Raw.txt 文本文件
         if hasattr(self, 'text_file') and self.text_file is not None:
             raw_txt_path = os.path.join(affirmation_dir, "Raw.txt")
+            logger.debug(f"查找文本文件: {raw_txt_path}, 是否存在: {os.path.exists(raw_txt_path)}")
             if os.path.exists(raw_txt_path):
                 self.text_file.setText(raw_txt_path)
                 self.load_text_from_file(raw_txt_path)
@@ -1913,39 +2216,49 @@ class MainWindow(QMainWindow):
         # 2. 自动检测并加载肯定语音频文件（Affirmation 目录中的 .wav 或 .mp3 文件，排除 Raw.txt）
         if hasattr(self, 'affirmation_file') and self.affirmation_file is not None:
             affirmation_audio = self.find_first_audio_file(affirmation_dir)
+            logger.debug(f"查找肯定语音频文件: {affirmation_audio}")
             if affirmation_audio:
                 self.affirmation_file.setText(affirmation_audio)
                 logger.info(f"自动加载肯定语音频: {affirmation_audio}")
+                logger.debug(f"肯定语音频绝对路径: {os.path.abspath(affirmation_audio)}")
             else:
                 self.affirmation_file.clear()
 
         # 3. 自动检测并加载背景音乐（Assets 目录中的 BGM.wav 或其他音频文件）
         if hasattr(self, 'background_file') and self.background_file is not None:
             bgm_path = os.path.join(assets_dir, "BGM.wav")
+            logger.debug(f"查找背景音乐文件: {bgm_path}, 是否存在: {os.path.exists(bgm_path)}")
             if os.path.exists(bgm_path):
                 self.background_file.setText(bgm_path)
                 logger.info(f"自动加载背景音乐: {bgm_path}")
+                logger.debug(f"背景音乐绝对路径: {os.path.abspath(bgm_path)}")
             else:
                 # 尝试查找 Assets 目录中的其他音频文件
                 bg_audio = self.find_first_audio_file(assets_dir, exclude_names=["Raw.txt"])
+                logger.debug(f"查找其他背景音乐文件: {bg_audio}")
                 if bg_audio and os.path.basename(bg_audio) != "Raw.txt":
                     self.background_file.setText(bg_audio)
                     logger.info(f"自动加载背景音乐: {bg_audio}")
+                    logger.debug(f"背景音乐绝对路径: {os.path.abspath(bg_audio)}")
                 else:
                     self.background_file.clear()
 
         # 4. 自动检测并加载视觉化图片（Assets 目录中的 Visualization.png 或其他图片文件）
         if hasattr(self, 'video_image') and self.video_image is not None:
             viz_path = os.path.join(assets_dir, "Visualization.png")
+            logger.debug(f"查找视觉化图片: {viz_path}, 是否存在: {os.path.exists(viz_path)}")
             if os.path.exists(viz_path):
                 self.video_image.setText(viz_path)
                 logger.info(f"自动加载视觉化图片: {viz_path}")
+                logger.debug(f"视觉化图片绝对路径: {os.path.abspath(viz_path)}")
             else:
                 # 尝试查找 Assets 目录中的其他图片文件
                 image_file = self.find_first_image_file(assets_dir)
+                logger.debug(f"查找其他视觉化图片: {image_file}")
                 if image_file:
                     self.video_image.setText(image_file)
                     logger.info(f"自动加载视觉化图片: {image_file}")
+                    logger.debug(f"视觉化图片绝对路径: {os.path.abspath(image_file)}")
                 else:
                     self.video_image.clear()
 

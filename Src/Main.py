@@ -1,4 +1,5 @@
 import sys
+import os
 import argparse
 from loguru import logger
 
@@ -65,6 +66,9 @@ CLI模式示例:
                         help='CLI: 音频/视频作者元数据')
     parser.add_argument('--version', action='store_true',
                         help='显示版本信息')
+    parser.add_argument('--log-level', default='INFO',
+                        choices=['TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNING', 'ERROR', 'CRITICAL'],
+                        help='设置日志级别 (默认: INFO)')
 
     return parser.parse_args()
 
@@ -89,6 +93,20 @@ def run_cli(args):
         print("使用 --help 查看帮助信息")
         return 1
 
+    logger.debug(f"run_cli - affirmation: {args.affirmation}")
+    logger.debug(f"run_cli - affirmation绝对路径: {os.path.abspath(args.affirmation)}")
+    logger.debug(f"run_cli - affirmation是否存在: {os.path.exists(args.affirmation)}")
+    logger.debug(f"run_cli - output: {args.output}")
+    logger.debug(f"run_cli - output绝对路径: {os.path.abspath(args.output)}")
+    output_dir = os.path.dirname(args.output)
+    logger.debug(f"run_cli - output_dir: {output_dir}")
+    logger.debug(f"run_cli - output_dir绝对路径: {os.path.abspath(output_dir) if output_dir else 'None'}")
+    logger.debug(f"run_cli - output_dir是否存在: {os.path.exists(output_dir) if output_dir else False}")
+    if args.background:
+        logger.debug(f"run_cli - background: {args.background}")
+        logger.debug(f"run_cli - background绝对路径: {os.path.abspath(args.background)}")
+        logger.debug(f"run_cli - background是否存在: {os.path.exists(args.background)}")
+
     # 直接传递已解析的args对象，避免手动参数转换
     return cli.run(args)
 
@@ -98,11 +116,25 @@ def get_resource_path():
     import os
 
     if getattr(sys, 'frozen', False):
-        # 打包版本：使用 PyInstaller 的 _MEIPASS
-        return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        # 打包版本：优先使用可执行文件所在目录，便于用户自定义资源
+        exe_dir = os.path.dirname(sys.executable)
+        # 检查可执行文件所在目录是否有 Translation 文件夹
+        if os.path.exists(os.path.join(exe_dir, "Translation")):
+            logger.debug(f"获取资源路径(打包版本-可执行文件目录): {exe_dir}")
+            return exe_dir
+        # 否则使用 PyInstaller 的 _MEIPASS 临时目录
+        resource_path = getattr(sys, '_MEIPASS', exe_dir)
+        logger.debug(f"获取资源路径(打包版本-临时目录): {resource_path}")
+        logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
+        logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
+        return resource_path
     else:
         # 开发版本：使用项目根目录
-        return os.path.join(os.path.dirname(__file__), "..")
+        resource_path = os.path.join(os.path.dirname(__file__), "..")
+        logger.debug(f"获取资源路径(开发版本): {resource_path}")
+        logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
+        logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
+        return resource_path
 
 
 def run_gui():
@@ -122,16 +154,25 @@ def run_gui():
     base_dir = get_resource_path()
     translation_dir = os.path.join(base_dir, "Translation")
     logger.debug(f"翻译文件目录: {translation_dir}")
+    logger.debug(f"翻译文件目录绝对路径: {os.path.abspath(translation_dir)}")
+    logger.debug(f"翻译文件目录是否存在: {os.path.exists(translation_dir)}")
     logger.debug(f"基础目录: {base_dir}, 是否打包: {getattr(sys, 'frozen', False)}")
 
     available_translations = {}
     if os.path.exists(translation_dir):
-        for filename in os.listdir(translation_dir):
-            if filename.endswith('.qm'):
-                lang_code = filename[:-3]
-                file_path = os.path.join(translation_dir, filename)
-                available_translations[lang_code] = file_path
-                logger.debug(f"发现翻译文件: {lang_code} -> {file_path}")
+        try:
+            translation_files = os.listdir(translation_dir)
+            logger.debug(f"翻译目录内容: {translation_files}")
+            for filename in translation_files:
+                if filename.endswith('.qm'):
+                    lang_code = filename[:-3]
+                    file_path = os.path.join(translation_dir, filename)
+                    available_translations[lang_code] = file_path
+                    logger.debug(f"发现翻译文件: {lang_code} -> {file_path}")
+                    logger.debug(f"翻译文件绝对路径: {os.path.abspath(file_path)}")
+                    logger.debug(f"翻译文件大小: {os.path.getsize(file_path)} bytes")
+        except Exception as e:
+            logger.error(f"读取翻译目录失败: {e}")
 
     logger.info(f"可用翻译文件: {list(available_translations.keys())}")
 
@@ -186,25 +227,31 @@ def run_gui():
 
 def main():
     """主入口函数"""
+    # 先解析参数以获取日志级别
+    args = parse_args()
+
     logger.remove()
     try:
-        # 尝试添加 stderr 日志处理器
+        # 始终添加文件日志处理器（./SMake.log）
+        log_path = os.path.join(os.path.dirname(__file__), "..", "SMake.log")
+        log_path = os.path.abspath(log_path)
+        # 确保日志目录存在
+        log_dir = os.path.dirname(log_path)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+        logger.add(log_path, level=args.log_level, rotation="10 MB", encoding="utf-8",
+                   format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
+        logger.debug(f"日志文件路径: {log_path}")
+
+        # 如果有控制台，同时添加 stderr 日志处理器
         if sys.stderr is not None:
-            logger.add(sys.stderr, level="INFO",
+            logger.add(sys.stderr, level=args.log_level,
                        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
-        else:
-            # 无控制台环境（如打包后的 GUI 应用），使用文件日志
-            import tempfile
-            log_path = os.path.join(tempfile.gettempdir(), "SMake.log")
-            logger.add(log_path, level="INFO", rotation="10 MB",
-                       format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}")
     except Exception:
         # 如果添加日志处理器失败，静默处理
         pass
 
-    logger.info("应用程序启动")
-
-    args = parse_args()
+    logger.info(f"应用程序启动，日志级别: {args.log_level}")
 
     if args.version:
         print("SMake v1.0")

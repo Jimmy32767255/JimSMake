@@ -18,10 +18,28 @@ class AudioCore:
     def __init__(self, params=None):
         self.params = params or {}
         self.is_cancelled = False
+        logger.debug(f"AudioCore初始化 - 参数: {params}")
+        if params:
+            affirmation_file = params.get('affirmation_file')
+            background_file = params.get('background_file')
+            output_path = params.get('output_path')
+            logger.debug(f"AudioCore初始化文件路径 - affirmation_file: {affirmation_file}, background_file: {background_file}, output_path: {output_path}")
+            if affirmation_file:
+                logger.debug(f"肯定语文件绝对路径: {os.path.abspath(affirmation_file)}, 是否存在: {os.path.exists(affirmation_file)}")
+            if background_file:
+                logger.debug(f"背景音文件绝对路径: {os.path.abspath(background_file)}, 是否存在: {os.path.exists(background_file)}")
+            if output_path:
+                output_dir = os.path.dirname(output_path)
+                logger.debug(f"输出目录绝对路径: {os.path.abspath(output_dir) if output_dir else 'None'}, 是否存在: {os.path.exists(output_dir) if output_dir else False}")
 
     def set_params(self, params):
         """设置参数"""
+        logger.debug(f"AudioCore.set_params - 设置参数: {params}")
         self.params = params
+        affirmation_file = params.get('affirmation_file')
+        background_file = params.get('background_file')
+        output_path = params.get('output_path')
+        logger.debug(f"AudioCore.set_params文件路径 - affirmation_file: {affirmation_file}, background_file: {background_file}, output_path: {output_path}")
 
     def cancel(self):
         """取消处理"""
@@ -31,6 +49,40 @@ class AudioCore:
     def check_cancelled(self):
         """检查是否已取消"""
         return self.is_cancelled
+
+    def _get_ffmpeg_path(self):
+        """查找 ffmpeg 可执行文件路径"""
+        import sys
+
+        # 可能的 ffmpeg 可执行文件名
+        ffmpeg_names = ['ffmpeg.exe', 'ffmpeg'] if sys.platform == 'win32' else ['ffmpeg']
+
+        # 检查系统 PATH
+        for name in ffmpeg_names:
+            try:
+                result = subprocess.run(['where', name] if sys.platform == 'win32' else ['which', name],
+                                      capture_output=True, text=True)
+                if result.returncode == 0:
+                    ffmpeg_path = result.stdout.strip().split('\n')[0].strip()
+                    if ffmpeg_path:
+                        logger.debug(f"找到 ffmpeg (系统 PATH): {ffmpeg_path}")
+                        return ffmpeg_path
+            except Exception:
+                pass
+
+        # 尝试直接使用 ffmpeg（如果在 PATH 中）
+        for name in ffmpeg_names:
+            try:
+                result = subprocess.run([name, '-version'],
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    logger.debug(f"找到 ffmpeg (直接调用): {name}")
+                    return name
+            except Exception:
+                pass
+
+        logger.warning("未找到 ffmpeg 可执行文件")
+        return None
 
     def _wav_to_array(self, raw_data, sample_width, channels):
         """将WAV原始数据转换为列表"""
@@ -182,25 +234,82 @@ class AudioCore:
                 file_path = self.params.get('affirmation_file')
 
             logger.info(f"加载肯定语音频: {file_path}")
+            logger.debug(f"肯定语文件路径详情: file_path={file_path}")
+            if file_path:
+                logger.debug(f"肯定语文件绝对路径: {os.path.abspath(file_path)}")
+                logger.debug(f"肯定语文件是否存在: {os.path.exists(file_path)}")
+                if os.path.exists(file_path):
+                    logger.debug(f"肯定语文件大小: {os.path.getsize(file_path)} bytes")
 
             if not file_path or not os.path.exists(file_path):
                 logger.error(f"肯定语音频文件不存在: {file_path}")
+                if file_path:
+                    logger.debug(f"文件绝对路径: {os.path.abspath(file_path)}")
                 return None
+            
+            logger.debug(f"开始读取WAV文件: {file_path}")
+            # 确保路径格式正确
+            file_path = os.path.abspath(file_path)
 
-            with wave.open(file_path, 'rb') as wf:
-                n_channels = wf.getnchannels()
-                sample_width = wf.getsampwidth()
-                framerate = wf.getframerate()
-                n_frames = wf.getnframes()
-                raw_data = wf.readframes(n_frames)
+            # 检查文件是否为WAV格式
+            file_ext = os.path.splitext(file_path)[1].lower()
+
+            # 如果是WAV格式，直接使用wave模块加载
+            if file_ext == '.wav':
+                with wave.open(file_path, 'rb') as wf:
+                    n_channels = wf.getnchannels()
+                    sample_width = wf.getsampwidth()
+                    framerate = wf.getframerate()
+                    n_frames = wf.getnframes()
+                    logger.debug(f"WAV文件信息 - 通道数: {n_channels}, 采样宽度: {sample_width}, 采样率: {framerate}, 帧数: {n_frames}")
+                    raw_data = wf.readframes(n_frames)
+                logger.debug(f"WAV原始数据大小: {len(raw_data)} bytes")
                 audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                logger.debug(f"转换后的音频数据长度: {len(audio_data)} samples")
+            else:
+                # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
+                with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+                    temp_wav_path = temp_wav.name
 
-                return {
-                    'data': audio_data,
-                    'sample_rate': framerate,
-                    'channels': n_channels,
-                    'sample_width': sample_width
-                }
+                try:
+                    # 查找 ffmpeg 可执行文件
+                    ffmpeg_exe = self._get_ffmpeg_path()
+                    if not ffmpeg_exe:
+                        logger.error("未找到 ffmpeg 可执行文件，请确保 ffmpeg 在系统 PATH 中或放在应用程序目录")
+                        return None
+
+                    ffmpeg_cmd = [
+                        ffmpeg_exe, '-y', '-i', file_path,
+                        '-codec:a', 'pcm_s16le', temp_wav_path
+                    ]
+
+                    logger.debug(f"执行 FFmpeg 命令: {' '.join(ffmpeg_cmd)}")
+                    result = subprocess.run(
+                        ffmpeg_cmd, capture_output=True, text=True, timeout=60
+                    )
+
+                    if result.returncode != 0:
+                        logger.error(f"FFmpeg转换失败: {result.stderr}")
+                        return None
+
+                    # 加载转换后的WAV文件
+                    with wave.open(temp_wav_path, 'rb') as wf:
+                        n_channels = wf.getnchannels()
+                        sample_width = wf.getsampwidth()
+                        framerate = wf.getframerate()
+                        n_frames = wf.getnframes()
+                        raw_data = wf.readframes(n_frames)
+                        audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                finally:
+                    if os.path.exists(temp_wav_path):
+                        os.remove(temp_wav_path)
+
+            return {
+                'data': audio_data,
+                'sample_rate': framerate,
+                'channels': n_channels,
+                'sample_width': sample_width
+            }
 
         except Exception as e:
             logger.error(f"加载肯定语音频失败: {e}")
@@ -289,31 +398,86 @@ class AudioCore:
             bg_volume_db = self.params.get('background_volume', 0.0)
 
         if not file_path or not os.path.exists(file_path):
+            logger.debug(f"背景音文件不存在或路径为空: {file_path}")
             return None
 
         try:
+            # 确保路径格式正确
+            file_path = os.path.abspath(file_path)
             logger.info(f"加载背景音乐: {file_path}")
+            logger.debug(f"背景音文件路径详情: file_path={file_path}, target_sample_rate={target_sample_rate}")
+            logger.debug(f"背景音文件绝对路径: {os.path.abspath(file_path)}")
+            logger.debug(f"背景音文件大小: {os.path.getsize(file_path)} bytes")
 
-            with wave.open(file_path, 'rb') as wf:
-                n_channels = wf.getnchannels()
-                sample_width = wf.getsampwidth()
-                framerate = wf.getframerate()
-                n_frames = wf.getnframes()
-                raw_data = wf.readframes(n_frames)
-                audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+            # 检查文件是否为WAV格式
+            file_ext = os.path.splitext(file_path)[1].lower()
 
-                volume_factor = 10 ** (bg_volume_db / 20.0)
-                audio_data = [s * volume_factor for s in audio_data]
+            # 如果是WAV格式，直接使用wave模块加载
+            if file_ext == '.wav':
+                with wave.open(file_path, 'rb') as wf:
+                    n_channels = wf.getnchannels()
+                    sample_width = wf.getsampwidth()
+                    framerate = wf.getframerate()
+                    n_frames = wf.getnframes()
+                    logger.debug(f"背景音WAV文件信息 - 通道数: {n_channels}, 采样宽度: {sample_width}, 采样率: {framerate}, 帧数: {n_frames}")
+                    raw_data = wf.readframes(n_frames)
+                    logger.debug(f"背景音WAV原始数据大小: {len(raw_data)} bytes")
+                    audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                    logger.debug(f"背景音转换后的音频数据长度: {len(audio_data)} samples")
+            else:
+                # 对于非WAV格式，使用ffmpeg转换为临时WAV文件
+                with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+                    temp_wav_path = temp_wav.name
 
-                if framerate != target_sample_rate:
+                try:
+                    # 查找 ffmpeg 可执行文件
+                    ffmpeg_exe = self._get_ffmpeg_path()
+                    if not ffmpeg_exe:
+                        logger.error("未找到 ffmpeg 可执行文件，请确保 ffmpeg 在系统 PATH 中或放在应用程序目录")
+                        return None
+
+                    ffmpeg_cmd = [
+                        ffmpeg_exe, '-y', '-i', file_path,
+                        '-ac', '1', '-ar', str(target_sample_rate),
+                        '-codec:a', 'pcm_s16le', temp_wav_path
+                    ]
+
+                    logger.debug(f"执行 FFmpeg 命令: {' '.join(ffmpeg_cmd)}")
+                    result = subprocess.run(
+                        ffmpeg_cmd, capture_output=True, text=True, timeout=60
+                    )
+
+                    if result.returncode != 0:
+                        logger.error(f"FFmpeg转换失败: {result.stderr}")
+                        return None
+                    
+                    # 加载转换后的WAV文件
+                    with wave.open(temp_wav_path, 'rb') as wf:
+                        n_channels = wf.getnchannels()
+                        sample_width = wf.getsampwidth()
+                        framerate = wf.getframerate()
+                        n_frames = wf.getnframes()
+                        raw_data = wf.readframes(n_frames)
+                        audio_data = self._wav_to_array(raw_data, sample_width, n_channels)
+                finally:
+                    if os.path.exists(temp_wav_path):
+                        os.remove(temp_wav_path)
+
+            volume_factor = 10 ** (bg_volume_db / 20.0)
+            logger.debug(f"背景音音量调整: {bg_volume_db}dB, 音量因子: {volume_factor}")
+            audio_data = [s * volume_factor for s in audio_data]
+
+            if framerate != target_sample_rate:
+                    logger.debug(f"背景音需要重采样: {framerate} -> {target_sample_rate}")
                     audio_data = self._resample_audio(audio_data, framerate, target_sample_rate)
+                    logger.debug(f"背景音重采样后数据长度: {len(audio_data)} samples")
 
-                return {
-                    'data': audio_data,
-                    'sample_rate': target_sample_rate,
-                    'channels': 1,
-                    'sample_width': sample_width
-                }
+            return {
+                'data': audio_data,
+                'sample_rate': target_sample_rate,
+                'channels': 1,
+                'sample_width': sample_width
+            }
 
         except Exception as e:
             logger.error(f"加载背景音乐失败: {e}")
@@ -325,15 +489,19 @@ class AudioCore:
             ensure_integrity = self.params.get('ensure_integrity', False)
 
         logger.info("合并音频")
+        logger.debug(f"合并音频参数 - ensure_integrity={ensure_integrity}")
 
         aff_data = affirmation_data['data']
+        logger.debug(f"肯定语数据长度: {len(aff_data)} samples")
 
         if background_data is None:
+            logger.debug("背景音数据为空，返回肯定语数据")
             return affirmation_data
 
         bg_data = background_data['data']
         bg_length = len(bg_data)
         aff_length = len(aff_data)
+        logger.debug(f"背景音数据长度: {bg_length} samples, 肯定语数据长度: {aff_length} samples")
         result = []
 
         if ensure_integrity:
@@ -341,6 +509,7 @@ class AudioCore:
             remaining_samples = bg_length % aff_length
 
             logger.info(f"确保完整性模式: 完整循环次数={full_cycles}")
+            logger.debug(f"确保完整性模式详情 - full_cycles={full_cycles}, remaining_samples={remaining_samples}")
 
             for cycle in range(full_cycles):
                 for j in range(aff_length):
@@ -362,6 +531,8 @@ class AudioCore:
                 mixed = max(-1.0, min(1.0, mixed))
                 result.append(mixed)
 
+        logger.debug(f"合并完成，结果数据长度: {len(result)} samples")
+
         return {
             'data': result,
             'sample_rate': affirmation_data['sample_rate'],
@@ -371,7 +542,11 @@ class AudioCore:
 
     def save_audio_wav(self, audio_data, output_path):
         """保存为WAV格式"""
+        logger.debug(f"开始保存WAV文件: {output_path}")
+        logger.debug(f"输出目录绝对路径: {os.path.abspath(os.path.dirname(output_path))}")
+
         raw_data = self._array_to_wav(audio_data['data'], audio_data['sample_width'])
+        logger.debug(f"WAV原始数据大小: {len(raw_data)} bytes")
 
         with wave.open(output_path, 'wb') as wf:
             wf.setnchannels(audio_data['channels'])
@@ -380,20 +555,30 @@ class AudioCore:
             wf.writeframes(raw_data)
 
         logger.info(f"WAV音频文件已保存: {output_path}")
+        logger.debug(f"WAV文件保存成功，绝对路径: {os.path.abspath(output_path)}, 大小: {os.path.getsize(output_path)} bytes")
         return output_path
 
     def save_audio_mp3(self, audio_data, output_path, metadata_title='', metadata_author=''):
         """使用FFmpeg保存为MP3格式"""
+        logger.debug(f"开始保存MP3文件: {output_path}")
+        logger.debug(f"MP3输出目录绝对路径: {os.path.abspath(os.path.dirname(output_path))}")
+
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
             temp_wav_path = temp_wav.name
 
+        logger.debug(f"临时WAV文件路径: {temp_wav_path}")
+
         try:
             raw_data = self._array_to_wav(audio_data['data'], audio_data['sample_width'])
+            logger.debug(f"临时WAV原始数据大小: {len(raw_data)} bytes")
+
             with wave.open(temp_wav_path, 'wb') as wf:
                 wf.setnchannels(audio_data['channels'])
                 wf.setsampwidth(audio_data['sample_width'])
                 wf.setframerate(audio_data['sample_rate'])
                 wf.writeframes(raw_data)
+
+            logger.debug(f"临时WAV文件已写入: {temp_wav_path}, 大小: {os.path.getsize(temp_wav_path)} bytes")
 
             ffmpeg_cmd = [
                 'ffmpeg', '-y', '-i', temp_wav_path,
@@ -408,13 +593,18 @@ class AudioCore:
             ffmpeg_cmd.append(output_path)
 
             logger.info(f"转换为MP3: {output_path}")
+            logger.debug(f"FFmpeg命令: {' '.join(ffmpeg_cmd)}")
 
             result = subprocess.run(
                 ffmpeg_cmd, capture_output=True, text=True, timeout=120
             )
 
+            logger.debug(f"FFmpeg返回码: {result.returncode}")
+
             if result.returncode == 0:
                 logger.info(f"MP3音频文件已保存: {output_path}")
+                if os.path.exists(output_path):
+                    logger.debug(f"MP3文件保存成功，绝对路径: {os.path.abspath(output_path)}, 大小: {os.path.getsize(output_path)} bytes")
                 return output_path
             else:
                 logger.error(f"FFmpeg转换MP3失败: {result.stderr}")
@@ -423,12 +613,17 @@ class AudioCore:
         finally:
             if os.path.exists(temp_wav_path):
                 os.remove(temp_wav_path)
+                logger.debug(f"临时WAV文件已删除: {temp_wav_path}")
 
     def write_metadata(self, audio_path, metadata_title='', metadata_author=''):
         """使用FFmpeg写入元数据"""
         try:
             if not metadata_title and not metadata_author:
+                logger.debug("无元数据需要写入，跳过")
                 return
+
+            logger.debug(f"开始写入元数据 - audio_path: {audio_path}, title: {metadata_title}, author: {metadata_author}")
+            logger.debug(f"音频文件绝对路径: {os.path.abspath(audio_path)}, 是否存在: {os.path.exists(audio_path)}")
 
             metadata_args = []
             if metadata_title:
@@ -438,23 +633,30 @@ class AudioCore:
 
             file_ext = os.path.splitext(audio_path)[1].lower()
             temp_path = audio_path + '.temp' + file_ext
+            logger.debug(f"临时文件路径: {temp_path}")
 
             ffmpeg_cmd = [
                 'ffmpeg', '-y', '-i', audio_path, '-c', 'copy'
             ] + metadata_args + [temp_path]
 
             logger.info(f"写入音频元数据: title={metadata_title}, artist={metadata_author}")
+            logger.debug(f"FFmpeg元数据命令: {' '.join(ffmpeg_cmd)}")
 
             result = subprocess.run(
                 ffmpeg_cmd, capture_output=True, text=True, timeout=60
             )
 
+            logger.debug(f"FFmpeg元数据写入返回码: {result.returncode}")
+
             if result.returncode == 0:
                 os.replace(temp_path, audio_path)
                 logger.info("音频元数据写入成功")
+                logger.debug(f"元数据写入后的文件: {audio_path}, 绝对路径: {os.path.abspath(audio_path)}")
             else:
+                logger.error(f"FFmpeg元数据写入失败: {result.stderr}")
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
+                    logger.debug(f"临时文件已删除: {temp_path}")
 
         except Exception as e:
             logger.warning(f"写入音频元数据时出错: {e}")
@@ -463,9 +665,12 @@ class AudioCore:
         """执行完整的处理流程"""
         if params is not None:
             self.params = params
+            logger.debug(f"process方法更新参数: {params}")
 
         try:
             logger.info("开始音频处理")
+            logger.debug(f"process方法当前参数 - affirmation_file: {self.params.get('affirmation_file')}, output_path: {self.params.get('output_path')}")
+
             if progress_callback:
                 progress_callback(5)
 
@@ -515,6 +720,9 @@ class AudioCore:
             metadata_title = self.params.get('metadata_title', '')
             metadata_author = self.params.get('metadata_author', '')
 
+            logger.debug(f"process方法保存参数 - output_path: {output_path}, output_format: {output_format}")
+            logger.debug(f"process方法输出目录: {os.path.abspath(os.path.dirname(output_path)) if output_path else 'None'}")
+
             if output_format == 'MP3':
                 result = self.save_audio_mp3(final_data, output_path, metadata_title, metadata_author)
             else:
@@ -527,6 +735,7 @@ class AudioCore:
 
             if result:
                 logger.info(f"音频处理完成: {output_path}")
+                logger.debug(f"音频处理完成，输出文件绝对路径: {os.path.abspath(output_path)}")
                 return output_path
             else:
                 logger.error("保存音频文件失败")

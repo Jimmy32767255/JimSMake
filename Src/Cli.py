@@ -23,7 +23,7 @@ class SMakeCLI:
 
     def run(self, args=None):
         """运行CLI
-        
+
         Args:
             args: 可以是参数列表(list)或已解析的argparse.Namespace对象
         """
@@ -76,6 +76,21 @@ class SMakeCLI:
         if params['background_file']:
             logger.info(f"背景音: {params['background_file']}")
 
+        # DEBUG日志：文件路径详情
+        logger.debug(f"CLI参数 - affirmation_file: {params['affirmation_file']}")
+        logger.debug(f"CLI参数 - affirmation_file绝对路径: {os.path.abspath(params['affirmation_file'])}")
+        logger.debug(f"CLI参数 - affirmation_file是否存在: {os.path.exists(params['affirmation_file'])}")
+        logger.debug(f"CLI参数 - output_path: {params['output_path']}")
+        logger.debug(f"CLI参数 - output_path绝对路径: {os.path.abspath(params['output_path'])}")
+        output_dir = os.path.dirname(params['output_path'])
+        logger.debug(f"CLI参数 - output_dir: {output_dir}")
+        logger.debug(f"CLI参数 - output_dir绝对路径: {os.path.abspath(output_dir) if output_dir else 'None'}")
+        logger.debug(f"CLI参数 - output_dir是否存在: {os.path.exists(output_dir) if output_dir else False}")
+        if params['background_file']:
+            logger.debug(f"CLI参数 - background_file: {params['background_file']}")
+            logger.debug(f"CLI参数 - background_file绝对路径: {os.path.abspath(params['background_file'])}")
+            logger.debug(f"CLI参数 - background_file是否存在: {os.path.exists(params['background_file'])}")
+
         # 设置音频处理器参数
         self.audio_processor.set_params(params)
 
@@ -83,15 +98,23 @@ class SMakeCLI:
         def progress_callback(progress):
             logger.info(f"进度: {progress}%")
 
+        logger.debug("开始执行音频处理...")
         result = self.audio_processor.process(progress_callback=progress_callback)
 
         if result:
             logger.success(f"成功! 输出文件: {result}")
+            logger.debug(f"音频处理结果 - 输出文件: {result}")
+            logger.debug(f"音频处理结果 - 输出文件绝对路径: {os.path.abspath(result)}")
+            logger.debug(f"音频处理结果 - 输出文件是否存在: {os.path.exists(result)}")
+            if os.path.exists(result):
+                logger.debug(f"音频处理结果 - 输出文件大小: {os.path.getsize(result)} bytes")
 
             # 如果需要生成视频
             if parsed_args.video and parsed_args.image:
                 logger.info("开始生成视频...")
                 video_path = os.path.splitext(result)[0] + '.mp4'
+                logger.debug(f"视频输出路径: {video_path}")
+                logger.debug(f"视频输出绝对路径: {os.path.abspath(video_path)}")
 
                 video_params = {
                     'audio_path': result,
@@ -101,11 +124,21 @@ class SMakeCLI:
                     'metadata_title': params['metadata_title'],
                     'metadata_author': params['metadata_author']
                 }
+
+                logger.debug(f"视频参数 - audio_path: {result}")
+                logger.debug(f"视频参数 - video_image: {parsed_args.image}")
+                logger.debug(f"视频参数 - video_image绝对路径: {os.path.abspath(parsed_args.image)}")
+                logger.debug(f"视频参数 - video_image是否存在: {os.path.exists(parsed_args.image)}")
+
                 self.video_processor.set_params(video_params)
 
                 success = self.video_processor.generate_video(progress_callback=progress_callback)
                 if success:
                     logger.success(f"视频生成成功: {video_path}")
+                    logger.debug(f"视频生成成功 - 路径: {video_path}")
+                    logger.debug(f"视频生成成功 - 绝对路径: {os.path.abspath(video_path)}")
+                    if os.path.exists(video_path):
+                        logger.debug(f"视频生成成功 - 文件大小: {os.path.getsize(video_path)} bytes")
                 else:
                     logger.error("视频生成失败")
 
