@@ -16,7 +16,7 @@ depends=(
     'python-chardet'
     'ffmpeg'
     'python-loguru'
-    'python-py3-tts'
+    'python-pyttsx3'
 )
 makedepends=('python-setuptools')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
