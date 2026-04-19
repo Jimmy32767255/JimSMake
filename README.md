@@ -282,13 +282,13 @@ build.bat
 
 `--wsl` 参数会使用 venv-wsl 虚拟环境目录，以避免与宿主机的虚拟环境冲突
 
-##### 在 Windows 上构建 AppImage 包 / Arch Linux 包
+##### 在 Windows 上构建 AppImage 包
 
 1. 进入 WSL 终端
 
 2. 切换工作目录为 SMake 仓库根目录
 
-3. 与上述 Linux 上构建 AppImage 包 / Arch Linux 包相同。
+3. 与上述 Linux 上构建 AppImage 包相同。
 
 #### 不使用虚拟环境进行打包
 
