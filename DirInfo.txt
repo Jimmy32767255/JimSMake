@@ -40,7 +40,6 @@ Build.sh: GNU/Linux 构建脚本
 Build.spec: PyInstall 打包配置
 DirInfo.txt：目录信息
 LICENSE: 开源许可证
-PKGBUILD: Arch Linux / AUR 包构建配置
 README.md：项目描述
 requirements.txt：项目依赖列表
 Start.sh：Linux 启动脚本
