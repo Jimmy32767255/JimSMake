@@ -540,6 +540,45 @@ class AudioCore:
             'sample_width': affirmation_data['sample_width']
         }
 
+    def apply_freq_track(self, audio_data, params=None):
+        """叠加特定频率音轨到音频中"""
+        if params is None:
+            params = self.params
+
+        # 检查是否启用特定频率音轨
+        if not params.get('freq_track_enabled', False):
+            return audio_data
+
+        freq_str = params.get('freq_track_freq', '432')
+        volume_db = params.get('freq_track_volume', -20.0)
+
+        try:
+            frequency = float(freq_str)
+        except ValueError:
+            logger.error(f"无效的频率值: {freq_str}")
+            return audio_data
+
+        logger.info(f"叠加特定频率音轨: {frequency}Hz, 音量: {volume_db}dB")
+
+        data = audio_data['data']
+        sample_rate = audio_data['sample_rate']
+        volume_factor = 10 ** (volume_db / 20.0)
+
+        # 生成特定频率的正弦波并叠加
+        result = []
+        for i, sample in enumerate(data):
+            t = i / sample_rate
+            sine_wave = math.sin(2 * math.pi * frequency * t) * volume_factor
+            mixed = sample + sine_wave
+            # 限制在有效范围内
+            mixed = max(-1.0, min(1.0, mixed))
+            result.append(mixed)
+
+        logger.debug(f"特定频率音轨叠加完成，数据长度: {len(result)} samples")
+
+        audio_data['data'] = result
+        return audio_data
+
     def save_audio_wav(self, audio_data, output_path):
         """保存为WAV格式"""
         logger.debug(f"开始保存WAV文件: {output_path}")
@@ -709,6 +748,14 @@ class AudioCore:
                 return None
 
             final_data = self.merge_audio(affirmation_data, background_data)
+            if progress_callback:
+                progress_callback(85)
+
+            if self.check_cancelled():
+                return None
+
+            # 应用特定频率音轨
+            final_data = self.apply_freq_track(final_data)
             if progress_callback:
                 progress_callback(90)
 

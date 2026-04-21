@@ -230,8 +230,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.affirmation_tab_index, self.tr("肯定语"))
             if hasattr(self, 'background_tab_index'):
                 self.tab_widget.setTabText(self.background_tab_index, self.tr("背景音"))
-            if hasattr(self, 'brainwave_tab_index'):
-                self.tab_widget.setTabText(self.brainwave_tab_index, self.tr("脑波音频"))
+            if hasattr(self, 'freq_track_tab_index'):
+                self.tab_widget.setTabText(self.freq_track_tab_index, self.tr("特定频率音轨"))
             if hasattr(self, 'output_tab_index'):
                 self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
             if hasattr(self, 'settings_tab_index'):
@@ -299,6 +299,16 @@ class MainWindow(QMainWindow):
             self.btn_browse_bg.setToolTip(self.tr("选择背景音频文件"))
             self.label_bg_volume.setText(self.tr("音量:"))
             self.background_volume.setToolTip(self.tr("改变背景音音轨的音量。（单位为分贝）"))
+
+        # 更新特定频率音轨组
+        if hasattr(self, 'freq_track_group'):
+            self.freq_track_group.setTitle(self.tr("特定频率音轨"))
+            self.freq_track_enabled.setText(self.tr("启用特定频率音轨"))
+            self.freq_track_enabled.setToolTip(self.tr("在音频中叠加特定频率的音轨。"))
+            self.label_freq_track_freq.setText(self.tr("频率 (Hz):"))
+            self.freq_track_freq.setToolTip(self.tr("选择或输入要叠加的特定频率(Hz)。"))
+            self.label_freq_track_volume.setText(self.tr("音量 (dB):"))
+            self.freq_track_volume.setToolTip(self.tr("特定频率音轨的音量（分贝）。"))
 
         # 更新输出组
         if hasattr(self, 'output_group'):
@@ -635,10 +645,10 @@ class MainWindow(QMainWindow):
         settings_layout = QVBoxLayout(settings_widget)
         settings_layout.addWidget(self.create_settings_group())
 
-        # 创建脑波音频选项卡内容
-        brainwave_widget = QWidget()
-        brainwave_layout = QVBoxLayout(brainwave_widget)
-        brainwave_layout.addWidget(self.create_brainwave_group())
+        # 创建特定频率音轨选项卡内容
+        freq_track_widget = QWidget()
+        freq_track_layout = QVBoxLayout(freq_track_widget)
+        freq_track_layout.addWidget(self.create_freq_track_group())
 
         # 创建日志选项卡内容
         log_widget = QWidget()
@@ -649,7 +659,7 @@ class MainWindow(QMainWindow):
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
         self.background_tab_index = self.tab_widget.addTab(background_widget, self.tr("背景音"))
-        self.brainwave_tab_index = self.tab_widget.addTab(brainwave_widget, self.tr("脑波音频"))
+        self.freq_track_tab_index = self.tab_widget.addTab(freq_track_widget, self.tr("特定频率音轨"))
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
@@ -939,12 +949,37 @@ class MainWindow(QMainWindow):
         self.background_group.setLayout(layout)
         return self.background_group
     
-    def create_brainwave_group(self):
-        """创建脑波音频组"""
-        self.brainwave_group = QGroupBox(self.tr("脑波音频"))
-        layout = QVBoxLayout()
-        self.brainwave_group.setLayout(layout)
-        return self.brainwave_group
+    def create_freq_track_group(self):
+        """创建特定频率音轨组"""
+        self.freq_track_group = QGroupBox(self.tr("特定频率音轨"))
+        layout = QGridLayout()
+
+        # 启用特定频率音轨
+        self.freq_track_enabled = QCheckBox(self.tr("启用特定频率音轨"))
+        self.freq_track_enabled.setChecked(False)
+        self.freq_track_enabled.setToolTip(self.tr("在音频中叠加特定频率的音轨。"))
+        layout.addWidget(self.freq_track_enabled, 0, 0, 1, 3)
+
+        # 频率选择
+        self.label_freq_track_freq = QLabel(self.tr("频率 (Hz):"))
+        layout.addWidget(self.label_freq_track_freq, 1, 0)
+        self.freq_track_freq = QLineEdit()
+        self.freq_track_freq.setText("432")
+        self.freq_track_freq.setToolTip(self.tr("输入要叠加的特定频率(Hz)。"))
+        layout.addWidget(self.freq_track_freq, 1, 1, 1, 2)
+
+        # 音量设置
+        self.label_freq_track_volume = QLabel(self.tr("音量 (dB):"))
+        layout.addWidget(self.label_freq_track_volume, 2, 0)
+        self.freq_track_volume = QDoubleSpinBox()
+        self.freq_track_volume.setRange(-60.0, 0.0)
+        self.freq_track_volume.setValue(-23.0)
+        self.freq_track_volume.setSingleStep(1.0)
+        self.freq_track_volume.setToolTip(self.tr("特定频率音轨的音量（分贝）。"))
+        layout.addWidget(self.freq_track_volume, 2, 1, 1, 2)
+
+        self.freq_track_group.setLayout(layout)
+        return self.freq_track_group
     
     def create_output_group(self):
         """创建输出组"""
@@ -1671,6 +1706,9 @@ class MainWindow(QMainWindow):
             'overlay_interval': self.overlay_interval.value(),
             'volume_decrease': self.volume_decrease.value(),
             'background_volume': self.background_volume_spin.value(),
+            'freq_track_enabled': self.freq_track_enabled.isChecked(),
+            'freq_track_freq': self.freq_track_freq.text(),
+            'freq_track_volume': self.freq_track_volume.value(),
             'output_format': self.audio_format.currentText(),
             'output_path': audio_output_path,
             'generate_audio': generate_audio,
@@ -1687,6 +1725,9 @@ class MainWindow(QMainWindow):
         logger.debug(f"生成项目参数 - affirmation_file: {affirmation_file}")
         logger.debug(f"生成项目参数 - background_file: {self.background_file.text()}")
         logger.debug(f"生成项目参数 - video_image: {self.video_image.text()}")
+        logger.debug(f"生成项目参数 - freq_track_enabled: {params['freq_track_enabled']}")
+        logger.debug(f"生成项目参数 - freq_track_freq: {params['freq_track_freq']}")
+        logger.debug(f"生成项目参数 - freq_track_volume: {params['freq_track_volume']}")
 
         # 创建进度对话框
         self.progress_dialog = QProgressDialog(self.tr("正在生成项目..."), self.tr("取消"), 0, 100, self)

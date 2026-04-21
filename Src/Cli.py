@@ -66,6 +66,9 @@ class SMakeCLI:
             'overlay_interval': parsed_args.overlay_interval,
             'volume_decrease': parsed_args.volume_decrease,
             'ensure_integrity': parsed_args.ensure_integrity,
+            'freq_track_enabled': parsed_args.freq_track_enabled,
+            'freq_track_freq': parsed_args.freq_track_freq,
+            'freq_track_volume': parsed_args.freq_track_volume,
             'metadata_title': parsed_args.title or '',
             'metadata_author': parsed_args.author or ''
         }
@@ -158,6 +161,7 @@ class SMakeCLI:
   python -m Src.Cli -a affirmation.wav -o output.wav
   python -m Src.Cli -a aff.wav -b bg.wav -o out.mp3 -f MP3
   python -m Src.Cli -a aff.wav -o out.wav --freq-mode 1 --speed 1.5
+  python -m Src.Cli -a aff.wav -o out.wav --freq-track --freq-track-freq 432
   python -m Src.Cli -a aff.wav -o out.wav -v image.jpg --video
             """
         )
@@ -180,6 +184,12 @@ class SMakeCLI:
         parser.add_argument('--freq-mode', type=int, default=0,
                             choices=[0, 1, 2],
                             help='频率模式: 0=Raw, 1=UG(亚超声波), 2=传统(次声波) (默认: 0)')
+        parser.add_argument('--freq-track', action='store_true', dest='freq_track_enabled',
+                            help='启用特定频率音轨')
+        parser.add_argument('--freq-track-freq', default='432',
+                            help='特定频率音轨频率(Hz), 可选: 432, 639, 666, 777, 888, 1111 (默认: 432)')
+        parser.add_argument('--freq-track-volume', type=float, default=-20.0,
+                            help='特定频率音轨音量(dB, 默认: -20)')
         parser.add_argument('--speed', type=float, default=1.0,
                             help='倍速 (默认: 1.0)')
         parser.add_argument('--reverse', action='store_true',
