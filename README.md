@@ -7,8 +7,20 @@
 JimSMake 是一款专业的潜意识音频制作工具，提供直观的图形界面和命令行界面，帮助用户轻松创建潜意识音频内容。
 
 [目录信息](DirInfo.txt)
+
 [许可证](LICENSE)
+
 [待办事项](todo.md)
+
+## 社交媒体
+
+QQ 交流群：1095279278
+
+## 相关视频
+
+[功能介绍视频](https://www.bilibili.com/video/BV1sKDZBwEEZ)
+[下载教程视频](https://www.bilibili.com/video/BV1hkQsBHE61)
+[速度对比视频](https://www.bilibili.com/video/BV1VXQgBEEa7)
 
 ### 主要特性
 

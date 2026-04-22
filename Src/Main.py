@@ -42,6 +42,12 @@ CLI模式示例:
     parser.add_argument('--freq-mode', type=int, default=0,
                         choices=[0, 1, 2],
                         help='CLI: 频率模式: 0=Raw, 1=UG(亚超声波), 2=传统(次声波) (默认: 0)')
+    parser.add_argument('--freq-track', action='store_true', dest='freq_track_enabled',
+                        help='CLI: 启用特定频率音轨')
+    parser.add_argument('--freq-track-freq', default='432',
+                        help='CLI: 特定频率音轨频率(Hz), 可选: 432, 639, 666, 777, 888, 1111 (默认: 432)')
+    parser.add_argument('--freq-track-volume', type=float, default=-20.0,
+                        help='CLI: 特定频率音轨音量(dB, 默认: -20)')
     parser.add_argument('--speed', type=float, default=1.0,
                         help='CLI: 倍速 (默认: 1.0)')
     parser.add_argument('--reverse', action='store_true',
