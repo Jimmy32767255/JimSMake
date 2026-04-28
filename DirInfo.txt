@@ -3,19 +3,21 @@ Assets: 资产
     SMakelconOutput.ico：图标最终输出版本
     SMakelconRaw.svg：图标原始矢量图
 Project：项目
-    $项目名
-        README.md：项目描述
-            Assets：资产
-                BGM.wav：背景音乐
-                Visualization.png：视觉化图片
-                Affirmation：肯定语
-                    $生成方式.wav：肯定语音频
-                    Raw.txt：肯定语文本
-        Releases：发行版/输出
-            Audio：音频
-                $版本号.wav
-            Video：视频
-                $版本号.mkv
+    $项目组名
+        $项目名
+            README.md：项目描述
+            config.json：项目配置文件
+                Assets：资产
+                    BGM.wav：背景音乐
+                    Visualization.png：视觉化图片
+                    Affirmation：肯定语
+                        $生成方式.wav：肯定语音频
+                        Raw.txt：肯定语文本
+            Releases：发行版/输出
+                Audio：音频
+                    $版本号.wav
+                Video：视频
+                    $版本号.mkv
 Qt：Qt 界面设计文件
 Src：SMake 源代码文件
     Processors：处理器

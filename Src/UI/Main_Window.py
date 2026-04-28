@@ -1825,13 +1825,18 @@ class MainWindow(QMainWindow):
         if not self.check_project_selected():
             return
 
+        # 获取项目目录
+        project_dir = self.get_current_project_dir()
+
+        # 保存项目配置
+        self.save_project_config(project_dir)
+
         # 如果启用了确保完整性检查，进行前置验证
         if self.ensure_integrity_check.isChecked():
             if not self.validate_affirmation_integrity():
                 return
 
         # 获取输出路径
-        project_dir = self.get_current_project_dir()
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -2292,6 +2297,73 @@ class MainWindow(QMainWindow):
 
     # ==================== 项目管理方法 ====================
 
+    def load_project_config(self, project_dir):
+        """加载项目配置文件
+        
+        Args:
+            project_dir: 项目目录路径
+        """
+        config_path = os.path.join(project_dir, "config.json")
+        logger.debug(f"尝试加载项目配置: {config_path}")
+
+        if not os.path.exists(config_path):
+            logger.info(f"项目配置文件不存在，使用默认配置: {config_path}")
+            # 清空元数据字段
+            if hasattr(self, 'metadata_title') and self.metadata_title is not None:
+                self.metadata_title.clear()
+            if hasattr(self, 'metadata_author') and self.metadata_author is not None:
+                self.metadata_author.clear()
+            return
+
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+
+            # 加载元数据
+            metadata = config.get('metadata', {})
+            if hasattr(self, 'metadata_title') and self.metadata_title is not None:
+                self.metadata_title.setText(metadata.get('title', ''))
+            if hasattr(self, 'metadata_author') and self.metadata_author is not None:
+                self.metadata_author.setText(metadata.get('author', ''))
+
+            logger.info(f"项目配置加载成功: {config_path}")
+            logger.debug(f"配置内容: {config}")
+
+        except json.JSONDecodeError as e:
+            logger.error(f"项目配置文件格式错误: {config_path}, 错误: {e}")
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr(f"项目配置文件格式错误，将使用默认配置。"))
+        except Exception as e:
+            logger.error(f"加载项目配置失败: {config_path}, 错误: {e}")
+
+    def save_project_config(self, project_dir):
+        """保存项目配置文件
+        
+        Args:
+            project_dir: 项目目录路径
+        """
+        config_path = os.path.join(project_dir, "config.json")
+        logger.debug(f"保存项目配置: {config_path}")
+
+        try:
+            # 构建配置数据
+            config = {
+                "version": "1.0",
+                "metadata": {
+                    "title": self.metadata_title.text() if hasattr(self, 'metadata_title') else "",
+                    "author": self.metadata_author.text() if hasattr(self, 'metadata_author') else ""
+                }
+            }
+
+            # 写入JSON文件
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+
+            logger.info(f"项目配置保存成功: {config_path}")
+
+        except Exception as e:
+            logger.error(f"保存项目配置失败: {config_path}, 错误: {e}")
+
     def get_project_base_dir(self):
         """获取项目基础目录"""
         # 项目目录需要存储在用户可写的位置，而不是打包的临时目录
@@ -2581,6 +2653,9 @@ class MainWindow(QMainWindow):
         logger.info(f"加载项目资源: {project_dir}")
         logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
 
+        # 加载项目配置
+        self.load_project_config(project_dir)
+
         assets_dir = os.path.join(project_dir, "Assets")
         affirmation_dir = os.path.join(assets_dir, "Affirmation")
 
@@ -2747,6 +2822,19 @@ class MainWindow(QMainWindow):
             raw_path = os.path.join(project_dir, "Assets", "Affirmation", "Raw.txt")
             with open(raw_path, 'w', encoding='utf-8') as f:
                 f.write(self.tr("# 在此输入肯定语文本\n"))
+
+            # 创建默认配置文件
+            config_path = os.path.join(project_dir, "config.json")
+            default_config = {
+                "version": "1.0",
+                "metadata": {
+                    "title": "",
+                    "author": ""
+                }
+            }
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(default_config, f, ensure_ascii=False, indent=2)
+            logger.debug(f"创建默认配置文件: {config_path}")
 
             logger.info(f"项目创建成功: {project_name}")
             QMessageBox.information(self, self.tr("成功"),
