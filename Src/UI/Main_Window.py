@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton,
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
                              QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog,
-                             QTextEdit)
+                             QTextEdit, QFrame)
 from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal, QTimer, QUrl
 from PyQt5.QtGui import QDesktopServices
 import pyttsx3
@@ -115,8 +115,9 @@ class MainWindow(QMainWindow):
         # 初始化设置
         self.settings = QSettings("JimSMake", "SMake")
         self.current_language = self.settings.value("language", "zh_CN")
+        self.current_project_group = self.settings.value("current_project_group", self.tr("默认项目组"))
         self.current_project_name = self.settings.value("current_project", "")
-        logger.info(f"加载设置，当前语言: {self.current_language}, 当前项目: {self.current_project_name}")
+        logger.info(f"加载设置，当前语言: {self.current_language}, 当前项目组: {self.current_project_group}, 当前项目: {self.current_project_name}")
 
         # 初始化录音相关变量
         self.recorder = None
@@ -461,6 +462,20 @@ class MainWindow(QMainWindow):
         # 更新项目组
         if hasattr(self, 'project_group'):
             self.project_group.setTitle(self.tr("项目管理"))
+            # 项目组相关
+            self.label_current_project_group.setText(self.tr("当前项目组:"))
+            if not hasattr(self, 'current_project_group') or not self.current_project_group:
+                self.current_project_group_label.setText(self.tr("未选择项目组"))
+            self.label_project_group_list.setText(self.tr("项目组列表:"))
+            self.project_group_list.setToolTip(self.tr("选择或切换当前项目组"))
+            self.label_new_project_group.setText(self.tr("新建项目组:"))
+            self.new_project_group_name.setToolTip(self.tr("输入新项目组名称"))
+            self.new_project_group_name.setPlaceholderText(self.tr("输入项目组名称"))
+            self.create_project_group_btn.setText(self.tr("创建项目组"))
+            self.create_project_group_btn.setToolTip(self.tr("创建新项目组"))
+            self.delete_project_group_btn.setText(self.tr("删除项目组"))
+            self.delete_project_group_btn.setToolTip(self.tr("删除选中的项目组"))
+            # 项目相关
             self.label_current_project.setText(self.tr("当前项目:"))
             if not hasattr(self, 'current_project_name') or not self.current_project_name:
                 self.current_project_label.setText(self.tr("未选择项目"))
@@ -478,17 +493,18 @@ class MainWindow(QMainWindow):
             self.label_project_path.setText(self.tr("项目路径:"))
             self.project_structure_group.setTitle(self.tr("项目结构"))
             self.project_structure_label.setText(
-                self.tr("项目名称/\n"
-                       "  ├── README.md (项目描述)\n"
-                       "  ├── Assets/ (资产)\n"
-                       "  │   ├── BGM.wav (背景音乐)\n"
-                       "  │   ├── Visualization.png (视觉化图片)\n"
-                       "  │   └── Affirmation/ (肯定语)\n"
-                       "  │       ├── *.wav (肯定语音频)\n"
-                       "  │       └── Raw.txt (肯定语文本)\n"
-                       "  └── Releases/ (发行版)\n"
-                       "      ├── Audio/ (音频输出)\n"
-                       "      └── Video/ (视频输出)")
+                self.tr("项目组名称/\n"
+                       "  └── 项目名称/\n"
+                       "      ├── README.md (项目描述)\n"
+                       "      ├── Assets/ (资产)\n"
+                       "      │   ├── BGM.wav (背景音乐)\n"
+                       "      │   ├── Visualization.png (视觉化图片)\n"
+                       "      │   └── Affirmation/ (肯定语)\n"
+                       "      │       ├── *.wav (肯定语音频)\n"
+                       "      │       └── Raw.txt (肯定语文本)\n"
+                       "      └── Releases/ (发行版)\n"
+                       "          ├── Audio/ (音频输出)\n"
+                       "          └── Video/ (视频输出)")
             )
 
         logger.info("UI文本重新翻译完成")
@@ -773,79 +789,120 @@ class MainWindow(QMainWindow):
         self.project_group = QGroupBox(self.tr("项目管理"))
         layout = QGridLayout()
 
+        # 当前项目组显示
+        self.label_current_project_group = QLabel(self.tr("当前项目组:"))
+        layout.addWidget(self.label_current_project_group, 0, 0)
+        self.current_project_group_label = QLabel(self.tr("默认项目组"))
+        self.current_project_group_label.setStyleSheet("font-weight: bold; color: #9C27B0;")
+        layout.addWidget(self.current_project_group_label, 0, 1, 1, 2)
+
+        # 项目组列表
+        self.label_project_group_list = QLabel(self.tr("项目组列表:"))
+        layout.addWidget(self.label_project_group_list, 1, 0)
+        self.project_group_list = QComboBox()
+        self.project_group_list.setToolTip(self.tr("选择或切换当前项目组"))
+        self.project_group_list.currentIndexChanged.connect(self.on_project_group_selected)
+        layout.addWidget(self.project_group_list, 1, 1, 1, 2)
+
+        # 新建项目组
+        self.label_new_project_group = QLabel(self.tr("新建项目组:"))
+        layout.addWidget(self.label_new_project_group, 2, 0)
+        self.new_project_group_name = QLineEdit()
+        self.new_project_group_name.setToolTip(self.tr("输入新项目组名称"))
+        self.new_project_group_name.setPlaceholderText(self.tr("输入项目组名称"))
+        layout.addWidget(self.new_project_group_name, 2, 1)
+
+        self.create_project_group_btn = QPushButton(self.tr("创建项目组"))
+        self.create_project_group_btn.setToolTip(self.tr("创建新项目组"))
+        self.create_project_group_btn.clicked.connect(self.create_project_group)
+        layout.addWidget(self.create_project_group_btn, 2, 2)
+
+        # 删除项目组按钮
+        self.delete_project_group_btn = QPushButton(self.tr("删除项目组"))
+        self.delete_project_group_btn.setToolTip(self.tr("删除选中的项目组"))
+        self.delete_project_group_btn.clicked.connect(self.delete_project_group)
+        layout.addWidget(self.delete_project_group_btn, 3, 0, 1, 3)
+
+        # 分隔线
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setStyleSheet("color: #ccc;")
+        layout.addWidget(line, 4, 0, 1, 3)
+
         # 当前项目显示
         self.label_current_project = QLabel(self.tr("当前项目:"))
-        layout.addWidget(self.label_current_project, 0, 0)
+        layout.addWidget(self.label_current_project, 5, 0)
         self.current_project_label = QLabel(self.tr("未选择项目"))
         self.current_project_label.setStyleSheet("font-weight: bold; color: #2196F3;")
-        layout.addWidget(self.current_project_label, 0, 1, 1, 2)
+        layout.addWidget(self.current_project_label, 5, 1, 1, 2)
 
         # 项目列表
         self.label_project_list = QLabel(self.tr("项目列表:"))
-        layout.addWidget(self.label_project_list, 1, 0)
+        layout.addWidget(self.label_project_list, 6, 0)
         self.project_list = QComboBox()
         self.project_list.setToolTip(self.tr("选择或切换当前项目"))
         self.project_list.currentIndexChanged.connect(self.on_project_selected)
-        layout.addWidget(self.project_list, 1, 1, 1, 2)
+        layout.addWidget(self.project_list, 6, 1, 1, 2)
 
         # 刷新项目列表按钮
         self.refresh_projects_btn = QPushButton(self.tr("刷新"))
         self.refresh_projects_btn.setToolTip(self.tr("刷新项目列表"))
         self.refresh_projects_btn.clicked.connect(self.refresh_project_list)
-        layout.addWidget(self.refresh_projects_btn, 2, 0)
+        layout.addWidget(self.refresh_projects_btn, 7, 0)
 
         # 新建项目
         self.label_new_project = QLabel(self.tr("新建项目:"))
-        layout.addWidget(self.label_new_project, 3, 0)
+        layout.addWidget(self.label_new_project, 8, 0)
         self.new_project_name = QLineEdit()
         self.new_project_name.setToolTip(self.tr("输入新项目名称"))
         self.new_project_name.setPlaceholderText(self.tr("输入项目名称"))
-        layout.addWidget(self.new_project_name, 3, 1)
+        layout.addWidget(self.new_project_name, 8, 1)
 
         self.create_project_btn = QPushButton(self.tr("创建项目"))
         self.create_project_btn.setToolTip(self.tr("创建新项目"))
         self.create_project_btn.clicked.connect(self.create_project)
-        layout.addWidget(self.create_project_btn, 3, 2)
+        layout.addWidget(self.create_project_btn, 8, 2)
 
         # 删除项目按钮
         self.delete_project_btn = QPushButton(self.tr("删除项目"))
         self.delete_project_btn.setToolTip(self.tr("删除选中的项目"))
         self.delete_project_btn.clicked.connect(self.delete_project)
-        layout.addWidget(self.delete_project_btn, 4, 0, 1, 3)
+        layout.addWidget(self.delete_project_btn, 9, 0, 1, 3)
 
         # 项目路径信息
         self.label_project_path = QLabel(self.tr("项目路径:"))
-        layout.addWidget(self.label_project_path, 5, 0)
+        layout.addWidget(self.label_project_path, 10, 0)
         self.project_path_label = QLabel("./Project/")
         self.project_path_label.setStyleSheet("color: gray;")
         self.project_path_label.setWordWrap(True)
-        layout.addWidget(self.project_path_label, 5, 1, 1, 2)
+        layout.addWidget(self.project_path_label, 10, 1, 1, 2)
 
         # 项目结构说明
         self.project_structure_group = QGroupBox(self.tr("项目结构"))
         structure_layout = QVBoxLayout()
         self.project_structure_label = QLabel(
-            self.tr("项目名称/\n"
-                   "  ├── README.md (项目描述)\n"
-                   "  ├── Assets/ (资产)\n"
-                   "  │   ├── BGM.wav (背景音乐)\n"
-                   "  │   ├── Visualization.png (视觉化图片)\n"
-                   "  │   └── Affirmation/ (肯定语)\n"
-                   "  │       ├── *.wav (肯定语音频)\n"
-                   "  │       └── Raw.txt (肯定语文本)\n"
-                   "  └── Releases/ (发行版)\n"
-                   "      ├── Audio/ (音频输出)\n"
-                   "      └── Video/ (视频输出)")
+            self.tr("项目组名称/\n"
+                   "  └── 项目名称/\n"
+                   "      ├── README.md (项目描述)\n"
+                   "      ├── Assets/ (资产)\n"
+                   "      │   ├── BGM.wav (背景音乐)\n"
+                   "      │   ├── Visualization.png (视觉化图片)\n"
+                   "      │   └── Affirmation/ (肯定语)\n"
+                   "      │       ├── *.wav (肯定语音频)\n"
+                   "      │       └── Raw.txt (肯定语文本)\n"
+                   "      └── Releases/ (发行版)\n"
+                   "          ├── Audio/ (音频输出)\n"
+                   "          └── Video/ (视频输出)")
         )
         self.project_structure_label.setStyleSheet("font-family: monospace; color: #666;")
         structure_layout.addWidget(self.project_structure_label)
         self.project_structure_group.setLayout(structure_layout)
-        layout.addWidget(self.project_structure_group, 6, 0, 1, 3)
+        layout.addWidget(self.project_structure_group, 11, 0, 1, 3)
 
         self.project_group.setLayout(layout)
 
-        # 初始化时刷新项目列表
-        self.refresh_project_list()
+        # 初始化时刷新项目组列表
+        self.refresh_project_group_list()
 
         return self.project_group
 
@@ -2271,7 +2328,12 @@ class MainWindow(QMainWindow):
     def get_current_project_dir(self):
         """获取当前项目目录"""
         if hasattr(self, 'current_project_name') and self.current_project_name:
-            project_dir = os.path.join(self.get_project_base_dir(), self.current_project_name)
+            # 支持项目组：项目路径为 基础目录/项目组/项目
+            if hasattr(self, 'current_project_group') and self.current_project_group:
+                project_dir = os.path.join(self.get_project_base_dir(), self.current_project_group, self.current_project_name)
+            else:
+                # 兼容旧版本：直接在基础目录下
+                project_dir = os.path.join(self.get_project_base_dir(), self.current_project_name)
             logger.debug(f"获取当前项目目录: {project_dir}")
             logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
             logger.debug(f"项目目录是否存在: {os.path.exists(project_dir)}")
@@ -2279,17 +2341,190 @@ class MainWindow(QMainWindow):
         logger.debug("没有当前项目，返回None")
         return None
 
-    def refresh_project_list(self):
-        """刷新项目列表"""
-        logger.debug("刷新项目列表")
-        self.project_list.clear()
+    def get_current_project_group_dir(self):
+        """获取当前项目组目录"""
+        if hasattr(self, 'current_project_group') and self.current_project_group:
+            group_dir = os.path.join(self.get_project_base_dir(), self.current_project_group)
+            logger.debug(f"获取当前项目组目录: {group_dir}")
+            return group_dir
+        # 默认返回基础目录
+        return self.get_project_base_dir()
+
+    def refresh_project_group_list(self):
+        """刷新项目组列表"""
+        logger.debug("刷新项目组列表")
+        self.project_group_list.clear()
 
         project_base = self.get_project_base_dir()
         if not os.path.exists(project_base):
             os.makedirs(project_base)
             logger.debug(f"创建项目基础目录: {project_base}")
 
-        # 获取所有项目目录
+        # 获取所有项目组（基础目录下的子目录）
+        groups = []
+        try:
+            for item in os.listdir(project_base):
+                item_path = os.path.join(project_base, item)
+                if os.path.isdir(item_path):
+                    groups.append(item)
+        except Exception as e:
+            logger.error(f"读取项目组列表失败: {e}")
+
+        # 如果没有项目组，创建默认项目组
+        if not groups:
+            default_group = self.tr("默认项目组")
+            default_group_path = os.path.join(project_base, default_group)
+            try:
+                os.makedirs(default_group_path)
+                groups.append(default_group)
+                logger.info(f"创建默认项目组: {default_group}")
+            except Exception as e:
+                logger.error(f"创建默认项目组失败: {e}")
+
+        # 添加项目组到列表
+        self.project_group_list.addItem(self.tr("-- 选择项目组 --"), "")
+        for group in sorted(groups):
+            self.project_group_list.addItem(group, group)
+
+        # 如果有当前项目组，选中它
+        if hasattr(self, 'current_project_group') and self.current_project_group:
+            index = self.project_group_list.findData(self.current_project_group)
+            if index >= 0:
+                self.project_group_list.setCurrentIndex(index)
+                # 刷新项目列表
+                self.refresh_project_list()
+
+        logger.info(f"项目组列表刷新完成，共 {len(groups)} 个项目组")
+
+    def on_project_group_selected(self, index):
+        """项目组选择改变"""
+        group_name = self.project_group_list.itemData(index)
+        if group_name:
+            self.switch_project_group(group_name)
+
+    def switch_project_group(self, group_name):
+        """切换到指定项目组"""
+        logger.info(f"切换到项目组: {group_name}")
+        self.current_project_group = group_name
+        self.current_project_group_label.setText(group_name)
+
+        # 保存当前项目组到设置
+        self.settings.setValue("current_project_group", group_name)
+
+        # 刷新项目列表
+        self.refresh_project_list()
+
+        logger.info(f"已切换到项目组: {group_name}")
+
+    def create_project_group(self):
+        """创建新项目组"""
+        group_name = self.new_project_group_name.text().strip()
+
+        if not group_name:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请输入项目组名称！"))
+            return
+
+        # 检查项目组名称是否合法
+        import re
+        if not re.match(r'^[\w\-\s]+$', group_name):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("项目组名称只能包含字母、数字、下划线、横线和空格！"))
+            return
+
+        project_base = self.get_project_base_dir()
+        group_dir = os.path.join(project_base, group_name)
+
+        # 检查组是否已存在
+        if os.path.exists(group_dir):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr(f"项目组 '{group_name}' 已存在！"))
+            return
+
+        try:
+            # 创建项目组目录
+            os.makedirs(group_dir)
+
+            logger.info(f"项目组创建成功: {group_name}")
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"项目组 '{group_name}' 创建成功！"))
+
+            # 清空输入框
+            self.new_project_group_name.clear()
+
+            # 刷新项目组列表并切换到新项目组
+            self.refresh_project_group_list()
+            index = self.project_group_list.findData(group_name)
+            if index >= 0:
+                self.project_group_list.setCurrentIndex(index)
+
+        except Exception as e:
+            logger.error(f"创建项目组失败: {e}")
+            QMessageBox.critical(self, self.tr("错误"),
+                               self.tr(f"创建项目组失败: {str(e)}"))
+
+    def delete_project_group(self):
+        """删除项目组"""
+        group_name = self.project_group_list.currentData()
+
+        if not group_name:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请先选择一个项目组！"))
+            return
+
+        # 确认删除
+        reply = QMessageBox.question(self, self.tr("确认删除"),
+                                    self.tr(f"确定要删除项目组 '{group_name}' 吗？\n")
+                                    + self.tr("此操作将删除项目组下的所有项目，且不可恢复！"),
+                                    QMessageBox.Yes | QMessageBox.No,
+                                    QMessageBox.No)
+
+        if reply != QMessageBox.Yes:
+            return
+
+        try:
+            group_dir = os.path.join(self.get_project_base_dir(), group_name)
+            import shutil
+            shutil.rmtree(group_dir)
+
+            logger.info(f"项目组删除成功: {group_name}")
+            QMessageBox.information(self, self.tr("成功"),
+                                   self.tr(f"项目组 '{group_name}' 已删除！"))
+
+            # 如果删除的是当前项目组，清除当前项目组
+            if self.current_project_group == group_name:
+                self.current_project_group = None
+                self.current_project_group_label.setText(self.tr("未选择项目组"))
+                self.settings.remove("current_project_group")
+                # 同时清除当前项目
+                self.current_project_name = None
+                self.current_project_label.setText(self.tr("未选择项目"))
+                self.settings.remove("current_project")
+
+            # 刷新项目组列表
+            self.refresh_project_group_list()
+
+        except Exception as e:
+            logger.error(f"删除项目组失败: {e}")
+            QMessageBox.critical(self, self.tr("错误"),
+                               self.tr(f"删除项目组失败: {str(e)}"))
+
+    def refresh_project_list(self):
+        """刷新项目列表"""
+        logger.debug("刷新项目列表")
+        self.project_list.clear()
+
+        # 获取当前项目组目录
+        if hasattr(self, 'current_project_group') and self.current_project_group:
+            project_base = self.get_current_project_group_dir()
+        else:
+            project_base = self.get_project_base_dir()
+
+        if not os.path.exists(project_base):
+            os.makedirs(project_base)
+            logger.debug(f"创建项目目录: {project_base}")
+
+        # 获取所有项目目录（当前项目组下的子目录）
         projects = []
         try:
             for item in os.listdir(project_base):
@@ -2472,13 +2707,23 @@ class MainWindow(QMainWindow):
                                self.tr("项目名称只能包含字母、数字、下划线、横线和空格！"))
             return
 
-        project_base = self.get_project_base_dir()
+        # 获取项目基础目录（支持项目组）
+        if hasattr(self, 'current_project_group') and self.current_project_group:
+            project_base = self.get_current_project_group_dir()
+        else:
+            project_base = self.get_project_base_dir()
         project_dir = os.path.join(project_base, project_name)
 
         # 检查项目是否已存在
         if os.path.exists(project_dir):
             QMessageBox.warning(self, self.tr("警告"),
                                self.tr(f"项目 '{project_name}' 已存在！"))
+            return
+
+        # 检查是否选择了项目组
+        if not hasattr(self, 'current_project_group') or not self.current_project_group:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请先选择一个项目组！"))
             return
 
         try:
@@ -2541,7 +2786,12 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            project_dir = os.path.join(self.get_project_base_dir(), project_name)
+            # 获取项目目录（支持项目组）
+            if hasattr(self, 'current_project_group') and self.current_project_group:
+                project_base = self.get_current_project_group_dir()
+            else:
+                project_base = self.get_project_base_dir()
+            project_dir = os.path.join(project_base, project_name)
             import shutil
             shutil.rmtree(project_dir)
 
