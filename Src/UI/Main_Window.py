@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QGroupBox, QLabel, QLineEdit, QComboBox, QPushButton,
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
                              QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog,
@@ -482,8 +482,9 @@ class MainWindow(QMainWindow):
             self.label_project_group_list.setText(self.tr("项目组列表:"))
             self.project_group_list.setToolTip(self.tr("选择或切换当前项目组"))
             self.label_new_project_group.setText(self.tr("新建项目组:"))
-            self.new_project_group_name.setToolTip(self.tr("输入新项目组名称"))
-            self.new_project_group_name.setPlaceholderText(self.tr("输入项目组名称"))
+            if hasattr(self, 'new_project_group_name'):
+                self.new_project_group_name.setToolTip(self.tr("输入新项目组名称"))
+                self.new_project_group_name.setPlaceholderText(self.tr("输入项目组名称"))
             self.create_project_group_btn.setText(self.tr("创建项目组"))
             self.create_project_group_btn.setToolTip(self.tr("创建新项目组"))
             self.delete_project_group_btn.setText(self.tr("删除项目组"))
@@ -497,21 +498,23 @@ class MainWindow(QMainWindow):
             self.refresh_projects_btn.setText(self.tr("刷新"))
             self.refresh_projects_btn.setToolTip(self.tr("刷新项目列表"))
             self.label_new_project.setText(self.tr("新建项目:"))
-            self.new_project_name.setToolTip(self.tr("输入新项目名称"))
-            self.new_project_name.setPlaceholderText(self.tr("输入项目名称"))
+            if hasattr(self, 'new_project_name'):
+                self.new_project_name.setToolTip(self.tr("输入新项目名称"))
+                self.new_project_name.setPlaceholderText(self.tr("输入项目名称"))
             self.create_project_btn.setText(self.tr("创建项目"))
             self.create_project_btn.setToolTip(self.tr("创建新项目"))
             self.delete_project_btn.setText(self.tr("删除项目"))
             self.delete_project_btn.setToolTip(self.tr("删除选中的项目"))
             self.label_project_path.setText(self.tr("项目路径:"))
             # 导入导出相关
-            self.label_import_export.setText(self.tr("导入/导出:"))
-            self.export_project_btn.setText(self.tr("导出项目"))
-            self.export_project_btn.setToolTip(self.tr("将当前项目导出为压缩文件"))
-            self.export_project_group_btn.setText(self.tr("导出项目组"))
-            self.export_project_group_btn.setToolTip(self.tr("将当前项目组导出为压缩文件"))
-            self.import_btn.setText(self.tr("导入"))
-            self.import_btn.setToolTip(self.tr("从压缩文件导入项目或项目组"))
+            if hasattr(self, 'label_import_export'):
+                self.label_import_export.setText(self.tr("导入/导出:"))
+                self.export_project_btn.setText(self.tr("导出项目"))
+                self.export_project_btn.setToolTip(self.tr("将当前项目导出为压缩文件"))
+                self.export_project_group_btn.setText(self.tr("导出项目组"))
+                self.export_project_group_btn.setToolTip(self.tr("将当前项目组导出为压缩文件"))
+                self.import_btn.setText(self.tr("导入"))
+                self.import_btn.setToolTip(self.tr("从压缩文件导入项目或项目组"))
             # 项目结构
             self.project_structure_group.setTitle(self.tr("项目结构"))
             self.project_structure_label.setText(
@@ -569,13 +572,18 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'preview_zoom_label'):
                 self.preview_zoom_label.setText(self.tr(f"缩放: {self.preview_zoom_level:.0%}"))
 
-            # 应用缩放（通过调整最小尺寸）
+            # 重新生成预览以应用缩放
+            self.update_preview()
+
+            # 调整预览区域的尺寸
             base_width = 800
             base_height = 300
-            self.preview_widget.setMinimumSize(
-                int(base_width * self.preview_zoom_level),
-                int(base_height * self.preview_zoom_level)
-            )
+            new_width = max(int(base_width * self.preview_zoom_level), 400)
+            new_height = max(int(base_height * self.preview_zoom_level), 200)
+            
+            # 重新计算尺寸并更新
+            if hasattr(self, 'preview_widget'):
+                self.preview_widget.adjustSize()
 
     def update_preview(self):
         """更新预览视图"""
@@ -598,61 +606,164 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            # 创建轨道预览
-            track_widgets = []
+            # 收集所有轨道信息
+            tracks = []
+            max_duration = 0
 
             # 背景音乐轨道
             if background_file and os.path.exists(background_file):
-                bg_widget = self._create_track_widget(
-                    self.tr("背景音乐"),
-                    background_file,
-                    "#4CAF50",
-                    hasattr(self, 'background_volume') and self.background_volume.value() or 0
-                )
-                track_widgets.append(bg_widget)
+                duration = self._get_audio_duration(background_file)
+                max_duration = max(max_duration, duration)
+                tracks.append({
+                    'name': self.tr("背景音乐"),
+                    'file': background_file,
+                    'color': "#4CAF50",
+                    'volume': hasattr(self, 'background_volume') and self.background_volume.value() or 0,
+                    'duration': duration,
+                    'overlay_index': 0
+                })
 
             # 肯定语轨道
             if affirmation_file and os.path.exists(affirmation_file):
-                aff_widget = self._create_track_widget(
-                    self.tr("肯定语"),
-                    affirmation_file,
-                    "#2196F3",
-                    hasattr(self, 'affirmation_volume') and self.affirmation_volume.value() or 0
-                )
-                track_widgets.append(aff_widget)
+                duration = self._get_audio_duration(affirmation_file)
+                tracks.append({
+                    'name': self.tr("肯定语"),
+                    'file': affirmation_file,
+                    'color': "#2196F3",
+                    'volume': hasattr(self, 'affirmation_volume') and self.affirmation_volume.value() or 0,
+                    'duration': duration,
+                    'overlay_index': 0
+                })
 
                 # 叠加轨道
                 overlay_times = hasattr(self, 'overlay_times') and self.overlay_times.value() or 1
                 if overlay_times > 1:
                     for i in range(1, overlay_times):
-                        overlay_widget = self._create_track_widget(
-                            self.tr(f"肯定语 (叠加 {i+1})"),
-                            affirmation_file,
-                            "#9C27B0",
-                            hasattr(self, 'affirmation_volume') and self.affirmation_volume.value() or 0,
-                            overlay_index=i
-                        )
-                        track_widgets.append(overlay_widget)
+                        tracks.append({
+                            'name': self.tr(f"肯定语 (叠加 {i+1})"),
+                            'file': affirmation_file,
+                            'color': "#9C27B0",
+                            'volume': hasattr(self, 'affirmation_volume') and self.affirmation_volume.value() or 0,
+                            'duration': duration,
+                            'overlay_index': i
+                        })
 
             # 特定频率音轨
             if hasattr(self, 'freq_track_enabled') and self.freq_track_enabled.isChecked():
                 freq = self.freq_track_freq.text() if hasattr(self, 'freq_track_freq') else ""
                 if freq:
-                    freq_widget = self._create_freq_track_widget(freq)
-                    track_widgets.append(freq_widget)
+                    tracks.append({
+                        'name': self.tr(f"特定频率 ({freq}Hz)"),
+                        'file': None,
+                        'color': "#FF9800",
+                        'volume': hasattr(self, 'freq_track_volume') and self.freq_track_volume.value() or -200,
+                        'duration': max_duration if max_duration > 0 else 60,
+                        'overlay_index': 0,
+                        'is_freq': True
+                    })
 
-            # 添加所有轨道到布局
-            for widget in track_widgets:
-                self.preview_layout.addWidget(widget)
+            if not tracks:
+                self.preview_tracks_label.setText(self.tr("没有可显示的轨道"))
+                return
+
+            # 创建带标尺的预览区域
+            preview_area = self._create_preview_with_rulers(tracks, max_duration if max_duration > 0 else 60)
+            self.preview_layout.addWidget(preview_area)
 
             # 更新标签
-            self.preview_tracks_label.setText(self.tr(f"轨道预览 - 共 {len(track_widgets)} 个轨道"))
+            self.preview_tracks_label.setText(self.tr(f"轨道预览 - 共 {len(tracks)} 个轨道"))
 
-            logger.info(f"预览更新完成，共 {len(track_widgets)} 个轨道")
+            logger.info(f"预览更新完成，共 {len(tracks)} 个轨道")
 
         except Exception as e:
             logger.error(f"更新预览失败: {e}")
             self.preview_tracks_label.setText(self.tr(f"预览更新失败: {str(e)}"))
+
+    def _get_audio_duration(self, file_path):
+        """获取音频文件时长（秒）
+
+        Args:
+            file_path: 音频文件路径
+
+        Returns:
+            float: 音频时长（秒），失败返回0
+        """
+        if not file_path or not os.path.exists(file_path):
+            return 0
+
+        ext = os.path.splitext(file_path)[1].lower()
+
+        # 1. 尝试使用 wave 模块读取 WAV 文件（标准库，无需额外依赖）
+        if ext == '.wav':
+            try:
+                with wave.open(file_path, 'rb') as wf:
+                    frames = wf.getnframes()
+                    rate = wf.getframerate()
+                    if rate > 0:
+                        return frames / float(rate)
+            except Exception as e:
+                logger.debug(f"使用 wave 模块读取失败: {e}")
+
+        # 2. 尝试使用 mutagen 读取各种音频格式（轻量级，推荐）
+        try:
+            from mutagen import File
+            audio = File(file_path)
+            if audio is not None and hasattr(audio, 'info') and hasattr(audio.info, 'length'):
+                return audio.info.length
+        except ImportError:
+            logger.debug("mutagen 未安装，跳过")
+        except Exception as e:
+            logger.debug(f"使用 mutagen 读取失败: {e}")
+
+        # 3. 尝试使用 soundfile 读取各种音频格式
+        try:
+            import soundfile as sf
+            info = sf.info(file_path)
+            return info.duration
+        except ImportError:
+            logger.debug("soundfile 未安装，跳过")
+        except Exception as e:
+            logger.debug(f"使用 soundfile 读取失败: {e}")
+
+        # 4. 尝试使用 audioread 读取各种音频格式
+        try:
+            import audioread
+            with audioread.audio_open(file_path) as f:
+                return f.duration
+        except ImportError:
+            logger.debug("audioread 未安装，跳过")
+        except Exception as e:
+            logger.debug(f"使用 audioread 读取失败: {e}")
+
+        # 5. 尝试使用 pydub（如果可用）
+        try:
+            from pydub import AudioSegment
+            audio = AudioSegment.from_file(file_path)
+            return len(audio) / 1000.0
+        except ImportError:
+            logger.debug("pydub 未安装，跳过")
+        except Exception as e:
+            logger.debug(f"使用 pydub 读取失败: {e}")
+
+        # 6. 尝试使用 ffprobe（如果系统已安装 ffmpeg）
+        if self.ffmpeg_available:
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                     '-of', 'default=noprint_wrappers=1:nokey=1', file_path],
+                    capture_output=True, text=True, timeout=10
+                )
+                if result.returncode == 0:
+                    duration = float(result.stdout.strip())
+                    if duration > 0:
+                        return duration
+            except Exception as e:
+                logger.debug(f"使用 ffprobe 读取失败: {e}")
+
+        # 如果都失败了，返回默认值
+        logger.warning(f"无法获取音频时长: {file_path}，请安装 mutagen、soundfile、audioread 或 pydub 以支持更多格式")
+        return 0
 
     def _create_track_widget(self, name, file_path, color, volume, overlay_index=0):
         """创建轨道显示组件
@@ -679,19 +790,16 @@ class MainWindow(QMainWindow):
         layout.addWidget(name_label)
 
         # 音频波形/时长显示
-        try:
-            from pydub import AudioSegment
-            audio = AudioSegment.from_file(file_path)
-            duration_ms = len(audio)
-            duration_sec = duration_ms / 1000
+        duration_sec = self._get_audio_duration(file_path)
 
+        if duration_sec > 0:
             # 时长标签
             duration_label = QLabel(f"{duration_sec:.1f}s")
             duration_label.setFixedWidth(60)
             layout.addWidget(duration_label)
 
-            # 音量标签
-            vol_label = QLabel(f"{volume}dB")
+            # 音量标签（volume 是实际 dB 值的 10 倍，需要除以 10）
+            vol_label = QLabel(f"{volume/10:.1f}dB")
             vol_label.setFixedWidth(50)
             layout.addWidget(vol_label)
 
@@ -724,12 +832,10 @@ class MainWindow(QMainWindow):
                 delay_label.setStyleSheet("color: #666; font-size: 10px;")
                 delay_label.setFixedWidth(60)
                 layout.addWidget(delay_label)
-
-        except Exception as e:
+        else:
             error_label = QLabel(self.tr("无法加载音频信息"))
             error_label.setStyleSheet("color: red;")
             layout.addWidget(error_label, 1)
-            logger.warning(f"无法加载音频信息: {file_path}, 错误: {e}")
 
         # 设置轨道样式
         widget.setStyleSheet(f"""
@@ -769,9 +875,9 @@ class MainWindow(QMainWindow):
         freq_label.setFixedWidth(60)
         layout.addWidget(freq_label)
 
-        # 音量
-        volume = hasattr(self, 'freq_track_volume') and self.freq_track_volume.value() or -20
-        vol_label = QLabel(f"{volume}dB")
+        # 音量（volume 是实际 dB 值的 10 倍，需要除以 10）
+        volume = hasattr(self, 'freq_track_volume') and self.freq_track_volume.value() or -200
+        vol_label = QLabel(f"{volume/10:.1f}dB")
         vol_label.setFixedWidth(50)
         layout.addWidget(vol_label)
 
@@ -802,6 +908,282 @@ class MainWindow(QMainWindow):
             QWidget {{
                 background-color: {color}15;
                 border: 1px solid {color};
+                border-radius: 4px;
+            }}
+        """)
+
+        return widget
+
+    def _create_preview_with_rulers(self, tracks, max_duration):
+        """创建带标尺的预览区域
+
+        Args:
+            tracks: 轨道信息列表
+            max_duration: 最大时长（秒）
+
+        Returns:
+            QWidget: 预览区域组件
+        """
+        # 主容器
+        container = QWidget()
+        main_layout = QVBoxLayout(container)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 顶部：时间标尺
+        time_ruler = self._create_time_ruler(max_duration)
+        main_layout.addWidget(time_ruler)
+
+        # 中间：轨道区域和音量标尺
+        middle_area = QWidget()
+        middle_layout = QHBoxLayout(middle_area)
+        middle_layout.setSpacing(0)
+        middle_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 左侧：轨道列表
+        tracks_widget = QWidget()
+        tracks_layout = QVBoxLayout(tracks_widget)
+        tracks_layout.setSpacing(5)
+        tracks_layout.setContentsMargins(5, 5, 5, 5)
+
+        # 计算每个轨道的宽度（基于时间比例和缩放级别）
+        zoom_level = getattr(self, 'preview_zoom_level', 1.0)
+        pixels_per_second = int(20 * zoom_level)  # 基础每秒20像素，应用缩放
+        total_width = max(int(max_duration * pixels_per_second), 400)
+
+        for track in tracks:
+            track_widget = self._create_timeline_track(track, total_width, max_duration)
+            tracks_layout.addWidget(track_widget)
+
+        tracks_layout.addStretch()
+        middle_layout.addWidget(tracks_widget, 1)
+
+        main_layout.addWidget(middle_area, 1)
+
+        return container
+
+    def _create_time_ruler(self, max_duration):
+        """创建时间标尺
+
+        Args:
+            max_duration: 最大时长（秒）
+
+        Returns:
+            QWidget: 时间标尺组件
+        """
+        ruler = QWidget()
+        ruler.setFixedHeight(30)
+        ruler.setStyleSheet("background-color: #f0f0f0; border-bottom: 1px solid #ccc;")
+
+        layout = QHBoxLayout(ruler)
+        layout.setSpacing(0)
+        layout.setContentsMargins(5, 0, 5, 0)
+
+        # 左侧留白（与轨道名称对齐）
+        spacer = QWidget()
+        spacer.setFixedWidth(120)
+        layout.addWidget(spacer)
+
+        # 时间刻度区域
+        scale_widget = QWidget()
+        scale_layout = QHBoxLayout(scale_widget)
+        scale_layout.setSpacing(0)
+        scale_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 使用缩放级别
+        zoom_level = getattr(self, 'preview_zoom_level', 1.0)
+        pixels_per_second = int(20 * zoom_level)
+        total_width = max(int(max_duration * pixels_per_second), 400)
+
+        # 计算刻度间隔（根据缩放级别和时长动态调整）
+        if max_duration <= 10:
+            interval = 1  # 1秒
+        elif max_duration <= 30:
+            interval = 5 if zoom_level >= 1.0 else 10  # 根据缩放调整
+        elif max_duration <= 60:
+            interval = 10 if zoom_level >= 0.8 else 20
+        elif max_duration <= 300:
+            interval = 30 if zoom_level >= 0.5 else 60
+        else:
+            interval = 60 if zoom_level >= 0.3 else 120
+
+        # 添加时间刻度
+        for t in range(0, int(max_duration) + 1, interval):
+            tick = QLabel(f"{t}s")
+            tick.setStyleSheet("font-size: 10px; color: #666;")
+            tick.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            tick.setFixedWidth(int(interval * pixels_per_second))
+            scale_layout.addWidget(tick)
+
+        scale_layout.addStretch()
+        layout.addWidget(scale_widget, 1)
+
+        # 右侧留白（与音量指示对齐）
+        spacer2 = QWidget()
+        spacer2.setFixedWidth(60)
+        layout.addWidget(spacer2)
+
+        return ruler
+
+    def _create_volume_ruler(self):
+        """创建音量标尺
+
+        Returns:
+            QWidget: 音量标尺组件
+        """
+        ruler = QWidget()
+        ruler.setFixedWidth(40)
+        ruler.setStyleSheet("background-color: #f8f8f8; border-left: 1px solid #ccc;")
+
+        layout = QVBoxLayout(ruler)
+        layout.setSpacing(0)
+        layout.setContentsMargins(2, 5, 2, 5)
+
+        # 音量刻度（从0dB到-60dB）
+        volumes = [0, -10, -20, -30, -40, -50, -60]
+        for vol in volumes:
+            label = QLabel(f"{vol}")
+            label.setStyleSheet("font-size: 9px; color: #666;")
+            label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            layout.addWidget(label)
+
+        layout.addStretch()
+        return ruler
+
+    def _create_timeline_track(self, track, total_width, max_duration):
+        """创建时间线轨道
+
+        Args:
+            track: 轨道信息字典
+            total_width: 总宽度（像素）
+            max_duration: 最大时长（秒）
+
+        Returns:
+            QWidget: 轨道组件
+        """
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setSpacing(5)
+        layout.setContentsMargins(5, 2, 5, 2)
+
+        color = track['color']
+        name = track['name']
+        duration = track.get('duration', 0)
+        volume = track.get('volume', 0)
+        overlay_index = track.get('overlay_index', 0)
+
+        # 轨道名称
+        name_label = QLabel(name)
+        name_label.setFixedWidth(120)
+        name_label.setStyleSheet(f"font-weight: bold; color: {color}; font-size: 11px;")
+        name_label.setToolTip(f"{name}\n时长: {duration:.1f}s\n音量: {volume/10:.1f}dB")
+        layout.addWidget(name_label)
+
+        # 时间线区域
+        timeline_widget = QWidget()
+        timeline_widget.setFixedWidth(total_width)
+        timeline_widget.setMinimumHeight(40)
+        timeline_widget.setStyleSheet("background-color: #f5f5f5; border: 1px solid #ddd;")
+
+        timeline_layout = QHBoxLayout(timeline_widget)
+        timeline_layout.setSpacing(0)
+        timeline_layout.setContentsMargins(0, 0, 0, 0)
+
+        if duration > 0:
+            # 使用与预览区域相同的缩放级别
+            zoom_level = getattr(self, 'preview_zoom_level', 1.0)
+            pixels_per_second = int(20 * zoom_level)
+
+            # 叠加延迟
+            if overlay_index > 0:
+                interval = hasattr(self, 'overlay_interval') and self.overlay_interval.value() or 0
+                delay_ms = overlay_index * interval
+                delay_sec = delay_ms / 1000.0
+                delay_width = int(delay_sec * pixels_per_second)
+
+                if delay_width > 0:
+                    delay_spacer = QWidget()
+                    delay_spacer.setFixedWidth(delay_width)
+                    delay_spacer.setStyleSheet("background-color: transparent;")
+                    timeline_layout.addWidget(delay_spacer)
+
+            # 音频块
+            audio_width = int(duration * pixels_per_second)
+            audio_block = QWidget()
+            audio_block.setFixedWidth(audio_width)
+            audio_block.setMinimumHeight(36)
+
+            # 根据音量设置透明度
+            vol_db = volume / 10.0
+            opacity = max(0.3, min(1.0, 1.0 + (vol_db / 60.0)))  # -60dB = 0.3, 0dB = 1.0
+
+            audio_block.setStyleSheet(f"""
+                QWidget {{
+                    background-color: {color};
+                    border-radius: 3px;
+                    opacity: {opacity};
+                }}
+            """)
+
+            # 添加波形效果
+            waveform_layout = QHBoxLayout(audio_block)
+            waveform_layout.setSpacing(1)
+            waveform_layout.setContentsMargins(3, 3, 3, 3)
+
+            num_bars = max(5, min(30, int(duration)))
+            import random
+            for i in range(num_bars):
+                bar = QWidget()
+                bar.setFixedWidth(max(2, audio_width // num_bars - 1))
+                height = random.randint(10, 30)
+                bar.setFixedHeight(height)
+                bar.setStyleSheet(f"background-color: rgba(255,255,255,0.5); border-radius: 1px;")
+                waveform_layout.addWidget(bar)
+
+            waveform_layout.addStretch()
+            timeline_layout.addWidget(audio_block)
+
+        timeline_layout.addStretch()
+        layout.addWidget(timeline_widget)
+
+        # 轨道独立音量指示
+        volume_widget = QWidget()
+        volume_widget.setFixedWidth(60)
+        volume_layout = QVBoxLayout(volume_widget)
+        volume_layout.setSpacing(0)
+        volume_layout.setContentsMargins(5, 2, 5, 2)
+
+        # 音量值显示
+        vol_label = QLabel(f"{volume/10:.1f}dB")
+        vol_label.setStyleSheet(f"font-size: 10px; color: {color}; font-weight: bold;")
+        vol_label.setAlignment(Qt.AlignCenter)
+        volume_layout.addWidget(vol_label)
+
+        # 音量条
+        vol_bar_widget = QWidget()
+        vol_bar_widget.setFixedSize(40, 20)
+        vol_bar_layout = QHBoxLayout(vol_bar_widget)
+        vol_bar_layout.setSpacing(1)
+        vol_bar_layout.setContentsMargins(1, 1, 1, 1)
+
+        # 计算音量条长度（0-60dB 对应 0-40像素）
+        vol_percent = 1.0 - (abs(volume) / 600.0)  # volume 是 10倍的 dB 值
+        vol_bar_width = max(5, int(40 * vol_percent))
+
+        vol_bar = QWidget()
+        vol_bar.setFixedSize(vol_bar_width, 18)
+        vol_bar.setStyleSheet(f"background-color: {color}; border-radius: 2px;")
+        vol_bar_layout.addWidget(vol_bar)
+        vol_bar_layout.addStretch()
+
+        volume_layout.addWidget(vol_bar_widget)
+        volume_layout.addStretch()
+        layout.addWidget(volume_widget)
+
+        # 设置轨道样式
+        widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {color}08;
                 border-radius: 4px;
             }}
         """)
@@ -1113,7 +1495,7 @@ class MainWindow(QMainWindow):
 
         self.create_project_group_btn = QPushButton(self.tr("创建项目组"))
         self.create_project_group_btn.setToolTip(self.tr("创建新项目组"))
-        self.create_project_group_btn.clicked.connect(self.create_project_group)
+        self.create_project_group_btn.clicked.connect(self.create_new_project_group)
         layout.addWidget(self.create_project_group_btn, 2, 2)
 
         # 删除项目组按钮
@@ -1644,7 +2026,7 @@ class MainWindow(QMainWindow):
 
         # 预览画布
         self.preview_scroll = QScrollArea()
-        self.preview_scroll.setWidgetResizable(True)
+        self.preview_scroll.setWidgetResizable(False)  # 关闭自动调整大小，让内容控制尺寸
         self.preview_scroll.setMinimumHeight(200)
         self.preview_scroll.setStyleSheet("QScrollArea { border: 1px solid #ccc; background-color: #f5f5f5; }")
 
@@ -3185,7 +3567,7 @@ class MainWindow(QMainWindow):
 
         logger.info(f"已切换到项目组: {group_name}")
 
-    def create_project_group(self):
+    def create_new_project_group(self):
         """创建新项目组"""
         group_name = self.new_project_group_name.text().strip()
 
