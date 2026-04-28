@@ -3,12 +3,15 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QSlider, QCheckBox, QFileDialog, QSpinBox, QDoubleSpinBox,
                              QScrollArea, QGridLayout, QMessageBox, QTabWidget, QProgressDialog,
                              QTextEdit)
-from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal, QTimer
+from PyQt5.QtCore import Qt, QTranslator, QSettings, QThread, pyqtSignal, QTimer, QUrl
+from PyQt5.QtGui import QDesktopServices
 import pyttsx3
 import pyaudio
 import wave
 import os
 import chardet
+import subprocess
+import sys
 from loguru import logger
 
 # 导入处理器类
@@ -124,6 +127,9 @@ class MainWindow(QMainWindow):
         self.is_loading_text = False   # 防止循环更新的标志
         self.text_save_timer = None    # 延迟保存定时器
 
+        # 检测ffmpeg是否可用
+        self.ffmpeg_available = self.check_ffmpeg_available()
+
         self.initUI()
         self.setupTranslations()
         self.enumerate_tts_engines()
@@ -164,6 +170,96 @@ class MainWindow(QMainWindow):
             self.recorder.wait(1000)
 
         event.accept()
+
+    def check_ffmpeg_available(self):
+        """检测ffmpeg是否可用"""
+        try:
+            # 可能的ffmpeg可执行文件名
+            ffmpeg_names = ['ffmpeg.exe', 'ffmpeg'] if sys.platform == 'win32' else ['ffmpeg']
+
+            # 检查系统PATH
+            for name in ffmpeg_names:
+                try:
+                    result = subprocess.run(['where', name] if sys.platform == 'win32' else ['which', name],
+                                          capture_output=True, text=True)
+                    if result.returncode == 0:
+                        ffmpeg_path = result.stdout.strip().split('\n')[0].strip()
+                        if ffmpeg_path:
+                            logger.info(f"检测到ffmpeg: {ffmpeg_path}")
+                            return True
+                except Exception:
+                    pass
+
+            # 尝试直接调用ffmpeg
+            for name in ffmpeg_names:
+                try:
+                    result = subprocess.run([name, '-version'],
+                                          capture_output=True, text=True, timeout=5)
+                    if result.returncode == 0:
+                        logger.info(f"检测到ffmpeg: {name}")
+                        return True
+                except Exception:
+                    pass
+
+            logger.warning("未检测到ffmpeg，视频生成和非WAV音频格式功能将被禁用")
+            return False
+        except Exception as e:
+            logger.error(f"检测ffmpeg时出错: {e}")
+            return False
+
+    def update_ui_for_ffmpeg_availability(self):
+        """根据ffmpeg可用性更新UI控件状态"""
+        if self.ffmpeg_available:
+            return
+
+        logger.info("ffmpeg不可用，禁用相关功能")
+
+        # 显示警告标签
+        if hasattr(self, 'ffmpeg_warning_label'):
+            self.ffmpeg_warning_label.setVisible(True)
+
+        # 禁用视频生成功能
+        if hasattr(self, 'generate_video'):
+            self.generate_video.setChecked(False)
+            self.generate_video.setEnabled(False)
+            self.generate_video.setToolTip(self.tr("需要安装ffmpeg才能使用此功能"))
+
+        # 禁用视频设置组
+        if hasattr(self, 'video_group'):
+            self.video_group.setEnabled(False)
+
+        # 限制音频格式为WAV
+        if hasattr(self, 'audio_format'):
+            # 清除所有选项，只保留WAV
+            self.audio_format.clear()
+            self.audio_format.addItem("WAV")
+            self.audio_format.setEnabled(False)
+            self.audio_format.setToolTip(self.tr("需要安装ffmpeg才能使用其他音频格式"))
+
+        # 更新提示文本
+        if hasattr(self, 'selection_hint'):
+            self.selection_hint.setText(self.tr("* 必须至少选择生成音频或生成视频一项（当前仅支持音频生成）"))
+
+        # 更新文件选择对话框的过滤器，只允许选择WAV文件
+        if hasattr(self, 'btn_browse_aff'):
+            # 断开原有连接并重新连接，使用WAV-only过滤器
+            try:
+                self.btn_browse_aff.clicked.disconnect()
+            except:
+                pass
+            self.btn_browse_aff.clicked.connect(lambda: self.browse_file(self.affirmation_file,
+                                                                         self.tr("WAV音频文件 (*.wav)")))
+            self.btn_browse_aff.setToolTip(self.tr("选择WAV格式的音频文件（需要ffmpeg才能使用其他格式）"))
+
+        if hasattr(self, 'btn_browse_bg'):
+            # 断开原有连接并重新连接，使用WAV-only过滤器
+            try:
+                self.btn_browse_bg.clicked.disconnect()
+            except:
+                pass
+            self.btn_browse_bg.clicked.connect(lambda: self.browse_file(self.background_file,
+                                                                        self.tr("WAV音频文件 (*.wav)")))
+            self.btn_browse_bg.setToolTip(self.tr("选择WAV格式的音频文件（需要ffmpeg才能使用其他格式）"))
 
     def get_resource_path(self):
         """获取资源路径，支持打包版本和开发版本"""
@@ -318,6 +414,9 @@ class MainWindow(QMainWindow):
             self.audio_group.setTitle(self.tr("音频设置"))
             self.label_audio_format.setText(self.tr("格式:"))
             self.label_audio_sample_rate.setText(self.tr("采样率:"))
+            # 更新ffmpeg警告标签
+            if hasattr(self, 'ffmpeg_warning_label'):
+                self.ffmpeg_warning_label.setText(self.tr("⚠️ 未检测到ffmpeg，视频生成和非WAV音频格式功能已被禁用"))
             self.generate_video.setText(self.tr("生成视频"))
             self.generate_video.setToolTip(self.tr("是否生成视频。"))
             self.video_group.setTitle(self.tr("视频设置"))
@@ -663,8 +762,11 @@ class MainWindow(QMainWindow):
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
-        
+
         main_layout.addWidget(self.tab_widget)
+
+        # 根据ffmpeg可用性更新UI
+        self.update_ui_for_ffmpeg_availability()
         
     def create_project_group(self):
         """创建项目组"""
@@ -1015,6 +1117,16 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.audio_group, row+1, 0, 1, 3)
 
         row += 2
+
+        # ffmpeg未安装提示
+        self.ffmpeg_warning_label = QLabel()
+        self.ffmpeg_warning_label.setText(self.tr('⚠️ 未检测到ffmpeg，视频生成和非WAV音频格式功能已被禁用。<a href="https://ffmpeg.org/download.html">点击下载ffmpeg</a>'))
+        self.ffmpeg_warning_label.setStyleSheet("color: orange; font-weight: bold;")
+        self.ffmpeg_warning_label.setVisible(False)
+        self.ffmpeg_warning_label.setOpenExternalLinks(True)
+        layout.addWidget(self.ffmpeg_warning_label, row, 0, 1, 3)
+
+        row += 1
 
         # 生成视频复选框
         self.generate_video = QCheckBox(self.tr("生成视频"))

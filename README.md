@@ -41,20 +41,15 @@ QQ 交流群：1095279278
 
 - 操作系统：Windows 11、Linux 主要发行版
   
-- 您还需要在您的操作系统中安装 [FFmpeg](https://ffmpeg.org/) 。
+- 强烈建议您在您的操作系统中安装 [FFmpeg](https://ffmpeg.org/) ，否则您将只能使用基础功能。
 
-#### Linux 安装方式
+**注意**：如果您未安装 FFmpeg，以下功能将无法使用：
+- 视频生成功能
+- 非 WAV 格式的音频文件导入（仅支持 WAV 格式）
+- 输出格式选择（仅支持输出 WAV 格式）
+- 元数据添加功能
 
-```bash
-# 下载 AppImage 文件
-wget https://github.com/Jimmy32767255/JimSMake/releases/latest/download/GNU-Linux-amd64.AppImage
-
-# 添加执行权限
-chmod +x GNU-Linux-amd64.AppImage
-
-# 运行
-./GNU-Linux-amd64.AppImage
-```
+无论是打包版本还是解释执行版本，使用高级功能都需要安装FFmpeg，**打包版本不包含FFmpeg！**
 
 对于解释执行版本则需要以下额外条件：
 
@@ -65,6 +60,8 @@ chmod +x GNU-Linux-amd64.AppImage
 
 #### 打包版本
 
+**推荐普通用户使用此方式**
+
 1. **下载打包版本**
 
    从 [Releases](https://github.com/Jimmy32767255/JimSMake/releases/latest) 页面下载最新版本的 JimSMake。
@@ -73,7 +70,11 @@ chmod +x GNU-Linux-amd64.AppImage
 
    可选：校验下载的文件是否完整（md5/sha256/sha512）。
 
-#### 解释执行（建议用于开发）
+#### 解释执行
+
+如果您想要参与项目开发或进行调试/修改，您需要下载解释执行版本。
+
+*（解释执行版本仅建议用于开发，不推荐普通用户使用）*
 
 1. **克隆仓库**
    
@@ -303,6 +304,18 @@ build.bat
 2. 切换工作目录为 SMake 仓库根目录
 
 3. 与上述 Linux 上构建 AppImage 包相同。
+
+##### 在 Linux 上为 Windows 打包
+
+在 Linux 上为 Windows 打包前需要先安装 [Wine](https://www.winehq.org/)
+
+1. 进入 Wine CMD
+
+2. 切换工作目录为 SMake 仓库根目录
+
+3. 执行 `build.bat --wine`
+
+`--wine` 参数会使用 venv-wine 虚拟环境目录，以避免与宿主机的虚拟环境冲突
 
 #### 不使用虚拟环境进行打包
 

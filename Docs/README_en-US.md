@@ -7,8 +7,22 @@
 JimSMake is a professional subliminal audio production tool that provides an intuitive graphical interface and command-line interface to help users easily create subliminal audio content.
 
 [Directory Information](../DirInfo.txt)
+
 [License](../LICENSE)
+
 [To-Do List](../todo.md)
+
+## Social Media
+
+QQ Group: 1095279278
+
+## Related Videos
+
+[Feature Introduction Video](https://www.bilibili.com/video/BV1sKDZBwEEZ)
+
+[Download Tutorial Video](https://www.bilibili.com/video/BV1hkQsBHE61)
+
+[Speed Comparison Video](https://www.bilibili.com/video/BV1VXQgBEEa7)
 
 ### Key Features
 
@@ -26,32 +40,16 @@ JimSMake is a professional subliminal audio production tool that provides an int
 ### System Requirements
 
 - Operating System: Windows 11, major Linux distributions
-- You also need to install [FFmpeg](https://ffmpeg.org/) on your operating system.
+  
+- It is strongly recommended that you install [FFmpeg](https://ffmpeg.org/) on your operating system, otherwise you will only be able to use basic features.
 
-#### Linux Installation Methods
+**Note**: If you do not install FFmpeg, the following features will not be available:
+- Video generation feature
+- Import of audio files in non-WAV formats (only WAV format supported)
+- Output format selection (only WAV output supported)
+- Metadata addition feature
 
-**Arch Linux (AUR):**
-```bash
-# Install using yay or paru
-yay -S jimsmake
-# or
-paru -S jimsmake
-
-# Manual build
-makepkg -si
-```
-
-**Other Linux Distributions (AppImage):**
-```bash
-# Download AppImage file
-wget https://github.com/Jimmy32767255/JimSMake/releases/latest/download/GNU-Linux-amd64.AppImage
-
-# Add execution permission
-chmod +x GNU-Linux-amd64.AppImage
-
-# Run
-./GNU-Linux-amd64.AppImage
-```
+Whether using the packaged version or the interpreted version, FFmpeg is required for advanced features. **The packaged version does not include FFmpeg!**
 
 For the interpreted version, the following additional requirements are needed:
 
@@ -62,6 +60,8 @@ For the interpreted version, the following additional requirements are needed:
 
 #### Packaged Version
 
+**Recommended for regular users**
+
 1. **Download the packaged version**
 
    Download the latest version of JimSMake from the [Releases](https://github.com/Jimmy32767255/JimSMake/releases/latest) page.
@@ -70,7 +70,11 @@ For the interpreted version, the following additional requirements are needed:
 
    Optional: Verify the integrity of the downloaded file (md5/sha256/sha512).
 
-#### Interpreted Execution (Recommended for Development)
+#### Interpreted Execution
+
+If you want to participate in project development or debug/modify the code, you need to download the interpreted version.
+
+*(The interpreted version is only recommended for development, not for regular users)*
 
 1. **Clone the repository**
    
@@ -279,16 +283,6 @@ build.bat
 
 Build output is generated at `./dist/Linux/GNU-Linux-amd64.AppImage`.
 
-#### Build Arch Linux Package
-
-```bash
-# Build and install
-makepkg -si
-
-# Build only
-makepkg
-```
-
 #### Package for Other Operating Systems on Local Machine
 
 ##### Package for Linux on Windows
@@ -303,13 +297,13 @@ Before packaging for Linux on Windows, you need to install [WSL](https://learn.m
 
 The `--wsl` parameter uses the venv-wsl virtual environment directory to avoid conflicts with the host's virtual environment
 
-##### Build AppImage / Arch Linux Package on Windows
+##### Build AppImage on Windows
 
 1. Enter WSL terminal
 
 2. Change working directory to the SMake repository root
 
-3. Same as the above methods for building AppImage/Arch Linux packages on Linux
+3. Same as the above methods for building AppImage on Linux
 
 #### Package Without Using Virtual Environment
 
