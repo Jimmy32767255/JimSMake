@@ -443,6 +443,19 @@ class MainWindow(QMainWindow):
             self.metadata_author.setToolTip(self.tr("设置项目输出元数据中的作者。"))
             self.generate_btn.setText(self.tr("生成项目"))
             self.generate_btn.setToolTip(self.tr("开始生成项目！"))
+            # 预览组
+            if hasattr(self, 'preview_group'):
+                self.preview_group.setTitle(self.tr("预览"))
+                self.preview_zoom_in_btn.setText(self.tr("放大"))
+                self.preview_zoom_in_btn.setToolTip(self.tr("放大预览视图"))
+                self.preview_zoom_out_btn.setText(self.tr("缩小"))
+                self.preview_zoom_out_btn.setToolTip(self.tr("缩小预览视图"))
+                self.preview_reset_btn.setText(self.tr("重置视图"))
+                self.preview_reset_btn.setToolTip(self.tr("重置预览视图缩放和位置"))
+                self.preview_update_btn.setText(self.tr("更新预览"))
+                self.preview_update_btn.setToolTip(self.tr("根据当前配置更新预览"))
+                self.preview_tracks_label.setText(self.tr('轨道预览（点击"更新预览"查看）'))
+                self.preview_zoom_label.setText(self.tr("缩放: 100%"))
 
         # 更新设置组
         if hasattr(self, 'settings_group'):
@@ -518,6 +531,282 @@ class MainWindow(QMainWindow):
             )
 
         logger.info("UI文本重新翻译完成")
+
+    def preview_zoom_in(self):
+        """放大预览视图"""
+        if not hasattr(self, 'preview_zoom_level'):
+            self.preview_zoom_level = 1.0
+
+        self.preview_zoom_level = min(self.preview_zoom_level * 1.2, 3.0)
+        self._apply_preview_zoom()
+        logger.debug(f"预览放大到: {self.preview_zoom_level:.0%}")
+
+    def preview_zoom_out(self):
+        """缩小预览视图"""
+        if not hasattr(self, 'preview_zoom_level'):
+            self.preview_zoom_level = 1.0
+
+        self.preview_zoom_level = max(self.preview_zoom_level / 1.2, 0.3)
+        self._apply_preview_zoom()
+        logger.debug(f"预览缩小到: {self.preview_zoom_level:.0%}")
+
+    def preview_reset(self):
+        """重置预览视图"""
+        self.preview_zoom_level = 1.0
+        self._apply_preview_zoom()
+
+        # 重置滚动位置
+        if hasattr(self, 'preview_scroll'):
+            self.preview_scroll.horizontalScrollBar().setValue(0)
+            self.preview_scroll.verticalScrollBar().setValue(0)
+
+        logger.debug("预览视图已重置")
+
+    def _apply_preview_zoom(self):
+        """应用预览缩放"""
+        if hasattr(self, 'preview_widget') and hasattr(self, 'preview_zoom_level'):
+            # 更新缩放比例显示
+            if hasattr(self, 'preview_zoom_label'):
+                self.preview_zoom_label.setText(self.tr(f"缩放: {self.preview_zoom_level:.0%}"))
+
+            # 应用缩放（通过调整最小尺寸）
+            base_width = 800
+            base_height = 300
+            self.preview_widget.setMinimumSize(
+                int(base_width * self.preview_zoom_level),
+                int(base_height * self.preview_zoom_level)
+            )
+
+    def update_preview(self):
+        """更新预览视图"""
+        logger.debug("开始更新预览")
+
+        # 清除现有内容
+        if hasattr(self, 'preview_layout'):
+            # 清除除标签外的所有内容
+            while self.preview_layout.count() > 1:
+                item = self.preview_layout.takeAt(1)
+                if item.widget():
+                    item.widget().deleteLater()
+
+        # 检查是否有音频文件
+        affirmation_file = self.affirmation_file.text() if hasattr(self, 'affirmation_file') else ""
+        background_file = self.background_file.text() if hasattr(self, 'background_file') else ""
+
+        if not affirmation_file and not background_file:
+            self.preview_tracks_label.setText(self.tr("请先选择音频文件"))
+            return
+
+        try:
+            # 创建轨道预览
+            track_widgets = []
+
+            # 背景音乐轨道
+            if background_file and os.path.exists(background_file):
+                bg_widget = self._create_track_widget(
+                    self.tr("背景音乐"),
+                    background_file,
+                    "#4CAF50",
+                    hasattr(self, 'background_volume') and self.background_volume.value() or 0
+                )
+                track_widgets.append(bg_widget)
+
+            # 肯定语轨道
+            if affirmation_file and os.path.exists(affirmation_file):
+                aff_widget = self._create_track_widget(
+                    self.tr("肯定语"),
+                    affirmation_file,
+                    "#2196F3",
+                    hasattr(self, 'affirmation_volume') and self.affirmation_volume.value() or 0
+                )
+                track_widgets.append(aff_widget)
+
+                # 叠加轨道
+                overlay_times = hasattr(self, 'overlay_times') and self.overlay_times.value() or 1
+                if overlay_times > 1:
+                    for i in range(1, overlay_times):
+                        overlay_widget = self._create_track_widget(
+                            self.tr(f"肯定语 (叠加 {i+1})"),
+                            affirmation_file,
+                            "#9C27B0",
+                            hasattr(self, 'affirmation_volume') and self.affirmation_volume.value() or 0,
+                            overlay_index=i
+                        )
+                        track_widgets.append(overlay_widget)
+
+            # 特定频率音轨
+            if hasattr(self, 'freq_track_enabled') and self.freq_track_enabled.isChecked():
+                freq = self.freq_track_freq.text() if hasattr(self, 'freq_track_freq') else ""
+                if freq:
+                    freq_widget = self._create_freq_track_widget(freq)
+                    track_widgets.append(freq_widget)
+
+            # 添加所有轨道到布局
+            for widget in track_widgets:
+                self.preview_layout.addWidget(widget)
+
+            # 更新标签
+            self.preview_tracks_label.setText(self.tr(f"轨道预览 - 共 {len(track_widgets)} 个轨道"))
+
+            logger.info(f"预览更新完成，共 {len(track_widgets)} 个轨道")
+
+        except Exception as e:
+            logger.error(f"更新预览失败: {e}")
+            self.preview_tracks_label.setText(self.tr(f"预览更新失败: {str(e)}"))
+
+    def _create_track_widget(self, name, file_path, color, volume, overlay_index=0):
+        """创建轨道显示组件
+
+        Args:
+            name: 轨道名称
+            file_path: 音频文件路径
+            color: 轨道颜色
+            volume: 音量值
+            overlay_index: 叠加索引（0表示主轨道）
+
+        Returns:
+            QWidget: 轨道组件
+        """
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setSpacing(5)
+        layout.setContentsMargins(5, 2, 5, 2)
+
+        # 轨道名称
+        name_label = QLabel(name)
+        name_label.setFixedWidth(120)
+        name_label.setStyleSheet(f"font-weight: bold; color: {color};")
+        layout.addWidget(name_label)
+
+        # 音频波形/时长显示
+        try:
+            from pydub import AudioSegment
+            audio = AudioSegment.from_file(file_path)
+            duration_ms = len(audio)
+            duration_sec = duration_ms / 1000
+
+            # 时长标签
+            duration_label = QLabel(f"{duration_sec:.1f}s")
+            duration_label.setFixedWidth(60)
+            layout.addWidget(duration_label)
+
+            # 音量标签
+            vol_label = QLabel(f"{volume}dB")
+            vol_label.setFixedWidth(50)
+            layout.addWidget(vol_label)
+
+            # 波形可视化（简化版 - 使用彩色条表示）
+            waveform_widget = QWidget()
+            waveform_layout = QHBoxLayout(waveform_widget)
+            waveform_layout.setSpacing(1)
+            waveform_layout.setContentsMargins(0, 0, 0, 0)
+
+            # 创建简化的波形条
+            num_bars = min(50, max(10, int(duration_sec)))
+            for i in range(num_bars):
+                bar = QWidget()
+                bar.setFixedWidth(8)
+                # 随机高度模拟波形
+                import random
+                height = random.randint(20, 60)
+                bar.setFixedHeight(height)
+                bar.setStyleSheet(f"background-color: {color}; border-radius: 2px;")
+                waveform_layout.addWidget(bar)
+
+            waveform_layout.addStretch()
+            layout.addWidget(waveform_widget, 1)
+
+            # 叠加延迟信息
+            if overlay_index > 0:
+                interval = hasattr(self, 'overlay_interval') and self.overlay_interval.value() or 0
+                delay_ms = overlay_index * interval
+                delay_label = QLabel(f"+{delay_ms}ms")
+                delay_label.setStyleSheet("color: #666; font-size: 10px;")
+                delay_label.setFixedWidth(60)
+                layout.addWidget(delay_label)
+
+        except Exception as e:
+            error_label = QLabel(self.tr("无法加载音频信息"))
+            error_label.setStyleSheet("color: red;")
+            layout.addWidget(error_label, 1)
+            logger.warning(f"无法加载音频信息: {file_path}, 错误: {e}")
+
+        # 设置轨道样式
+        widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {color}15;
+                border: 1px solid {color};
+                border-radius: 4px;
+            }}
+        """)
+
+        return widget
+
+    def _create_freq_track_widget(self, freq):
+        """创建特定频率轨道显示组件
+
+        Args:
+            freq: 频率值(Hz)
+
+        Returns:
+            QWidget: 频率轨道组件
+        """
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setSpacing(5)
+        layout.setContentsMargins(5, 2, 5, 2)
+
+        color = "#FF9800"
+
+        # 轨道名称
+        name_label = QLabel(self.tr(f"特定频率 ({freq}Hz)"))
+        name_label.setFixedWidth(120)
+        name_label.setStyleSheet(f"font-weight: bold; color: {color};")
+        layout.addWidget(name_label)
+
+        # 频率可视化
+        freq_label = QLabel("∞")
+        freq_label.setFixedWidth(60)
+        layout.addWidget(freq_label)
+
+        # 音量
+        volume = hasattr(self, 'freq_track_volume') and self.freq_track_volume.value() or -20
+        vol_label = QLabel(f"{volume}dB")
+        vol_label.setFixedWidth(50)
+        layout.addWidget(vol_label)
+
+        # 正弦波可视化
+        waveform_widget = QWidget()
+        waveform_layout = QHBoxLayout(waveform_widget)
+        waveform_layout.setSpacing(2)
+        waveform_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 创建正弦波形
+        import math
+        num_points = 50
+        for i in range(num_points):
+            bar = QWidget()
+            bar.setFixedWidth(6)
+            # 正弦波高度
+            angle = (i / num_points) * 2 * math.pi * 3  # 3个周期
+            height = int(30 + 25 * math.sin(angle))
+            bar.setFixedHeight(height)
+            bar.setStyleSheet(f"background-color: {color}; border-radius: 2px;")
+            waveform_layout.addWidget(bar)
+
+        waveform_layout.addStretch()
+        layout.addWidget(waveform_widget, 1)
+
+        # 设置轨道样式
+        widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {color}15;
+                border: 1px solid {color};
+                border-radius: 4px;
+            }}
+        """)
+
+        return widget
 
     def enumerate_tts_engines(self):
         """枚举系统中已安装的TTS引擎"""
@@ -1320,6 +1609,67 @@ class MainWindow(QMainWindow):
 
         self.metadata_group.setLayout(metadata_layout)
         layout.addWidget(self.metadata_group, row, 0, 1, 3)
+
+        row += 1
+
+        # 预览组
+        self.preview_group = QGroupBox(self.tr("预览"))
+        preview_layout = QVBoxLayout()
+
+        # 预览控制按钮
+        preview_control_layout = QHBoxLayout()
+
+        self.preview_zoom_in_btn = QPushButton(self.tr("放大"))
+        self.preview_zoom_in_btn.setToolTip(self.tr("放大预览视图"))
+        self.preview_zoom_in_btn.clicked.connect(self.preview_zoom_in)
+        preview_control_layout.addWidget(self.preview_zoom_in_btn)
+
+        self.preview_zoom_out_btn = QPushButton(self.tr("缩小"))
+        self.preview_zoom_out_btn.setToolTip(self.tr("缩小预览视图"))
+        self.preview_zoom_out_btn.clicked.connect(self.preview_zoom_out)
+        preview_control_layout.addWidget(self.preview_zoom_out_btn)
+
+        self.preview_reset_btn = QPushButton(self.tr("重置视图"))
+        self.preview_reset_btn.setToolTip(self.tr("重置预览视图缩放和位置"))
+        self.preview_reset_btn.clicked.connect(self.preview_reset)
+        preview_control_layout.addWidget(self.preview_reset_btn)
+
+        self.preview_update_btn = QPushButton(self.tr("更新预览"))
+        self.preview_update_btn.setToolTip(self.tr("根据当前配置更新预览"))
+        self.preview_update_btn.clicked.connect(self.update_preview)
+        preview_control_layout.addWidget(self.preview_update_btn)
+
+        preview_control_layout.addStretch()
+        preview_layout.addLayout(preview_control_layout)
+
+        # 预览画布
+        self.preview_scroll = QScrollArea()
+        self.preview_scroll.setWidgetResizable(True)
+        self.preview_scroll.setMinimumHeight(200)
+        self.preview_scroll.setStyleSheet("QScrollArea { border: 1px solid #ccc; background-color: #f5f5f5; }")
+
+        self.preview_widget = QWidget()
+        self.preview_widget.setMinimumSize(800, 300)
+        self.preview_layout = QVBoxLayout(self.preview_widget)
+        self.preview_layout.setSpacing(10)
+        self.preview_layout.setContentsMargins(10, 10, 10, 10)
+
+        # 轨道标签
+        self.preview_tracks_label = QLabel(self.tr('轨道预览（点击"更新预览"查看）'))
+        self.preview_tracks_label.setAlignment(Qt.AlignCenter)
+        self.preview_tracks_label.setStyleSheet("color: #666; font-size: 12px;")
+        self.preview_layout.addWidget(self.preview_tracks_label)
+
+        self.preview_scroll.setWidget(self.preview_widget)
+        preview_layout.addWidget(self.preview_scroll)
+
+        # 缩放比例显示
+        self.preview_zoom_label = QLabel(self.tr("缩放: 100%"))
+        self.preview_zoom_label.setAlignment(Qt.AlignRight)
+        preview_layout.addWidget(self.preview_zoom_label)
+
+        self.preview_group.setLayout(preview_layout)
+        layout.addWidget(self.preview_group, row, 0, 1, 3)
 
         row += 1
 
