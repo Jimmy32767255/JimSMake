@@ -351,6 +351,8 @@ build.bat -g
 
 - 创建一个[议题](https://github.com/Jimmy32767255/JimSMake/issues/new)
 - 发送邮件至：Jimmy32767255@outlook.com
+- 添加QQ交流群聊：1095279278
+- 通过[在线表格](https://docs.qq.com/sheet/DYURpZFBCVkNYSWVh?tab=BB08J2)
 
 ---
 
