@@ -20,6 +20,7 @@ from Processors.VideoProcessor import VideoProcessor
 
 from .AudioRecorder import AudioRecorder
 from .AudioManager import AudioManager
+from .RecordingManager import RecordingManager
 from .PreviewManager import PreviewManager
 from .TTSManager import TTSManager
 from .LogHandler import LogHandler
@@ -57,6 +58,7 @@ class MainWindow(QMainWindow):
 
         # 初始化管理器（需要在initUI之前创建）
         self.audio_manager = AudioManager(self)
+        self.recording_manager = RecordingManager(self)
         self.tts_manager = TTSManager(self)
         
         self.initUI()
@@ -1395,7 +1397,7 @@ class MainWindow(QMainWindow):
         self.record_btn = QPushButton(self.tr("开始录制"))
         self.record_btn.setCheckable(True)
         self.record_btn.setToolTip(self.tr("开始/停止录制肯定语。"))
-        self.record_btn.clicked.connect(self.toggle_recording)
+        self.record_btn.clicked.connect(self.recording_manager.toggle_recording)
         layout.addWidget(self.record_btn, 4, 2)
 
         # 音量滑条
@@ -1820,110 +1822,6 @@ class MainWindow(QMainWindow):
             if line_edit == self.text_file:
                 self.text_sync.load_text_from_file(file_path)
 
-    def toggle_recording(self):
-        """切换录音状态（开始/停止录制）"""
-        if not self.is_recording:
-            self.start_recording()
-        else:
-            self.stop_recording()
-
-    def start_recording(self):
-        """开始录制音频"""
-        # 检查是否选择了项目
-        if not self.check_project_selected():
-            self.record_btn.setChecked(False)
-            return
-
-        try:
-            # 获取选中的录音设备
-            device_index = None
-
-            # 如果不是系统默认，获取设备索引（存储在itemData中）
-            if self.record_device.currentText() != self.tr("系统默认"):
-                device_index = self.record_device.currentData()
-                if device_index is None:
-                    # 兼容旧逻辑：如果data为None，尝试通过名称查找
-                    device_name = self.record_device.currentText()
-                    p = pyaudio.PyAudio()
-                    for i in range(p.get_device_count()):
-                        device_info = p.get_device_info_by_index(i)
-                        if device_info['name'].strip() == device_name and device_info['maxInputChannels'] > 0:
-                            device_index = i
-                            break
-                    p.terminate()
-
-            # 创建输出目录
-            output_dir = self.get_affirmation_output_dir()
-            if not output_dir:
-                QMessageBox.critical(self, self.tr("错误"),
-                                   self.tr("无法获取项目目录！"))
-                self.record_btn.setChecked(False)
-                return
-
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
-
-            # 生成输出文件名（使用时间戳）
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_file = os.path.join(output_dir, f"recorded_{timestamp}.wav")
-
-            # 创建录音器
-            self.recorder = AudioRecorder(device_index=device_index)
-            self.recorder.set_output_file(output_file)
-            self.recorder.recording_finished.connect(self.on_recording_finished)
-            self.recorder.recording_error.connect(self.on_recording_error)
-
-            # 开始录制
-            self.recorder.start()
-            self.is_recording = True
-
-            # 更新按钮状态
-            self.record_btn.setText(self.tr("停止录制"))
-            self.record_btn.setStyleSheet("QPushButton { background-color: #ff4444; color: white; }")
-
-            logger.info(f"开始录制，输出文件: {output_file}")
-
-        except Exception as e:
-            logger.error(f"开始录制失败: {e}")
-            QMessageBox.critical(self, self.tr("错误"), self.tr(f"开始录制失败: {str(e)}"))
-            self.record_btn.setChecked(False)
-
-    def stop_recording(self):
-        """停止录制音频"""
-        if self.recorder and self.is_recording:
-            self.recorder.stop()
-            self.recorder.wait()  # 等待线程结束
-
-        self.is_recording = False
-
-        # 恢复按钮状态
-        self.record_btn.setText(self.tr("开始录制"))
-        self.record_btn.setStyleSheet("")
-        self.record_btn.setChecked(False)
-
-        logger.info("停止录制")
-
-    def on_recording_finished(self, file_path):
-        """录音完成回调"""
-        # 更新音频文件路径输入框
-        self.affirmation_file.setText(file_path)
-
-        logger.info(f"录音完成，文件已保存: {file_path}")
-        QMessageBox.information(self, self.tr("成功"),
-                                self.tr(f"录音完成！文件已保存到: {file_path}"))
-
-    def on_recording_error(self, error_msg):
-        """录音错误回调"""
-        self.is_recording = False
-
-        # 恢复按钮状态
-        self.record_btn.setText(self.tr("开始录制"))
-        self.record_btn.setStyleSheet("")
-        self.record_btn.setChecked(False)
-
-        logger.error(f"录音出错: {error_msg}")
-        QMessageBox.critical(self, self.tr("错误"), self.tr(f"录音出错: {error_msg}"))
     
     def search_visualization_image(self):
         """联机搜索视觉化图片"""
