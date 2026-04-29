@@ -14,93 +14,12 @@ import subprocess
 import sys
 from loguru import logger
 
-# 导入处理器类
-import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from Processors.AudioProcessor import AudioProcessor
 from Processors.VideoProcessor import VideoProcessor
 
-
-class AudioRecorder(QThread):
-    """音频录制线程"""
-    recording_finished = pyqtSignal(str)
-    recording_error = pyqtSignal(str)
-    
-    def __init__(self, device_index=None, sample_rate=44100, channels=1):
-        super().__init__()
-        self.device_index = device_index
-        self.sample_rate = sample_rate
-        self.channels = channels
-        self.chunk_size = 1024
-        self.audio_format = pyaudio.paInt16
-        self.is_recording = False
-        self.frames = []
-        self.output_file = None
-        
-    def set_output_file(self, file_path):
-        """设置输出文件路径"""
-        self.output_file = file_path
-        
-    def run(self):
-        """开始录制"""
-        try:
-            self.frames = []
-            self.is_recording = True
-            
-            p = pyaudio.PyAudio()
-            
-            # 打开音频流
-            stream = p.open(
-                format=self.audio_format,
-                channels=self.channels,
-                rate=self.sample_rate,
-                input=True,
-                input_device_index=self.device_index,
-                frames_per_buffer=self.chunk_size
-            )
-            
-            logger.info("开始录制音频")
-            
-            while self.is_recording:
-                try:
-                    data = stream.read(self.chunk_size, exception_on_overflow=False)
-                    self.frames.append(data)
-                except Exception as e:
-                    logger.error(f"读取音频数据时出错: {e}")
-                    break
-            
-            # 停止并关闭音频流
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-            
-            # 保存音频文件
-            if self.output_file and self.frames:
-                self._save_audio()
-                self.recording_finished.emit(self.output_file)
-            
-        except Exception as e:
-            logger.error(f"录音过程中出错: {e}")
-            self.recording_error.emit(str(e))
-    
-    def _save_audio(self):
-        """保存录制的音频到文件"""
-        try:
-            wf = wave.open(self.output_file, 'wb')
-            wf.setnchannels(self.channels)
-            wf.setsampwidth(pyaudio.PyAudio().get_sample_size(self.audio_format))
-            wf.setframerate(self.sample_rate)
-            wf.writeframes(b''.join(self.frames))
-            wf.close()
-            logger.info(f"音频文件已保存: {self.output_file}")
-        except Exception as e:
-            logger.error(f"保存音频文件失败: {e}")
-            raise
-    
-    def stop(self):
-        """停止录制"""
-        self.is_recording = False
-        logger.info("停止录制音频")
+from .AudioRecorder import AudioRecorder
+from .LogHandler import LogHandler
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
@@ -136,7 +55,10 @@ class MainWindow(QMainWindow):
         self.enumerate_tts_engines()
         self.enumerate_audio_devices()
         self.setup_text_file_sync()    # 设置文本文件同步
-        self.setup_log_handler()       # 设置日志处理器
+        
+        # 初始化日志处理器
+        self.log_handler = LogHandler(self)
+        self.log_handler.setup_log_handler()
 
         # UI初始化完成后，如果当前有项目，自动加载资源
         if hasattr(self, 'current_project_name') and self.current_project_name:
@@ -2099,71 +2021,6 @@ class MainWindow(QMainWindow):
             # 如果是文本文件输入框，自动加载文件内容
             if line_edit == self.text_file:
                 self.load_text_from_file(file_path)
-
-    # ==================== 日志处理相关方法 ====================
-
-    def setup_log_handler(self):
-        """设置日志处理器，将日志输出到UI"""
-        from loguru import logger
-        import sys
-
-        class UILogHandler:
-            """自定义日志处理器，将日志发送到UI"""
-            def __init__(self, main_window):
-                self.main_window = main_window
-
-            def write(self, message):
-                """写入日志消息"""
-                # 直接传递原始消息，不做任何处理
-                clean_message = message.strip()
-                if clean_message:
-                    # 使用 QTimer.singleShot 确保在主线程中更新UI
-                    from PyQt5.QtCore import QTimer
-                    QTimer.singleShot(0, lambda msg=clean_message: 
-                        self.main_window.append_log_message(msg))
-
-            def flush(self):
-                pass
-
-        # 添加自定义处理器到 loguru，使用原始格式
-        self.ui_log_handler = UILogHandler(self)
-        logger.add(self.ui_log_handler, 
-                   format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}", 
-                   level="DEBUG")
-        
-        # 显示缓存的UI初始化前日志
-        self._display_cached_logs()
-        
-        logger.info("UI日志处理器已设置")
-
-    def _display_cached_logs(self):
-        """显示UI初始化之前缓存的日志"""
-        from loguru import logger
-        
-        # 获取日志文件路径
-        log_file = os.path.join(os.path.dirname(__file__), "..", "..", "SMake.log")
-        log_file = os.path.abspath(log_file)
-        
-        if os.path.exists(log_file) and hasattr(self, 'log_text_edit'):
-            try:
-                with open(log_file, 'r', encoding='utf-8') as f:
-                    # 读取最后100行（避免加载过多）
-                    lines = f.readlines()
-                    last_lines = lines[-100:] if len(lines) > 100 else lines
-                    
-                    for line in last_lines:
-                        line = line.strip()
-                        if line:
-                            self.log_text_edit.append(line)
-                    
-                    # 添加分隔线
-                    if last_lines:
-                        self.log_text_edit.append("-" * 80)
-                        self.log_text_edit.append("[历史日志结束，以下为实时日志]")
-                        self.log_text_edit.append("")
-                        
-            except Exception as e:
-                logger.error(f"读取历史日志失败: {e}")
 
     # ==================== 文本文件同步方法 ====================
 

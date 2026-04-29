@@ -26,7 +26,8 @@ Src：SMake 源代码文件
         VideoCore.py: 视频处理核心模块
         VideoProcessors.py：视频处理器代码文件
     UI:UI 代码文件
-        Main_Windows.py：主窗口代码文件
+        Main_Window.py：主窗口代码文件
+        AudioRecorder.py：音频录制线程模块
     Cli.py：命令行支持模块代码文件
     Main.py：程序入口点代码文件
 Tools：工具
