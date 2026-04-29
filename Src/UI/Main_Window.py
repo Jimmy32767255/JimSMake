@@ -21,6 +21,7 @@ from Processors.VideoProcessor import VideoProcessor
 from .AudioRecorder import AudioRecorder
 from .LogHandler import LogHandler
 from .TextFileSync import TextFileSync
+from .ProjectManager import ProjectManager
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
