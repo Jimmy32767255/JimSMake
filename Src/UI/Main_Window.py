@@ -19,6 +19,7 @@ from Processors.AudioProcessor import AudioProcessor
 from Processors.VideoProcessor import VideoProcessor
 
 from .AudioRecorder import AudioRecorder
+from .AudioManager import AudioManager
 from .LogHandler import LogHandler
 from .TextFileSync import TextFileSync
 from .ProjectManager import ProjectManager
@@ -54,8 +55,11 @@ class MainWindow(QMainWindow):
 
         self.initUI()
         self.setupTranslations()
-        self.enumerate_tts_engines()
-        self.enumerate_audio_devices()
+        
+        # 初始化音频管理器
+        self.audio_manager = AudioManager(self)
+        self.audio_manager.enumerate_tts_engines()
+        self.audio_manager.enumerate_audio_devices()
         
         # 初始化文本文件同步处理器
         self.text_sync = TextFileSync(self)
@@ -1098,133 +1102,6 @@ class MainWindow(QMainWindow):
         vol_bar_width = max(5, int(40 * vol_percent))
 
         vol_bar = QWidget()
-        vol_bar.setFixedSize(vol_bar_width, 18)
-        vol_bar.setStyleSheet(f"background-color: {color}; border-radius: 2px;")
-        vol_bar_layout.addWidget(vol_bar)
-        vol_bar_layout.addStretch()
-
-        volume_layout.addWidget(vol_bar_widget)
-        volume_layout.addStretch()
-        layout.addWidget(volume_widget)
-
-        # 设置轨道样式
-        widget.setStyleSheet(f"""
-            QWidget {{
-                background-color: {color}08;
-                border-radius: 4px;
-            }}
-        """)
-
-        return widget
-
-    def enumerate_tts_engines(self):
-        """枚举系统中已安装的TTS引擎"""
-        logger.debug("开始枚举TTS引擎")
-        
-        try:
-            # 清空现有选项
-            self.tts_engine.clear()
-            
-            # 添加默认选项
-            self.tts_engine.addItem(self.tr("系统默认"))
-            
-            # 使用pyttsx3枚举TTS引擎
-            engine = pyttsx3.init()
-            voices = engine.getProperty('voices')
-            
-            logger.debug(f"找到 {len(voices)} 个TTS语音")
-            
-            for voice in voices:
-                # 获取引擎名称，通常包含在voice.id中
-                voice_name = voice.name
-                if hasattr(voice, 'id'):
-                    # 从ID中提取引擎信息
-                    if 'microsoft' in voice.id.lower():
-                        engine_name = f"Microsoft - {voice_name}"
-                    elif 'google' in voice.id.lower():
-                        engine_name = f"Google - {voice_name}"
-                    else:
-                        engine_name = voice_name
-                    
-                    self.tts_engine.addItem(engine_name)
-                    logger.debug(f"添加TTS引擎: {engine_name}")
-            
-            # 释放引擎资源
-            engine.stop()
-            logger.info(f"TTS引擎枚举完成，共找到 {len(voices)} 个语音")
-            
-        except Exception as e:
-            # 如果枚举失败，保留默认选项
-            logger.error(f"TTS引擎枚举失败: {e}")
-            self.tts_engine.clear()
-            self.tts_engine.addItem(self.tr("系统默认"))
-            self.tts_engine.addItem("Microsoft")
-            self.tts_engine.addItem("Google")
-            logger.warning("使用默认TTS引擎选项")
-    
-    def enumerate_audio_devices(self):
-        """枚举系统中可用的音频输入设备"""
-        logger.debug("开始枚举音频输入设备")
-
-        try:
-            # 清空现有选项
-            self.record_device.clear()
-
-            # 添加默认选项
-            self.record_device.addItem(self.tr("系统默认"))
-
-            # 使用pyaudio枚举音频设备
-            p = pyaudio.PyAudio()
-            device_count = p.get_device_count()
-            logger.debug(f"系统中共有 {device_count} 个音频设备")
-
-            input_devices = []
-            seen_names = set()  # 用于去重
-
-            for i in range(device_count):
-                device_info = p.get_device_info_by_index(i)
-
-                # 只显示输入设备（麦克风）
-                if device_info['maxInputChannels'] > 0:
-                    device_name = device_info['name']
-                    # 清理设备名称中的特殊字符
-                    device_name = device_name.strip()
-
-                    # 跳过重复设备
-                    if device_name in seen_names:
-                        logger.debug(f"跳过重复设备: {device_name}")
-                        continue
-
-                    # 过滤掉虚拟设备和监控设备
-                    skip_keywords = ['monitor', 'loopback', 'null', 'dummy', 'pulseaudio',
-                                     'default', 'hw:', 'surround', 'hdmi', 'spdif', 'sysdefault',
-                                     'front:', 'rear:', 'center_lfe:', 'side:', 'iec958',
-                                     'dmix', 'dsnoop', 'plughw', 'usbstream', 'jack',
-                                     'alsa', 'oss', 'a52', 'vdownmix', 'upmix', 'Chromium',
-                                     'Firefox', 'lavrate', 'samplerate', 'speexrate',
-                                     'pulse', 'speex', 'pipewire']
-                    if any(keyword in device_name.lower() for keyword in skip_keywords):
-                        logger.debug(f"过滤掉虚拟/监控设备: {device_name}")
-                        continue
-
-                    seen_names.add(device_name)
-
-                    # 添加设备到下拉列表，同时存储设备索引
-                    self.record_device.addItem(device_name, i)
-                    input_devices.append((device_name, i))
-                    logger.debug(f"添加音频输入设备: {device_name} (索引: {i})")
-
-            # 释放pyaudio资源
-            p.terminate()
-            logger.info(f"音频设备枚举完成，共找到 {len(input_devices)} 个输入设备")
-
-        except Exception as e:
-            # 如果枚举失败，保留默认选项
-            logger.error(f"音频设备枚举失败: {e}")
-            self.record_device.clear()
-            self.record_device.addItem(self.tr("系统默认"))
-            self.record_device.addItem(self.tr("麦克风 (Realtek)"))
-            logger.warning("使用默认音频设备选项")
     
     def get_affirmation_output_dir(self):
         """获取肯定语输出目录"""
