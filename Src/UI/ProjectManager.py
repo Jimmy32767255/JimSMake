@@ -56,6 +56,11 @@ class ProjectManager:
 
     def load_project_config(self, project_dir):
         """加载项目配置文件"""
+        if not project_dir:
+            logger.warning("项目目录为空，无法加载配置")
+            self._set_default_config()
+            return
+
         config_path = os.path.join(project_dir, "config.json")
         logger.debug(f"尝试加载项目配置: {config_path}")
 
@@ -130,17 +135,168 @@ class ProjectManager:
             logger.error(f"项目配置文件格式错误: {config_path}, 错误: {e}")
             QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
                                self.main_window.tr(f"项目配置文件格式错误，将使用默认配置。"))
-            self._set_default_config()
+            # 删除损坏的配置文件并创建新的默认配置
+            self._reset_corrupted_config(project_dir, config_path)
         except Exception as e:
             logger.error(f"加载项目配置失败: {config_path}, 错误: {e}")
             self._set_default_config()
 
     def _set_default_config(self):
-        """设置默认配置"""
+        """设置默认配置 - 重置所有 UI 控件到默认值"""
+        # 元数据
         if hasattr(self.main_window, 'metadata_title') and self.main_window.metadata_title is not None:
             self.main_window.metadata_title.clear()
         if hasattr(self.main_window, 'metadata_author') and self.main_window.metadata_author is not None:
             self.main_window.metadata_author.clear()
+
+        # 肯定语设置
+        if hasattr(self.main_window, 'affirmation_file') and self.main_window.affirmation_file is not None:
+            self.main_window.affirmation_file.clear()
+        if hasattr(self.main_window, 'affirmation_text') and self.main_window.affirmation_text is not None:
+            self.main_window.affirmation_text.clear()
+        if hasattr(self.main_window, 'text_file') and self.main_window.text_file is not None:
+            self.main_window.text_file.clear()
+        if hasattr(self.main_window, 'tts_engine') and self.main_window.tts_engine is not None:
+            self.main_window.tts_engine.setCurrentIndex(0)
+        if hasattr(self.main_window, 'affirmation_volume') and self.main_window.affirmation_volume is not None:
+            self.main_window.affirmation_volume.setValue(-230)
+        if hasattr(self.main_window, 'affirmation_volume_spin') and self.main_window.affirmation_volume_spin is not None:
+            self.main_window.affirmation_volume_spin.setValue(-23.0)
+        if hasattr(self.main_window, 'frequency_mode') and self.main_window.frequency_mode is not None:
+            self.main_window.frequency_mode.setCurrentIndex(0)
+        if hasattr(self.main_window, 'speed_slider') and self.main_window.speed_slider is not None:
+            self.main_window.speed_slider.setValue(10)
+        if hasattr(self.main_window, 'speed_spin') and self.main_window.speed_spin is not None:
+            self.main_window.speed_spin.setValue(1.0)
+        if hasattr(self.main_window, 'reverse_check') and self.main_window.reverse_check is not None:
+            self.main_window.reverse_check.setChecked(False)
+
+        # 叠加设置
+        if hasattr(self.main_window, 'overlay_times') and self.main_window.overlay_times is not None:
+            self.main_window.overlay_times.setValue(1)
+        if hasattr(self.main_window, 'overlay_interval') and self.main_window.overlay_interval is not None:
+            self.main_window.overlay_interval.setValue(1.0)
+        if hasattr(self.main_window, 'volume_decrease') and self.main_window.volume_decrease is not None:
+            self.main_window.volume_decrease.setValue(0.0)
+
+        # 背景音设置
+        if hasattr(self.main_window, 'background_file') and self.main_window.background_file is not None:
+            self.main_window.background_file.clear()
+        if hasattr(self.main_window, 'background_volume') and self.main_window.background_volume is not None:
+            self.main_window.background_volume.setValue(0)
+        if hasattr(self.main_window, 'background_volume_spin') and self.main_window.background_volume_spin is not None:
+            self.main_window.background_volume_spin.setValue(0.0)
+
+        # 特定频率音轨设置
+        if hasattr(self.main_window, 'freq_track_enabled') and self.main_window.freq_track_enabled is not None:
+            self.main_window.freq_track_enabled.setChecked(False)
+        if hasattr(self.main_window, 'freq_track_freq') and self.main_window.freq_track_freq is not None:
+            self.main_window.freq_track_freq.setText("432")
+        if hasattr(self.main_window, 'freq_track_volume') and self.main_window.freq_track_volume is not None:
+            self.main_window.freq_track_volume.setValue(-23.0)
+
+        # 输出设置
+        if hasattr(self.main_window, 'generate_audio') and self.main_window.generate_audio is not None:
+            self.main_window.generate_audio.setChecked(True)
+        if hasattr(self.main_window, 'generate_video') and self.main_window.generate_video is not None:
+            self.main_window.generate_video.setChecked(False)
+        if hasattr(self.main_window, 'audio_format') and self.main_window.audio_format is not None:
+            self.main_window.audio_format.setCurrentIndex(0)
+        if hasattr(self.main_window, 'audio_sample_rate') and self.main_window.audio_sample_rate is not None:
+            self.main_window.audio_sample_rate.setCurrentIndex(0)
+        if hasattr(self.main_window, 'video_image') and self.main_window.video_image is not None:
+            self.main_window.video_image.clear()
+        if hasattr(self.main_window, 'search_keyword') and self.main_window.search_keyword is not None:
+            self.main_window.search_keyword.clear()
+        if hasattr(self.main_window, 'search_engine') and self.main_window.search_engine is not None:
+            self.main_window.search_engine.setCurrentIndex(0)
+        if hasattr(self.main_window, 'video_format') and self.main_window.video_format is not None:
+            self.main_window.video_format.setCurrentIndex(0)
+        if hasattr(self.main_window, 'video_audio_sample_rate') and self.main_window.video_audio_sample_rate is not None:
+            self.main_window.video_audio_sample_rate.setCurrentIndex(0)
+        if hasattr(self.main_window, 'video_bitrate') and self.main_window.video_bitrate is not None:
+            self.main_window.video_bitrate.setCurrentIndex(0)
+        if hasattr(self.main_window, 'video_resolution') and self.main_window.video_resolution is not None:
+            self.main_window.video_resolution.setCurrentIndex(0)
+
+        # 完整性检查设置
+        if hasattr(self.main_window, 'ensure_integrity_check') and self.main_window.ensure_integrity_check is not None:
+            self.main_window.ensure_integrity_check.setChecked(False)
+
+    def _reset_corrupted_config(self, project_dir, config_path):
+        """重置损坏的配置文件 - 删除旧文件并创建新的默认配置"""
+        try:
+            # 先重置 UI 到默认值
+            self._set_default_config()
+
+            # 删除损坏的配置文件
+            if os.path.exists(config_path):
+                os.remove(config_path)
+                logger.info(f"已删除损坏的配置文件: {config_path}")
+
+            # 创建新的默认配置文件
+            if project_dir and os.path.exists(project_dir):
+                self._create_default_config_file(project_dir, config_path)
+
+        except Exception as e:
+            logger.error(f"重置损坏的配置文件失败: {e}")
+
+    def _create_default_config_file(self, project_dir, config_path):
+        """创建默认配置文件"""
+        try:
+            default_config = {
+                "version": "1.0",
+                "metadata": {
+                    "title": "",
+                    "author": ""
+                },
+                "affirmation": {
+                    "file": "",
+                    "text": "",
+                    "text_file": "",
+                    "tts_engine": "",
+                    "volume": -23.0,
+                    "frequency_mode": "",
+                    "speed": 1.0,
+                    "reverse": False
+                },
+                "overlay": {
+                    "times": 1,
+                    "interval": 1.0,
+                    "volume_decrease": 0.0
+                },
+                "background": {
+                    "file": "",
+                    "volume": 0.0
+                },
+                "freq_track": {
+                    "enabled": False,
+                    "frequency": "432",
+                    "volume": -23.0
+                },
+                "output": {
+                    "generate_audio": True,
+                    "generate_video": False,
+                    "audio_format": "",
+                    "audio_sample_rate": "",
+                    "video_image": "",
+                    "search_keyword": "",
+                    "search_engine": "",
+                    "video_format": "",
+                    "video_audio_sample_rate": "",
+                    "video_bitrate": "",
+                    "video_resolution": ""
+                },
+                "ensure_integrity": False
+            }
+
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(default_config, f, ensure_ascii=False, indent=2)
+
+            logger.info(f"已创建新的默认配置文件: {config_path}")
+
+        except Exception as e:
+            logger.error(f"创建默认配置文件失败: {e}")
 
     def _load_text_setting(self, attr_name, value, project_dir=None):
         """加载文本设置"""
