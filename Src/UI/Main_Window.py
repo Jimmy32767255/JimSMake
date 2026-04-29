@@ -2882,7 +2882,6 @@ class MainWindow(QMainWindow):
                                self.tr("项目目录不存在！"))
             return
 
-        # 选择导出格式和路径
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
             self.tr("导出项目"),
@@ -2894,21 +2893,19 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            # 根据选择的过滤器确定格式
             if "tar.xz" in selected_filter.lower() or file_path.endswith('.tar.xz'):
-                # 使用 tar.xz 格式
                 if not file_path.endswith('.tar.xz'):
                     file_path += '.tar.xz'
-                self._compress_to_tar_xz(project_dir, file_path)
             else:
-                # 默认使用 zip 格式
                 if not file_path.endswith('.zip'):
                     file_path += '.zip'
-                self._compress_to_zip(project_dir, file_path)
 
-            logger.info(f"项目导出成功: {file_path}")
-            QMessageBox.information(self, self.tr("成功"),
+            if self.project_manager.export_project(project_dir, file_path):
+                logger.info(f"项目导出成功: {file_path}")
+                QMessageBox.information(self, self.tr("成功"),
                                    self.tr(f"项目 '{self.current_project_name}' 导出成功！\n保存位置: {file_path}"))
+            else:
+                raise Exception("导出失败")
 
         except Exception as e:
             logger.error(f"导出项目失败: {e}")
@@ -2928,7 +2925,6 @@ class MainWindow(QMainWindow):
                                self.tr("项目组目录不存在！"))
             return
 
-        # 选择导出格式和路径
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
             self.tr("导出项目组"),
@@ -2940,68 +2936,28 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            # 根据选择的过滤器确定格式
             if "tar.xz" in selected_filter.lower() or file_path.endswith('.tar.xz'):
-                # 使用 tar.xz 格式
                 if not file_path.endswith('.tar.xz'):
                     file_path += '.tar.xz'
-                self._compress_to_tar_xz(group_dir, file_path)
             else:
-                # 默认使用 zip 格式
                 if not file_path.endswith('.zip'):
                     file_path += '.zip'
-                self._compress_to_zip(group_dir, file_path)
 
-            logger.info(f"项目组导出成功: {file_path}")
-            QMessageBox.information(self, self.tr("成功"),
+            if self.project_manager.export_project_group(group_dir, file_path):
+                logger.info(f"项目组导出成功: {file_path}")
+                QMessageBox.information(self, self.tr("成功"),
                                    self.tr(f"项目组 '{self.current_project_group}' 导出成功！\n保存位置: {file_path}"))
+            else:
+                raise Exception("导出失败")
 
         except Exception as e:
             logger.error(f"导出项目组失败: {e}")
             QMessageBox.critical(self, self.tr("错误"),
                                self.tr(f"导出项目组失败: {str(e)}"))
 
-    def _compress_to_zip(self, source_dir, output_path):
-        """将目录压缩为ZIP文件
-        
-        Args:
-            source_dir: 源目录路径
-            output_path: 输出ZIP文件路径
-        """
-        import zipfile
-
-        logger.debug(f"开始压缩为ZIP: {source_dir} -> {output_path}")
-
-        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for root, dirs, files in os.walk(source_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    # 计算相对路径
-                    arcname = os.path.relpath(file_path, source_dir)
-                    zipf.write(file_path, arcname)
-                    logger.debug(f"添加文件到ZIP: {arcname}")
-
-        logger.info(f"ZIP压缩完成: {output_path}")
-
-    def _compress_to_tar_xz(self, source_dir, output_path):
-        """将目录压缩为TAR.XZ文件
-        
-        Args:
-            source_dir: 源目录路径
-            output_path: 输出tar.xz文件路径
-        """
-        import tarfile
-
-        logger.debug(f"开始压缩为TAR.XZ: {source_dir} -> {output_path}")
-
-        with tarfile.open(output_path, "w:xz") as tar:
-            tar.add(source_dir, arcname=os.path.basename(source_dir))
-
-        logger.info(f"TAR.XZ压缩完成: {output_path}")
 
     def import_project_or_group(self):
         """导入项目或项目组"""
-        # 选择要导入的文件
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             self.tr("导入项目/项目组"),
@@ -3013,15 +2969,13 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            # 确定导入类型
-            import_type = self._detect_import_type(file_path)
+            import_type = self.project_manager._detect_import_type(file_path)
 
             if import_type == "project":
                 self._import_project(file_path)
             elif import_type == "group":
                 self._import_project_group(file_path)
             else:
-                # 无法自动检测，询问用户
                 reply = QMessageBox.question(
                     self,
                     self.tr("选择导入类型"),
@@ -3029,9 +2983,9 @@ class MainWindow(QMainWindow):
                     self.tr("项目"),
                     self.tr("项目组")
                 )
-                if reply == 0:  # 项目
+                if reply == 0:
                     self._import_project(file_path)
-                else:  # 项目组
+                else:
                     self._import_project_group(file_path)
 
         except Exception as e:
@@ -3039,72 +2993,10 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, self.tr("错误"),
                                self.tr(f"导入失败: {str(e)}"))
 
-    def _detect_import_type(self, file_path):
-        """检测导入文件类型（项目还是项目组）
-        
-        Args:
-            file_path: 压缩文件路径
-            
-        Returns:
-            str: "project", "group" 或 "unknown"
-        """
-        logger.debug(f"检测导入类型: {file_path}")
-
-        try:
-            if file_path.endswith('.zip'):
-                import zipfile
-                with zipfile.ZipFile(file_path, 'r') as zf:
-                    file_list = zf.namelist()
-            elif file_path.endswith('.tar.xz'):
-                import tarfile
-                with tarfile.open(file_path, 'r:xz') as tf:
-                    file_list = [m.name for m in tf.getmembers()]
-            else:
-                return "unknown"
-
-            # 检查顶层目录结构
-            top_dirs = set()
-            for name in file_list:
-                parts = name.split('/')
-                if len(parts) > 0 and parts[0]:
-                    top_dirs.add(parts[0])
-
-            # 如果只有一个顶层目录，检查其内容
-            if len(top_dirs) == 1:
-                top_dir = list(top_dirs)[0]
-                # 检查是否包含项目特征文件
-                has_config = any('config.json' in f for f in file_list)
-                has_assets = any('Assets/' in f for f in file_list)
-                has_readme = any('README.md' in f for f in file_list)
-
-                if has_config and has_assets:
-                    return "project"
-
-                # 检查是否包含子目录（可能是项目组）
-                subdirs = set()
-                for name in file_list:
-                    parts = name.split('/')
-                    if len(parts) > 1 and parts[1]:
-                        subdirs.add(parts[1])
-
-                if len(subdirs) > 0:
-                    return "group"
-
-            return "unknown"
-
-        except Exception as e:
-            logger.error(f"检测导入类型失败: {e}")
-            return "unknown"
-
     def _import_project(self, file_path):
-        """导入项目
-        
-        Args:
-            file_path: 压缩文件路径
-        """
+        """导入项目"""
         logger.info(f"开始导入项目: {file_path}")
 
-        # 检查是否选择了项目组
         if not self.current_project_group:
             QMessageBox.warning(self, self.tr("警告"),
                                self.tr("请先选择一个项目组来导入项目！"))
@@ -3112,73 +3004,33 @@ class MainWindow(QMainWindow):
 
         target_dir = self.get_current_project_group_dir()
 
-        # 解压文件
         if file_path.endswith('.zip'):
-            self._extract_zip(file_path, target_dir)
+            self.project_manager._extract_zip(file_path, target_dir)
         elif file_path.endswith('.tar.xz'):
-            self._extract_tar_xz(file_path, target_dir)
+            self.project_manager._extract_tar_xz(file_path, target_dir)
 
         logger.info(f"项目导入成功到: {target_dir}")
         QMessageBox.information(self, self.tr("成功"),
                                self.tr("项目导入成功！"))
 
-        # 刷新项目列表
         self.refresh_project_list()
 
     def _import_project_group(self, file_path):
-        """导入项目组
-        
-        Args:
-            file_path: 压缩文件路径
-        """
+        """导入项目组"""
         logger.info(f"开始导入项目组: {file_path}")
 
         target_dir = self.get_project_base_dir()
 
-        # 解压文件
         if file_path.endswith('.zip'):
-            self._extract_zip(file_path, target_dir)
+            self.project_manager._extract_zip(file_path, target_dir)
         elif file_path.endswith('.tar.xz'):
-            self._extract_tar_xz(file_path, target_dir)
+            self.project_manager._extract_tar_xz(file_path, target_dir)
 
         logger.info(f"项目组导入成功到: {target_dir}")
         QMessageBox.information(self, self.tr("成功"),
                                self.tr("项目组导入成功！"))
 
-        # 刷新项目组列表
         self.refresh_project_group_list()
-
-    def _extract_zip(self, file_path, target_dir):
-        """解压ZIP文件
-        
-        Args:
-            file_path: ZIP文件路径
-            target_dir: 目标目录
-        """
-        import zipfile
-
-        logger.debug(f"解压ZIP: {file_path} -> {target_dir}")
-
-        with zipfile.ZipFile(file_path, 'r') as zipf:
-            zipf.extractall(target_dir)
-
-        logger.info(f"ZIP解压完成")
-
-    def _extract_tar_xz(self, file_path, target_dir):
-        """解压TAR.XZ文件
-        
-        Args:
-            file_path: tar.xz文件路径
-            target_dir: 目标目录
-        """
-        import tarfile
-
-        logger.debug(f"解压TAR.XZ: {file_path} -> {target_dir}")
-
-        with tarfile.open(file_path, 'r:xz') as tar:
-            tar.extractall(target_dir)
-
-        logger.info(f"TAR.XZ解压完成")
 
     def refresh_project_group_list(self):
         """刷新项目组列表"""

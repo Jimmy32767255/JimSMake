@@ -135,3 +135,111 @@ class ProjectManager:
             tar.add(source_dir, arcname=os.path.basename(source_dir))
 
         logger.info(f"TAR.XZ压缩完成: {output_path}")
+
+    def export_project(self, project_dir, output_path):
+        """导出项目"""
+        logger.info(f"开始导出项目: {project_dir} -> {output_path}")
+
+        try:
+            if output_path.endswith('.zip'):
+                self._compress_to_zip(project_dir, output_path)
+            elif output_path.endswith('.tar.xz'):
+                self._compress_to_tar_xz(project_dir, output_path)
+            else:
+                output_path += '.zip'
+                self._compress_to_zip(project_dir, output_path)
+
+            logger.info(f"项目导出成功: {output_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"导出项目失败: {e}")
+            return False
+
+    def export_project_group(self, group_dir, output_path):
+        """导出项目组"""
+        logger.info(f"开始导出项目组: {group_dir} -> {output_path}")
+
+        try:
+            if output_path.endswith('.zip'):
+                self._compress_to_zip(group_dir, output_path)
+            elif output_path.endswith('.tar.xz'):
+                self._compress_to_tar_xz(group_dir, output_path)
+            else:
+                output_path += '.zip'
+                self._compress_to_zip(group_dir, output_path)
+
+            logger.info(f"项目组导出成功: {output_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"导出项目组失败: {e}")
+            return False
+
+    def _detect_import_type(self, file_path):
+        """检测导入文件类型（项目还是项目组）"""
+        logger.debug(f"检测导入类型: {file_path}")
+
+        try:
+            if file_path.endswith('.zip'):
+                import zipfile
+                with zipfile.ZipFile(file_path, 'r') as zf:
+                    file_list = zf.namelist()
+            elif file_path.endswith('.tar.xz'):
+                import tarfile
+                with tarfile.open(file_path, 'r:xz') as tf:
+                    file_list = [m.name for m in tf.getmembers()]
+            else:
+                return "unknown"
+
+            top_dirs = set()
+            for name in file_list:
+                parts = name.split('/')
+                if len(parts) > 0 and parts[0]:
+                    top_dirs.add(parts[0])
+
+            if len(top_dirs) == 1:
+                top_dir = list(top_dirs)[0]
+                has_config = any('config.json' in f for f in file_list)
+                has_assets = any('Assets/' in f for f in file_list)
+                has_readme = any('README.md' in f for f in file_list)
+
+                if has_config and has_assets:
+                    return "project"
+
+                subdirs = set()
+                for name in file_list:
+                    parts = name.split('/')
+                    if len(parts) > 1 and parts[1]:
+                        subdirs.add(parts[1])
+
+                if len(subdirs) > 0:
+                    return "group"
+
+            return "unknown"
+
+        except Exception as e:
+            logger.error(f"检测导入类型失败: {e}")
+            return "unknown"
+
+    def _extract_zip(self, file_path, target_dir):
+        """解压ZIP文件"""
+        import zipfile
+
+        logger.debug(f"解压ZIP: {file_path} -> {target_dir}")
+
+        with zipfile.ZipFile(file_path, 'r') as zipf:
+            zipf.extractall(target_dir)
+
+        logger.info(f"ZIP解压完成")
+
+    def _extract_tar_xz(self, file_path, target_dir):
+        """解压TAR.XZ文件"""
+        import tarfile
+
+        logger.debug(f"解压TAR.XZ: {file_path} -> {target_dir}")
+
+        with tarfile.open(file_path, 'r:xz') as tar:
+            tar.extractall(target_dir)
+
+        logger.info(f"TAR.XZ解压完成")
