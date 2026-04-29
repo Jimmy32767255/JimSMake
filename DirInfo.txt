@@ -28,6 +28,11 @@ Src：SMake 源代码文件
     UI:UI 代码文件
         Main_Window.py：主窗口代码文件
         AudioRecorder.py：音频录制线程模块
+        AudioManager.py：音频设备和TTS引擎枚举模块
+        RecordingManager.py：录音控制模块
+        TTSManager.py：TTS音频生成模块
+        OutputManager.py：输出生成管理模块
+        PreviewManager.py：预览和时间轴管理模块
         LogHandler.py：日志处理模块
         TextFileSync.py：文本文件同步模块
         ProjectManager.py：项目管理工具模块
