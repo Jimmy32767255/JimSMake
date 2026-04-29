@@ -20,6 +20,7 @@ from Processors.VideoProcessor import VideoProcessor
 
 from .AudioRecorder import AudioRecorder
 from .LogHandler import LogHandler
+from .TextFileSync import TextFileSync
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
@@ -54,7 +55,10 @@ class MainWindow(QMainWindow):
         self.setupTranslations()
         self.enumerate_tts_engines()
         self.enumerate_audio_devices()
-        self.setup_text_file_sync()    # 设置文本文件同步
+        
+        # 初始化文本文件同步处理器
+        self.text_sync = TextFileSync(self)
+        self.text_sync.setup_text_file_sync()
         
         # 初始化日志处理器
         self.log_handler = LogHandler(self)
@@ -2020,190 +2024,7 @@ class MainWindow(QMainWindow):
             line_edit.setText(file_path)
             # 如果是文本文件输入框，自动加载文件内容
             if line_edit == self.text_file:
-                self.load_text_from_file(file_path)
-
-    # ==================== 文本文件同步方法 ====================
-
-    def setup_text_file_sync(self):
-        """设置文本文件同步功能"""
-        # 连接文本输入框的文本变化信号
-        self.affirmation_text.textChanged.connect(self.on_affirmation_text_changed)
-
-        # 创建延迟保存定时器（500ms延迟，避免频繁写入）
-        self.text_save_timer = QTimer()
-        self.text_save_timer.setSingleShot(True)
-        self.text_save_timer.timeout.connect(self.save_text_to_file)
-
-        logger.debug("文本文件同步功能已设置")
-
-    def detect_file_encoding(self, file_path):
-        """检测文件编码格式"""
-        try:
-            with open(file_path, 'rb') as f:
-                raw_data = f.read()
-                if not raw_data:
-                    return self.TEXT_FILE_ENCODING
-
-                # 使用chardet检测编码
-                result = chardet.detect(raw_data)
-                detected_encoding = result.get('encoding', self.TEXT_FILE_ENCODING)
-                confidence = result.get('confidence', 0)
-
-                logger.debug(f"检测到文件编码: {detected_encoding}, 置信度: {confidence}")
-
-                # 如果检测置信度太低，尝试常用编码
-                if confidence < 0.7 or detected_encoding is None:
-                    # 尝试UTF-8
-                    try:
-                        raw_data.decode('utf-8')
-                        return 'utf-8'
-                    except UnicodeDecodeError:
-                        pass
-
-                    # 尝试GBK
-                    try:
-                        raw_data.decode('gbk')
-                        return 'gbk'
-                    except UnicodeDecodeError:
-                        pass
-
-                    return self.TEXT_FILE_ENCODING
-
-                return detected_encoding
-
-        except Exception as e:
-            logger.error(f"检测文件编码失败: {e}")
-            return self.TEXT_FILE_ENCODING
-
-    def load_text_from_file(self, file_path):
-        """从文本文件加载内容到输入框"""
-        logger.debug(f"开始加载文本文件: {file_path}")
-        if not file_path or not os.path.exists(file_path):
-            logger.warning(f"文本文件不存在: {file_path}")
-            if file_path:
-                logger.debug(f"文本文件绝对路径: {os.path.abspath(file_path)}")
-            return
-
-        try:
-            self.is_loading_text = True
-            self.current_text_file = file_path
-
-            # 检测文件编码
-            encoding = self.detect_file_encoding(file_path)
-            logger.info(f"加载文本文件: {file_path}, 编码: {encoding}")
-            logger.debug(f"文本文件绝对路径: {os.path.abspath(file_path)}")
-            logger.debug(f"文本文件大小: {os.path.getsize(file_path)} bytes")
-
-            # 尝试使用检测到的编码读取
-            content = None
-            encodings_to_try = [encoding] + [enc for enc in self.SUPPORTED_ENCODINGS if enc != encoding]
-
-            for enc in encodings_to_try:
-                try:
-                    with open(file_path, 'r', encoding=enc, errors='replace') as f:
-                        content = f.read()
-                        logger.debug(f"成功使用编码 {enc} 读取文件")
-                        break
-                except Exception as e:
-                    logger.debug(f"使用编码 {enc} 读取失败: {e}")
-                    continue
-
-            if content is None:
-                raise Exception("无法使用任何支持的编码读取文件")
-
-            # 检查内存大小限制（1MB）
-            content_bytes = content.encode(self.TEXT_FILE_ENCODING, errors='ignore')
-            if len(content_bytes) > self.MAX_TEXT_SIZE_BYTES:
-                # 截断到大约1MB（考虑UTF-8编码，一个字符最多4字节）
-                safe_length = self.MAX_TEXT_SIZE_BYTES // 4
-                content = content[:safe_length]
-                logger.warning(f"文本内容超过最大大小限制({self.MAX_TEXT_SIZE_BYTES / 1024 / 1024:.1f}MB)，已截断")
-                QMessageBox.warning(self, self.tr("警告"),
-                                   self.tr(f"文本内容过大，已截断至安全长度"))
-
-            # 更新输入框内容
-            self.affirmation_text.setText(content)
-
-            logger.info(f"文本文件加载成功: {file_path}, 长度: {len(content)}")
-
-        except PermissionError:
-            logger.error(f"没有权限读取文件: {file_path}")
-            QMessageBox.critical(self, self.tr("错误"),
-                                self.tr(f"没有权限读取文件: {file_path}"))
-        except Exception as e:
-            logger.error(f"加载文本文件失败: {e}")
-            QMessageBox.critical(self, self.tr("错误"),
-                                self.tr(f"加载文本文件失败: {str(e)}"))
-        finally:
-            self.is_loading_text = False
-
-    def on_affirmation_text_changed(self, text):
-        """肯定语文本变化时的回调"""
-        # 如果是正在加载文本，不触发保存
-        if self.is_loading_text:
-            return
-
-        # 检查内存大小限制（1MB）
-        text_bytes = text.encode(self.TEXT_FILE_ENCODING, errors='ignore')
-        if len(text_bytes) > self.MAX_TEXT_SIZE_BYTES:
-            # 截断到大约1MB（考虑UTF-8编码，一个字符最多4字节）
-            safe_length = self.MAX_TEXT_SIZE_BYTES // 4
-            truncated_text = text[:safe_length]
-            self.affirmation_text.setText(truncated_text)
-            self.affirmation_text.setCursorPosition(len(truncated_text))
-            logger.warning(f"输入文本超过最大大小限制({self.MAX_TEXT_SIZE_BYTES / 1024 / 1024:.1f}MB)，已截断")
-            QMessageBox.warning(self, self.tr("警告"),
-                               self.tr(f"文本内容过大（超过1MB），已自动截断至安全长度"))
-            return
-
-        # 如果有关联的文本文件，启动延迟保存
-        if self.current_text_file and os.path.exists(self.current_text_file):
-            # 重置定时器，延迟500ms后保存
-            self.text_save_timer.stop()
-            self.text_save_timer.start(500)
-
-    def save_text_to_file(self):
-        """将输入框内容保存到文本文件"""
-        if not self.current_text_file:
-            logger.debug("没有关联的文本文件，跳过保存")
-            return
-
-        logger.debug(f"开始保存文本到文件: {self.current_text_file}")
-
-        try:
-            text = self.affirmation_text.text()
-
-            # 确保目录存在
-            dir_path = os.path.dirname(self.current_text_file)
-            if dir_path and not os.path.exists(dir_path):
-                logger.debug(f"创建目录: {os.path.abspath(dir_path)}")
-                os.makedirs(dir_path, exist_ok=True)
-
-            # 使用UTF-8编码保存
-            with open(self.current_text_file, 'w', encoding=self.TEXT_FILE_ENCODING) as f:
-                f.write(text)
-
-            logger.debug(f"文本已保存到文件: {self.current_text_file}, 长度: {len(text)}")
-            logger.debug(f"文本文件绝对路径: {os.path.abspath(self.current_text_file)}")
-            logger.debug(f"保存后的文件大小: {os.path.getsize(self.current_text_file)} bytes")
-
-        except PermissionError:
-            logger.error(f"没有权限写入文件: {self.current_text_file}")
-            QMessageBox.critical(self, self.tr("错误"),
-                                self.tr(f"没有权限写入文件: {self.current_text_file}"))
-        except Exception as e:
-            logger.error(f"保存文本文件失败: {e}")
-            QMessageBox.critical(self, self.tr("错误"),
-                                self.tr(f"保存文本文件失败: {str(e)}"))
-
-    def set_text_file_path(self, file_path):
-        """设置当前文本文件路径（用于程序化设置）"""
-        if file_path and os.path.exists(file_path):
-            self.text_file.setText(file_path)
-            self.load_text_from_file(file_path)
-        else:
-            self.current_text_file = None
-            self.text_file.clear()
+                self.text_sync.load_text_from_file(file_path)
 
     def toggle_recording(self):
         """切换录音状态（开始/停止录制）"""
@@ -3604,7 +3425,7 @@ class MainWindow(QMainWindow):
             logger.debug(f"查找文本文件: {raw_txt_path}, 是否存在: {os.path.exists(raw_txt_path)}")
             if os.path.exists(raw_txt_path):
                 self.text_file.setText(raw_txt_path)
-                self.load_text_from_file(raw_txt_path)
+                self.text_sync.load_text_from_file(raw_txt_path)
                 logger.info(f"自动加载文本文件: {raw_txt_path}")
             else:
                 self.text_file.clear()
