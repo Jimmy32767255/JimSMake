@@ -61,21 +61,67 @@ class ProjectManager:
 
         if not os.path.exists(config_path):
             logger.info(f"项目配置文件不存在，使用默认配置: {config_path}")
-            if hasattr(self.main_window, 'metadata_title') and self.main_window.metadata_title is not None:
-                self.main_window.metadata_title.clear()
-            if hasattr(self.main_window, 'metadata_author') and self.main_window.metadata_author is not None:
-                self.main_window.metadata_author.clear()
+            self._set_default_config()
             return
 
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
 
+            # 加载元数据
             metadata = config.get('metadata', {})
             if hasattr(self.main_window, 'metadata_title') and self.main_window.metadata_title is not None:
                 self.main_window.metadata_title.setText(metadata.get('title', ''))
             if hasattr(self.main_window, 'metadata_author') and self.main_window.metadata_author is not None:
                 self.main_window.metadata_author.setText(metadata.get('author', ''))
+
+            # 加载肯定语设置
+            affirmation = config.get('affirmation', {})
+            self._load_text_setting('affirmation_file', affirmation.get('file'), project_dir)
+            self._load_text_setting('affirmation_text', affirmation.get('text'))
+            self._load_text_setting('text_file', affirmation.get('text_file'), project_dir)
+            self._load_combo_setting('tts_engine', affirmation.get('tts_engine'))
+            self._load_slider_setting('affirmation_volume', affirmation.get('volume'))
+            self._load_spin_setting('affirmation_volume_spin', affirmation.get('volume'))
+            self._load_combo_setting('frequency_mode', affirmation.get('frequency_mode'))
+            self._load_slider_setting('speed_slider', affirmation.get('speed'))
+            self._load_spin_setting('speed_spin', affirmation.get('speed'))
+            self._load_checkbox_setting('reverse_check', affirmation.get('reverse'))
+
+            # 加载叠加设置
+            overlay = config.get('overlay', {})
+            self._load_spin_setting('overlay_times', overlay.get('times'))
+            self._load_spin_setting('overlay_interval', overlay.get('interval'))
+            self._load_spin_setting('volume_decrease', overlay.get('volume_decrease'))
+
+            # 加载背景音设置
+            background = config.get('background', {})
+            self._load_text_setting('background_file', background.get('file'), project_dir)
+            self._load_slider_setting('background_volume', background.get('volume'))
+            self._load_spin_setting('background_volume_spin', background.get('volume'))
+
+            # 加载特定频率音轨设置
+            freq_track = config.get('freq_track', {})
+            self._load_checkbox_setting('freq_track_enabled', freq_track.get('enabled'))
+            self._load_text_setting('freq_track_freq', freq_track.get('frequency'))
+            self._load_spin_setting('freq_track_volume', freq_track.get('volume'))
+
+            # 加载输出设置
+            output = config.get('output', {})
+            self._load_checkbox_setting('generate_audio', output.get('generate_audio'))
+            self._load_checkbox_setting('generate_video', output.get('generate_video'))
+            self._load_combo_setting('audio_format', output.get('audio_format'))
+            self._load_combo_setting('audio_sample_rate', output.get('audio_sample_rate'))
+            self._load_text_setting('video_image', output.get('video_image'), project_dir)
+            self._load_text_setting('search_keyword', output.get('search_keyword'))
+            self._load_combo_setting('search_engine', output.get('search_engine'))
+            self._load_combo_setting('video_format', output.get('video_format'))
+            self._load_combo_setting('video_audio_sample_rate', output.get('video_audio_sample_rate'))
+            self._load_combo_setting('video_bitrate', output.get('video_bitrate'))
+            self._load_combo_setting('video_resolution', output.get('video_resolution'))
+
+            # 加载完整性检查设置
+            self._load_checkbox_setting('ensure_integrity_check', config.get('ensure_integrity'))
 
             logger.info(f"项目配置加载成功: {config_path}")
             logger.debug(f"配置内容: {config}")
@@ -84,8 +130,78 @@ class ProjectManager:
             logger.error(f"项目配置文件格式错误: {config_path}, 错误: {e}")
             QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
                                self.main_window.tr(f"项目配置文件格式错误，将使用默认配置。"))
+            self._set_default_config()
         except Exception as e:
             logger.error(f"加载项目配置失败: {config_path}, 错误: {e}")
+            self._set_default_config()
+
+    def _set_default_config(self):
+        """设置默认配置"""
+        if hasattr(self.main_window, 'metadata_title') and self.main_window.metadata_title is not None:
+            self.main_window.metadata_title.clear()
+        if hasattr(self.main_window, 'metadata_author') and self.main_window.metadata_author is not None:
+            self.main_window.metadata_author.clear()
+
+    def _load_text_setting(self, attr_name, value, project_dir=None):
+        """加载文本设置"""
+        if value is None:
+            return
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                # 如果是文件路径，检查文件是否存在
+                if project_dir and value:
+                    if not os.path.isabs(value):
+                        # 相对路径，相对于项目目录
+                        abs_path = os.path.join(project_dir, value)
+                    else:
+                        abs_path = value
+                    if os.path.exists(abs_path):
+                        widget.setText(abs_path)
+                    else:
+                        # 文件不存在，尝试自动检测（保留空值或触发自动检测逻辑）
+                        logger.warning(f"配置文件中的文件不存在: {value}")
+                        widget.clear()
+                else:
+                    widget.setText(value)
+
+    def _load_combo_setting(self, attr_name, value):
+        """加载下拉框设置"""
+        if value is None:
+            return
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                index = widget.findText(value)
+                if index >= 0:
+                    widget.setCurrentIndex(index)
+
+    def _load_slider_setting(self, attr_name, value):
+        """加载滑块设置"""
+        if value is None:
+            return
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                widget.setValue(int(value))
+
+    def _load_spin_setting(self, attr_name, value):
+        """加载数值框设置"""
+        if value is None:
+            return
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                widget.setValue(value)
+
+    def _load_checkbox_setting(self, attr_name, value):
+        """加载复选框设置"""
+        if value is None:
+            return
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                widget.setChecked(value)
 
     def save_project_config(self, project_dir):
         """保存项目配置文件"""
@@ -96,9 +212,47 @@ class ProjectManager:
             config = {
                 "version": "1.0",
                 "metadata": {
-                    "title": self.main_window.metadata_title.text() if hasattr(self.main_window, 'metadata_title') else "",
-                    "author": self.main_window.metadata_author.text() if hasattr(self.main_window, 'metadata_author') else ""
-                }
+                    "title": self._get_text_value('metadata_title'),
+                    "author": self._get_text_value('metadata_author')
+                },
+                "affirmation": {
+                    "file": self._get_relative_path('affirmation_file', project_dir),
+                    "text": self._get_text_value('affirmation_text'),
+                    "text_file": self._get_relative_path('text_file', project_dir),
+                    "tts_engine": self._get_combo_value('tts_engine'),
+                    "volume": self._get_spin_value('affirmation_volume_spin'),
+                    "frequency_mode": self._get_combo_value('frequency_mode'),
+                    "speed": self._get_spin_value('speed_spin'),
+                    "reverse": self._get_checkbox_value('reverse_check')
+                },
+                "overlay": {
+                    "times": self._get_spin_value('overlay_times'),
+                    "interval": self._get_spin_value('overlay_interval'),
+                    "volume_decrease": self._get_spin_value('volume_decrease')
+                },
+                "background": {
+                    "file": self._get_relative_path('background_file', project_dir),
+                    "volume": self._get_spin_value('background_volume_spin')
+                },
+                "freq_track": {
+                    "enabled": self._get_checkbox_value('freq_track_enabled'),
+                    "frequency": self._get_text_value('freq_track_freq'),
+                    "volume": self._get_spin_value('freq_track_volume')
+                },
+                "output": {
+                    "generate_audio": self._get_checkbox_value('generate_audio'),
+                    "generate_video": self._get_checkbox_value('generate_video'),
+                    "audio_format": self._get_combo_value('audio_format'),
+                    "audio_sample_rate": self._get_combo_value('audio_sample_rate'),
+                    "video_image": self._get_relative_path('video_image', project_dir),
+                    "search_keyword": self._get_text_value('search_keyword'),
+                    "search_engine": self._get_combo_value('search_engine'),
+                    "video_format": self._get_combo_value('video_format'),
+                    "video_audio_sample_rate": self._get_combo_value('video_audio_sample_rate'),
+                    "video_bitrate": self._get_combo_value('video_bitrate'),
+                    "video_resolution": self._get_combo_value('video_resolution')
+                },
+                "ensure_integrity": self._get_checkbox_value('ensure_integrity_check')
             }
 
             with open(config_path, 'w', encoding='utf-8') as f:
@@ -108,6 +262,56 @@ class ProjectManager:
 
         except Exception as e:
             logger.error(f"保存项目配置失败: {config_path}, 错误: {e}")
+
+    def _get_text_value(self, attr_name):
+        """获取文本控件值"""
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                return widget.text()
+        return ""
+
+    def _get_combo_value(self, attr_name):
+        """获取下拉框控件值"""
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                return widget.currentText()
+        return ""
+
+    def _get_spin_value(self, attr_name):
+        """获取数值框控件值"""
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                return widget.value()
+        return 0
+
+    def _get_checkbox_value(self, attr_name):
+        """获取复选框控件值"""
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                return widget.isChecked()
+        return False
+
+    def _get_relative_path(self, attr_name, project_dir):
+        """获取相对路径（如果路径在项目目录内）"""
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                path = widget.text()
+                if path and os.path.isabs(path):
+                    try:
+                        # 尝试转换为相对路径
+                        rel_path = os.path.relpath(path, project_dir)
+                        # 如果相对路径不以 .. 开头，说明在项目目录内
+                        if not rel_path.startswith('..'):
+                            return rel_path
+                    except ValueError:
+                        pass
+                return path
+        return ""
 
     def _compress_to_zip(self, source_dir, output_path):
         """将目录压缩为ZIP文件"""
