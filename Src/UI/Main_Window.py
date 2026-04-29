@@ -20,6 +20,8 @@ from Processors.VideoProcessor import VideoProcessor
 
 from .AudioRecorder import AudioRecorder
 from .AudioManager import AudioManager
+from .PreviewManager import PreviewManager
+from .TTSManager import TTSManager
 from .LogHandler import LogHandler
 from .TextFileSync import TextFileSync
 from .ProjectManager import ProjectManager
@@ -53,11 +55,14 @@ class MainWindow(QMainWindow):
         # 检测ffmpeg是否可用
         self.ffmpeg_available = self.check_ffmpeg_available()
 
+        # 初始化管理器（需要在initUI之前创建）
+        self.audio_manager = AudioManager(self)
+        self.tts_manager = TTSManager(self)
+        
         self.initUI()
         self.setupTranslations()
         
-        # 初始化音频管理器
-        self.audio_manager = AudioManager(self)
+        # 枚举设备
         self.audio_manager.enumerate_tts_engines()
         self.audio_manager.enumerate_audio_devices()
         
@@ -1115,95 +1120,6 @@ class MainWindow(QMainWindow):
         if not hasattr(self, 'current_project_name') or not self.current_project_name:
             QMessageBox.warning(self, self.tr("警告"),
                                self.tr("请先选择一个项目！"))
-            return False
-        return True
-
-    def generate_tts_audio(self):
-        """使用TTS引擎生成肯定语音频"""
-        logger.info("开始生成TTS音频")
-
-        # 检查是否选择了项目
-        if not self.check_project_selected():
-            return
-
-        try:
-            # 检查是否有文本输入
-            if not self.affirmation_text.text().strip():
-                logger.warning("未输入肯定语文本")
-                QMessageBox.warning(self, self.tr("警告"),
-                                   self.tr("请输入肯定语文本！"))
-                return
-
-            # 获取输出文件路径
-            output_dir = self.get_affirmation_output_dir()
-            if not output_dir:
-                QMessageBox.warning(self, self.tr("错误"),
-                                   self.tr("无法获取项目目录！"))
-                return
-
-            import os
-            if not os.path.exists(output_dir):
-                logger.debug(f"创建输出目录: {output_dir}")
-                os.makedirs(output_dir)
-            
-            # 生成文件名（基于文本内容）
-            import hashlib
-            text_hash = hashlib.md5(self.affirmation_text.text().strip().encode()).hexdigest()[:8]
-            output_file = os.path.join(output_dir, f"tts_generated_{text_hash}.wav")
-            logger.debug(f"生成输出文件路径: {output_file}")
-            
-            # 获取选中的TTS引擎
-            selected_engine = self.tts_engine.currentText()
-            logger.debug(f"选中的TTS引擎: {selected_engine}")
-            
-            # 初始化TTS引擎
-            engine = pyttsx3.init()
-            
-            # 设置语音属性
-            voices = engine.getProperty('voices')
-            logger.debug(f"可用的语音数量: {len(voices)}")
-            
-            # 如果选择了特定引擎，尝试设置对应的语音
-            if selected_engine != self.tr("系统默认"):
-                logger.debug("尝试设置特定语音引擎")
-                for voice in voices:
-                    voice_name = voice.name
-                    if hasattr(voice, 'id'):
-                        # 构建引擎名称进行匹配
-                        if 'microsoft' in voice.id.lower() and 'microsoft' in selected_engine.lower():
-                            if voice_name in selected_engine:
-                                engine.setProperty('voice', voice.id)
-                                logger.debug(f"设置Microsoft语音: {voice_name}")
-                                break
-                        elif 'google' in voice.id.lower() and 'google' in selected_engine.lower():
-                            if voice_name in selected_engine:
-                                engine.setProperty('voice', voice.id)
-                                logger.debug(f"设置Google语音: {voice_name}")
-                                break
-            else:
-                logger.debug("使用系统默认语音引擎")
-            
-            # 设置语速（可选）
-            engine.setProperty('rate', 150)  # 默认语速
-            logger.debug("设置语速: 150")
-            
-            # 设置音量（可选）
-            engine.setProperty('volume', 0.8)  # 默认音量
-            logger.debug("设置音量: 0.8")
-            
-            # 保存音频到文件
-            logger.debug("开始生成音频文件")
-            engine.save_to_file(self.affirmation_text.text().strip(), output_file)
-            engine.runAndWait()
-            
-            # 更新音频文件路径
-            self.affirmation_file.setText(output_file)
-            
-            logger.info(f"TTS音频生成成功: {output_file}")
-            QMessageBox.information(self, self.tr("成功"), 
-                                   self.tr(f"TTS音频生成成功！文件已保存到: {output_file}"))
-            
-        except Exception as e:
             logger.error(f"TTS音频生成失败: {e}")
             QMessageBox.critical(self, self.tr("错误"), 
                                self.tr(f"TTS音频生成失败: {str(e)}"))
@@ -1465,7 +1381,7 @@ class MainWindow(QMainWindow):
         # 生成按钮
         self.generate_tts_btn = QPushButton(self.tr("生成"))
         self.generate_tts_btn.setToolTip(self.tr("通过TTS从文本生成肯定语。"))
-        self.generate_tts_btn.clicked.connect(self.generate_tts_audio)
+        self.generate_tts_btn.clicked.connect(self.tts_manager.generate_tts_audio)
         layout.addWidget(self.generate_tts_btn, 3, 2)
 
         # 录制设备选择
