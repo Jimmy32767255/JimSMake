@@ -1,7 +1,6 @@
 import os
 from loguru import logger
 
-
 class PreviewManager:
     """预览管理器 - 处理音频预览和时间轴显示"""
     
@@ -135,8 +134,7 @@ class PreviewManager:
         """获取音频文件时长"""
         try:
             import wave
-            import audioop
-            
+
             if file_path.lower().endswith('.wav'):
                 with wave.open(file_path, 'rb') as wf:
                     frames = wf.getnframes()
