@@ -710,16 +710,17 @@ class ProjectManager:
                 self._import_project_group(file_path)
             else:
                 from PyQt5.QtWidgets import QMessageBox
-                reply = QMessageBox.question(
-                    self.main_window,
-                    self.main_window.tr("选择导入类型"),
-                    self.main_window.tr("无法自动检测导入类型。请选择要导入为项目还是项目组？"),
-                    self.main_window.tr("项目"),
-                    self.main_window.tr("项目组")
-                )
-                if reply == 0:
+                msg_box = QMessageBox(self.main_window)
+                msg_box.setWindowTitle(self.main_window.tr("选择导入类型"))
+                msg_box.setText(self.main_window.tr("无法自动检测导入类型。请选择要导入为项目还是项目组？"))
+                project_btn = msg_box.addButton(self.main_window.tr("项目"), QMessageBox.ActionRole)
+                group_btn = msg_box.addButton(self.main_window.tr("项目组"), QMessageBox.ActionRole)
+                msg_box.addButton(QMessageBox.Cancel)
+                msg_box.exec_()
+                
+                if msg_box.clickedButton() == project_btn:
                     self._import_project(file_path)
-                else:
+                elif msg_box.clickedButton() == group_btn:
                     self._import_project_group(file_path)
 
         except Exception as e:
