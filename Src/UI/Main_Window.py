@@ -176,6 +176,11 @@ class MainWindow(QMainWindow):
             self.audio_format.setEnabled(False)
             self.audio_format.setToolTip(self.tr("需要安装ffmpeg才能使用其他音频格式"))
 
+        # 禁用元数据组
+        if hasattr(self, 'metadata_group'):
+            self.metadata_group.setEnabled(False)
+            self.metadata_group.setToolTip(self.tr("需要安装ffmpeg才能使用元数据功能"))
+
         # 更新提示文本
         if hasattr(self, 'selection_hint'):
             self.selection_hint.setText(self.tr("* 必须至少选择生成音频或生成视频一项（当前仅支持音频生成）"))
