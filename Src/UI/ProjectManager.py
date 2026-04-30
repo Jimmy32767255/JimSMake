@@ -50,48 +50,50 @@ class ExportWorker(QThread):
             self.export_finished.emit(False, str(e))
     
     def _compress_to_zip(self):
-        """将目录压缩为ZIP文件"""
+        """将目录压缩为ZIP文件，包含顶级目录名"""
         # 获取所有文件列表
         all_files = []
         for root, dirs, files in os.walk(self.source_dir):
             for file in files:
                 file_path = os.path.join(root, file)
                 all_files.append(file_path)
-        
+
         total_files = len(all_files)
-        
+
         with zipfile.ZipFile(self.output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for i, file_path in enumerate(all_files):
                 if self.is_cancelled:
                     return
-                    
-                arcname = os.path.relpath(file_path, self.source_dir)
+
+                # 包含顶级目录名的路径
+                arcname = os.path.relpath(file_path, os.path.dirname(self.source_dir))
                 zipf.write(file_path, arcname)
-                
+
                 # 更新进度
                 progress = int((i + 1) / total_files * 100)
                 self.progress_updated.emit(progress)
                 self.file_processed.emit(arcname)
-    
+
     def _compress_to_tar_xz(self):
-        """将目录压缩为TAR.XZ文件"""
+        """将目录压缩为TAR.XZ文件，包含顶级目录名"""
         # 获取所有文件列表
         all_files = []
         for root, dirs, files in os.walk(self.source_dir):
             for file in files:
                 file_path = os.path.join(root, file)
                 all_files.append(file_path)
-        
+
         total_files = len(all_files)
-        
+
         with tarfile.open(self.output_path, "w:xz") as tar:
             for i, file_path in enumerate(all_files):
                 if self.is_cancelled:
                     return
-                    
-                arcname = os.path.relpath(file_path, self.source_dir)
+
+                # 包含顶级目录名的路径
+                arcname = os.path.relpath(file_path, os.path.dirname(self.source_dir))
                 tar.add(file_path, arcname)
-                
+
                 # 更新进度
                 progress = int((i + 1) / total_files * 100)
                 self.progress_updated.emit(progress)
@@ -563,18 +565,22 @@ class ProjectManager:
         return ""
 
     def _compress_to_zip(self, source_dir, output_path):
-        """将目录压缩为ZIP文件"""
+        """将目录压缩为ZIP文件，包含顶级目录名"""
         import zipfile
 
         logger.debug(f"开始压缩为ZIP: {source_dir} -> {output_path}")
+        
+        # 获取顶级目录名
+        top_dir_name = os.path.basename(os.path.normpath(source_dir))
 
         with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for root, dirs, files in os.walk(source_dir):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    arcname = os.path.relpath(file_path, source_dir)
-                    zipf.write(file_path, arcname)
-                    logger.debug(f"添加文件到ZIP: {arcname}")
+                    # 包含顶级目录名的路径
+                    rel_path = os.path.relpath(file_path, os.path.dirname(source_dir))
+                    zipf.write(file_path, rel_path)
+                    logger.debug(f"添加文件到ZIP: {rel_path}")
 
         logger.info(f"ZIP压缩完成: {output_path}")
 
@@ -635,15 +641,15 @@ class ProjectManager:
 
         try:
             if file_path.endswith('.zip'):
-                import zipfile
                 with zipfile.ZipFile(file_path, 'r') as zf:
                     file_list = zf.namelist()
             elif file_path.endswith('.tar.xz'):
-                import tarfile
                 with tarfile.open(file_path, 'r:xz') as tf:
                     file_list = [m.name for m in tf.getmembers()]
             else:
                 return "unknown"
+
+            logger.debug(f"压缩包文件列表: {file_list[:10]}...")  # 只显示前10个
 
             top_dirs = set()
             for name in file_list:
@@ -651,23 +657,41 @@ class ProjectManager:
                 if len(parts) > 0 and parts[0]:
                     top_dirs.add(parts[0])
 
+            logger.debug(f"顶级目录: {top_dirs}")
+
             if len(top_dirs) == 1:
                 top_dir = list(top_dirs)[0]
-                has_config = any('config.json' in f for f in file_list)
-                has_assets = any('Assets/' in f for f in file_list)
-                has_readme = any('README.md' in f for f in file_list)
+                
+                # 检查是否为项目：在顶级目录下查找 config.json 和 Assets 目录
+                # 文件路径格式: 顶级目录/config.json 或 顶级目录/Assets/xxx
+                has_config = any(f.startswith(f'{top_dir}/config.json') for f in file_list)
+                has_assets = any(f.startswith(f'{top_dir}/Assets/') for f in file_list)
+                
+                logger.debug(f"项目检测: has_config={has_config}, has_assets={has_assets}")
 
                 if has_config and has_assets:
+                    logger.debug(f"检测到项目类型")
                     return "project"
 
+                # 检查是否为项目组：查找二级目录下的项目结构
                 subdirs = set()
                 for name in file_list:
                     parts = name.split('/')
-                    if len(parts) > 1 and parts[1]:
+                    if len(parts) > 1 and parts[1] and not parts[1].startswith('.'):
                         subdirs.add(parts[1])
 
+                logger.debug(f"二级目录: {subdirs}")
+
+                # 检查组内是否有项目结构
                 if len(subdirs) > 0:
-                    return "group"
+                    # 检查任意子目录是否包含项目特征文件
+                    for subdir in subdirs:
+                        subdir_has_config = any(f.startswith(f'{top_dir}/{subdir}/config.json') for f in file_list)
+                        subdir_has_assets = any(f.startswith(f'{top_dir}/{subdir}/Assets/') for f in file_list)
+                        logger.debug(f"子目录 {subdir}: has_config={subdir_has_config}, has_assets={subdir_has_assets}")
+                        if subdir_has_config and subdir_has_assets:
+                            logger.debug(f"检测到项目组类型")
+                            return "group"
 
             return "unknown"
 
@@ -694,6 +718,83 @@ class ProjectManager:
 
         with tarfile.open(file_path, 'r:xz') as tar:
             tar.extractall(target_dir)
+
+        logger.info(f"TAR.XZ解压完成")
+
+    def _get_archive_top_dir(self, file_path):
+        """获取压缩包的顶级目录名"""
+        try:
+            if file_path.endswith('.zip'):
+                with zipfile.ZipFile(file_path, 'r') as zf:
+                    file_list = zf.namelist()
+            elif file_path.endswith('.tar.xz'):
+                with tarfile.open(file_path, 'r:xz') as tf:
+                    file_list = [m.name for m in tf.getmembers()]
+            else:
+                return None
+
+            # 获取所有顶级目录
+            top_dirs = set()
+            for name in file_list:
+                parts = name.split('/')
+                if len(parts) > 0 and parts[0]:
+                    top_dirs.add(parts[0])
+
+            # 如果只有一个顶级目录，返回它
+            if len(top_dirs) == 1:
+                return list(top_dirs)[0]
+            return None
+        except Exception as e:
+            logger.error(f"获取压缩包顶级目录失败: {e}")
+            return None
+
+    def _extract_zip_to_dir(self, file_path, target_dir):
+        """将ZIP文件解压到指定目录，去掉顶级目录层级"""
+        logger.debug(f"解压ZIP到目录: {file_path} -> {target_dir}")
+
+        with zipfile.ZipFile(file_path, 'r') as zipf:
+            for member in zipf.namelist():
+                # 去掉顶级目录
+                parts = member.split('/')
+                if len(parts) > 1:
+                    # 重新组合路径（去掉第一个元素）
+                    target_path = os.path.join(target_dir, '/'.join(parts[1:]))
+                else:
+                    # 跳过顶级目录本身
+                    continue
+
+                # 创建目录或解压文件
+                if member.endswith('/'):
+                    os.makedirs(target_path, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                    with zipf.open(member) as source, open(target_path, 'wb') as target:
+                        target.write(source.read())
+
+        logger.info(f"ZIP解压完成")
+
+    def _extract_tar_xz_to_dir(self, file_path, target_dir):
+        """将TAR.XZ文件解压到指定目录，去掉顶级目录层级"""
+        logger.debug(f"解压TAR.XZ到目录: {file_path} -> {target_dir}")
+
+        with tarfile.open(file_path, 'r:xz') as tar:
+            for member in tar.getmembers():
+                # 去掉顶级目录
+                parts = member.name.split('/')
+                if len(parts) > 1:
+                    # 重新组合路径（去掉第一个元素）
+                    target_path = os.path.join(target_dir, '/'.join(parts[1:]))
+                else:
+                    # 跳过顶级目录本身
+                    continue
+
+                # 创建目录或解压文件
+                if member.isdir():
+                    os.makedirs(target_path, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                    with tar.extractfile(member) as source, open(target_path, 'wb') as target:
+                        target.write(source.read())
 
         logger.info(f"TAR.XZ解压完成")
 
@@ -739,37 +840,101 @@ class ProjectManager:
                                self.main_window.tr("请先选择一个项目组来导入项目！"))
             return
 
+        # 获取压缩包中的项目名（顶级目录名）
+        project_name = self._get_archive_top_dir(file_path)
+        if not project_name:
+            from PyQt5.QtWidgets import QMessageBox
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("无法识别压缩包中的项目结构！"))
+            return
+
+        # 检查目标项目是否已存在
         target_dir = self.get_current_project_group_dir()
+        project_path = os.path.join(target_dir, project_name)
+        
+        if os.path.exists(project_path):
+            from PyQt5.QtWidgets import QMessageBox
+            reply = QMessageBox.question(
+                self.main_window,
+                self.main_window.tr("项目已存在"),
+                self.main_window.tr(f"项目 '{project_name}' 已存在，是否覆盖？"),
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if reply != QMessageBox.Yes:
+                return
+            # 删除旧项目
+            import shutil
+            shutil.rmtree(project_path)
+
+        # 创建项目目录并解压
+        os.makedirs(project_path, exist_ok=True)
 
         if file_path.endswith('.zip'):
-            self._extract_zip(file_path, target_dir)
+            self._extract_zip_to_dir(file_path, project_path)
         elif file_path.endswith('.tar.xz'):
-            self._extract_tar_xz(file_path, target_dir)
+            self._extract_tar_xz_to_dir(file_path, project_path)
 
-        logger.info(f"项目导入成功到: {target_dir}")
+        logger.info(f"项目导入成功到: {project_path}")
         from PyQt5.QtWidgets import QMessageBox
         QMessageBox.information(self.main_window, self.main_window.tr("成功"),
-                               self.main_window.tr("项目导入成功！"))
+                               self.main_window.tr(f"项目 '{project_name}' 导入成功！"))
 
         self.refresh_project_list()
+        # 自动选中新导入的项目
+        index = self.main_window.project_list.findData(project_name)
+        if index >= 0:
+            self.main_window.project_list.setCurrentIndex(index)
 
     def _import_project_group(self, file_path):
         """导入项目组"""
         logger.info(f"开始导入项目组: {file_path}")
 
+        # 获取压缩包中的项目组名（顶级目录名）
+        group_name = self._get_archive_top_dir(file_path)
+        if not group_name:
+            from PyQt5.QtWidgets import QMessageBox
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("无法识别压缩包中的项目组结构！"))
+            return
+
+        # 检查目标项目组是否已存在
         target_dir = self.get_project_base_dir()
+        group_path = os.path.join(target_dir, group_name)
+        
+        if os.path.exists(group_path):
+            from PyQt5.QtWidgets import QMessageBox
+            reply = QMessageBox.question(
+                self.main_window,
+                self.main_window.tr("项目组已存在"),
+                self.main_window.tr(f"项目组 '{group_name}' 已存在，是否覆盖？"),
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if reply != QMessageBox.Yes:
+                return
+            # 删除旧项目组
+            import shutil
+            shutil.rmtree(group_path)
+
+        # 创建项目组目录并解压
+        os.makedirs(group_path, exist_ok=True)
 
         if file_path.endswith('.zip'):
-            self._extract_zip(file_path, target_dir)
+            self._extract_zip_to_dir(file_path, group_path)
         elif file_path.endswith('.tar.xz'):
-            self._extract_tar_xz(file_path, target_dir)
+            self._extract_tar_xz_to_dir(file_path, group_path)
 
-        logger.info(f"项目组导入成功到: {target_dir}")
+        logger.info(f"项目组导入成功到: {group_path}")
         from PyQt5.QtWidgets import QMessageBox
         QMessageBox.information(self.main_window, self.main_window.tr("成功"),
-                               self.main_window.tr("项目组导入成功！"))
+                               self.main_window.tr(f"项目组 '{group_name}' 导入成功！"))
 
         self.refresh_project_group_list()
+        # 自动选中新导入的项目组
+        index = self.main_window.project_group_list.findData(group_name)
+        if index >= 0:
+            self.main_window.project_group_list.setCurrentIndex(index)
 
     def refresh_project_group_list(self):
         """刷新项目组列表"""
