@@ -3,7 +3,6 @@ import chardet
 from loguru import logger
 from PyQt5.QtWidgets import QMessageBox
 
-
 class TextFileSync:
     """文本文件同步管理器"""
     

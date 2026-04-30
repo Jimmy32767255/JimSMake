@@ -3,7 +3,6 @@ import pyaudio
 import wave
 from loguru import logger
 
-
 class AudioRecorder(QThread):
     """音频录制线程"""
     recording_finished = pyqtSignal(str)

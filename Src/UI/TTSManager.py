@@ -4,7 +4,6 @@ from loguru import logger
 from PyQt5.QtWidgets import QMessageBox, QProgressDialog
 from PyQt5.QtCore import Qt
 
-
 class TTSManager:
     """TTS管理器 - 处理文本转语音功能"""
     

@@ -2,7 +2,6 @@ import os
 from loguru import logger
 from PyQt5.QtCore import QTimer
 
-
 class LogHandler:
     """日志处理器"""
     

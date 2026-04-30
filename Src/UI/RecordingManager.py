@@ -2,7 +2,6 @@ import os
 from loguru import logger
 from PyQt5.QtWidgets import QMessageBox
 
-
 class RecordingManager:
     """录音管理器 - 处理录音控制功能"""
     

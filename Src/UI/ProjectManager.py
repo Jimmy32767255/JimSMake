@@ -4,7 +4,6 @@ import sys
 from loguru import logger
 from PyQt5.QtWidgets import QMessageBox
 
-
 class ProjectManager:
     """项目管理工具类"""
     

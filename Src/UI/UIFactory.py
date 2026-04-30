@@ -2,11 +2,10 @@ from PyQt5.QtWidgets import (
     QGroupBox, QGridLayout, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QSpinBox,
     QDoubleSpinBox, QCheckBox, QTextEdit, QSlider,
-    QProgressBar, QFrame, QScrollArea, QTabWidget, QWidget
+    QFrame, QScrollArea, QWidget
 )
 from PyQt5.QtCore import Qt
 from loguru import logger
-
 
 class UIFactory:
     """UI工厂类 - 负责创建所有UI组件"""
