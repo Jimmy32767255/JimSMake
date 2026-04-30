@@ -17,121 +17,148 @@ class UIFactory:
         """创建项目管理组"""
         self.main_window.project_group = QGroupBox(self.main_window.tr("项目管理"))
         layout = QGridLayout()
+        layout.setSpacing(10)
+
+        # ===== 项目组区域 =====
+        self.main_window.project_group_section = QGroupBox(self.main_window.tr("项目组"))
+        group_section_layout = QGridLayout()
+        group_section_layout.setSpacing(8)
 
         # 当前项目组显示
-        self.main_window.label_current_project_group = QLabel(self.main_window.tr("当前项目组:"))
-        layout.addWidget(self.main_window.label_current_project_group, 0, 0)
+        self.main_window.label_current_project_group = QLabel(self.main_window.tr("当前:"))
+        group_section_layout.addWidget(self.main_window.label_current_project_group, 0, 0)
         self.main_window.current_project_group_label = QLabel(self.main_window.tr("默认项目组"))
         self.main_window.current_project_group_label.setStyleSheet("font-weight: bold; color: #9C27B0;")
-        layout.addWidget(self.main_window.current_project_group_label, 0, 1, 1, 2)
+        group_section_layout.addWidget(self.main_window.current_project_group_label, 0, 1, 1, 2)
 
         # 项目组列表
-        self.main_window.label_project_group_list = QLabel(self.main_window.tr("项目组列表:"))
-        layout.addWidget(self.main_window.label_project_group_list, 1, 0)
+        self.main_window.label_project_group_list = QLabel(self.main_window.tr("切换:"))
+        group_section_layout.addWidget(self.main_window.label_project_group_list, 1, 0)
         self.main_window.project_group_list = QComboBox()
         self.main_window.project_group_list.setToolTip(self.main_window.tr("选择或切换当前项目组"))
         self.main_window.project_group_list.currentIndexChanged.connect(self.main_window.project_manager.on_project_group_selected)
-        layout.addWidget(self.main_window.project_group_list, 1, 1, 1, 2)
+        group_section_layout.addWidget(self.main_window.project_group_list, 1, 1, 1, 2)
 
         # 新建项目组
-        self.main_window.label_new_project_group = QLabel(self.main_window.tr("新建项目组:"))
-        layout.addWidget(self.main_window.label_new_project_group, 2, 0)
+        self.main_window.label_new_project_group = QLabel(self.main_window.tr("新建:"))
+        group_section_layout.addWidget(self.main_window.label_new_project_group, 2, 0)
         self.main_window.new_project_group_name = QLineEdit()
         self.main_window.new_project_group_name.setToolTip(self.main_window.tr("输入新项目组名称"))
-        self.main_window.new_project_group_name.setPlaceholderText(self.main_window.tr("输入项目组名称"))
-        layout.addWidget(self.main_window.new_project_group_name, 2, 1)
+        self.main_window.new_project_group_name.setPlaceholderText(self.main_window.tr("项目组名称"))
+        group_section_layout.addWidget(self.main_window.new_project_group_name, 2, 1)
 
-        self.main_window.create_project_group_btn = QPushButton(self.main_window.tr("创建项目组"))
+        self.main_window.create_project_group_btn = QPushButton(self.main_window.tr("创建"))
         self.main_window.create_project_group_btn.setToolTip(self.main_window.tr("创建新项目组"))
         self.main_window.create_project_group_btn.clicked.connect(self.main_window.project_manager.create_new_project_group)
-        layout.addWidget(self.main_window.create_project_group_btn, 2, 2)
+        group_section_layout.addWidget(self.main_window.create_project_group_btn, 2, 2)
 
         # 删除项目组按钮
         self.main_window.delete_project_group_btn = QPushButton(self.main_window.tr("删除项目组"))
         self.main_window.delete_project_group_btn.setToolTip(self.main_window.tr("删除选中的项目组"))
         self.main_window.delete_project_group_btn.clicked.connect(self.main_window.project_manager.delete_project_group)
-        layout.addWidget(self.main_window.delete_project_group_btn, 3, 0, 1, 3)
+        group_section_layout.addWidget(self.main_window.delete_project_group_btn, 3, 0, 1, 3)
 
-        # 分隔线
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setStyleSheet("color: #ccc;")
-        layout.addWidget(line, 4, 0, 1, 3)
+        self.main_window.project_group_section.setLayout(group_section_layout)
+        layout.addWidget(self.main_window.project_group_section, 0, 0, 1, 3)
+
+        # ===== 项目区域 =====
+        self.main_window.project_section = QGroupBox(self.main_window.tr("项目"))
+        project_section_layout = QGridLayout()
+        project_section_layout.setSpacing(8)
 
         # 当前项目显示
-        self.main_window.label_current_project = QLabel(self.main_window.tr("当前项目:"))
-        layout.addWidget(self.main_window.label_current_project, 5, 0)
+        self.main_window.label_current_project = QLabel(self.main_window.tr("当前:"))
+        project_section_layout.addWidget(self.main_window.label_current_project, 0, 0)
         self.main_window.current_project_label = QLabel(self.main_window.tr("未选择项目"))
         self.main_window.current_project_label.setStyleSheet("font-weight: bold; color: #2196F3;")
-        layout.addWidget(self.main_window.current_project_label, 5, 1, 1, 2)
+        project_section_layout.addWidget(self.main_window.current_project_label, 0, 1, 1, 2)
 
-        # 项目列表
-        self.main_window.label_project_list = QLabel(self.main_window.tr("项目列表:"))
-        layout.addWidget(self.main_window.label_project_list, 6, 0)
+        # 项目列表和操作按钮行
+        project_list_row = QHBoxLayout()
+        self.main_window.label_project_list = QLabel(self.main_window.tr("切换:"))
+        project_list_row.addWidget(self.main_window.label_project_list)
+        
         self.main_window.project_list = QComboBox()
         self.main_window.project_list.setToolTip(self.main_window.tr("选择或切换当前项目"))
         self.main_window.project_list.currentIndexChanged.connect(self.main_window.project_manager.on_project_selected)
-        layout.addWidget(self.main_window.project_list, 6, 1, 1, 2)
+        project_list_row.addWidget(self.main_window.project_list, 1)
 
-        # 刷新项目列表按钮
         self.main_window.refresh_projects_btn = QPushButton(self.main_window.tr("刷新"))
         self.main_window.refresh_projects_btn.setToolTip(self.main_window.tr("刷新项目列表"))
         self.main_window.refresh_projects_btn.clicked.connect(self.main_window.project_manager.refresh_project_list)
-        layout.addWidget(self.main_window.refresh_projects_btn, 7, 0)
+        project_list_row.addWidget(self.main_window.refresh_projects_btn)
+        
+        project_section_layout.addLayout(project_list_row, 1, 0, 1, 3)
 
         # 新建项目
-        self.main_window.label_new_project = QLabel(self.main_window.tr("新建项目:"))
-        layout.addWidget(self.main_window.label_new_project, 8, 0)
+        self.main_window.label_new_project = QLabel(self.main_window.tr("新建:"))
+        project_section_layout.addWidget(self.main_window.label_new_project, 2, 0)
         self.main_window.new_project_name = QLineEdit()
         self.main_window.new_project_name.setToolTip(self.main_window.tr("输入新项目名称"))
-        self.main_window.new_project_name.setPlaceholderText(self.main_window.tr("输入项目名称"))
-        layout.addWidget(self.main_window.new_project_name, 8, 1)
+        self.main_window.new_project_name.setPlaceholderText(self.main_window.tr("项目名称"))
+        project_section_layout.addWidget(self.main_window.new_project_name, 2, 1)
 
-        self.main_window.create_project_btn = QPushButton(self.main_window.tr("创建项目"))
+        self.main_window.create_project_btn = QPushButton(self.main_window.tr("创建"))
         self.main_window.create_project_btn.setToolTip(self.main_window.tr("创建新项目"))
         self.main_window.create_project_btn.clicked.connect(self.main_window.project_manager.create_project)
-        layout.addWidget(self.main_window.create_project_btn, 8, 2)
+        project_section_layout.addWidget(self.main_window.create_project_btn, 2, 2)
 
-        # 删除项目按钮
-        self.main_window.delete_project_btn = QPushButton(self.main_window.tr("删除项目"))
+        # 项目操作按钮行（复制、剪切、删除）
+        project_ops_row = QHBoxLayout()
+        project_ops_row.setSpacing(5)
+
+        self.main_window.copy_project_btn = QPushButton(self.main_window.tr("复制"))
+        self.main_window.copy_project_btn.setToolTip(self.main_window.tr("复制项目到当前项目组"))
+        self.main_window.copy_project_btn.clicked.connect(self.main_window.project_manager.copy_project)
+        project_ops_row.addWidget(self.main_window.copy_project_btn)
+
+        self.main_window.cut_project_btn = QPushButton(self.main_window.tr("剪切"))
+        self.main_window.cut_project_btn.setToolTip(self.main_window.tr("剪切项目到其他项目组"))
+        self.main_window.cut_project_btn.clicked.connect(self.main_window.project_manager.cut_project)
+        project_ops_row.addWidget(self.main_window.cut_project_btn)
+
+        self.main_window.delete_project_btn = QPushButton(self.main_window.tr("删除"))
         self.main_window.delete_project_btn.setToolTip(self.main_window.tr("删除选中的项目"))
         self.main_window.delete_project_btn.clicked.connect(self.main_window.project_manager.delete_project)
-        layout.addWidget(self.main_window.delete_project_btn, 9, 0, 1, 3)
+        project_ops_row.addWidget(self.main_window.delete_project_btn)
+        
+        project_section_layout.addLayout(project_ops_row, 3, 0, 1, 3)
 
         # 项目路径信息
-        self.main_window.label_project_path = QLabel(self.main_window.tr("项目路径:"))
-        layout.addWidget(self.main_window.label_project_path, 10, 0)
+        self.main_window.label_project_path = QLabel(self.main_window.tr("路径:"))
+        project_section_layout.addWidget(self.main_window.label_project_path, 4, 0)
         self.main_window.project_path_label = QLabel("./Project/")
         self.main_window.project_path_label.setStyleSheet("color: gray;")
         self.main_window.project_path_label.setWordWrap(True)
-        layout.addWidget(self.main_window.project_path_label, 10, 1, 1, 2)
+        project_section_layout.addWidget(self.main_window.project_path_label, 4, 1, 1, 2)
 
-        # 分隔线 - 导入导出区域
-        line2 = QFrame()
-        line2.setFrameShape(QFrame.HLine)
-        line2.setStyleSheet("color: #ccc;")
-        layout.addWidget(line2, 11, 0, 1, 3)
+        self.main_window.project_section.setLayout(project_section_layout)
+        layout.addWidget(self.main_window.project_section, 1, 0, 1, 3)
 
-        # 导入导出按钮
-        self.main_window.label_import_export = QLabel(self.main_window.tr("导入/导出:"))
-        layout.addWidget(self.main_window.label_import_export, 12, 0)
+        # ===== 导入导出区域 =====
+        self.main_window.import_export_section = QGroupBox(self.main_window.tr("导入/导出"))
+        import_export_layout = QGridLayout()
+        import_export_layout.setSpacing(8)
 
         self.main_window.export_project_btn = QPushButton(self.main_window.tr("导出项目"))
         self.main_window.export_project_btn.setToolTip(self.main_window.tr("将当前项目导出为压缩文件"))
         self.main_window.export_project_btn.clicked.connect(self.main_window.export_project)
-        layout.addWidget(self.main_window.export_project_btn, 12, 1)
+        import_export_layout.addWidget(self.main_window.export_project_btn, 0, 0)
 
         self.main_window.export_project_group_btn = QPushButton(self.main_window.tr("导出项目组"))
         self.main_window.export_project_group_btn.setToolTip(self.main_window.tr("将当前项目组导出为压缩文件"))
         self.main_window.export_project_group_btn.clicked.connect(self.main_window.export_project_group)
-        layout.addWidget(self.main_window.export_project_group_btn, 12, 2)
+        import_export_layout.addWidget(self.main_window.export_project_group_btn, 0, 1)
 
         self.main_window.import_btn = QPushButton(self.main_window.tr("导入"))
         self.main_window.import_btn.setToolTip(self.main_window.tr("从压缩文件导入项目或项目组"))
         self.main_window.import_btn.clicked.connect(self.main_window.import_project_or_group)
-        layout.addWidget(self.main_window.import_btn, 13, 0, 1, 3)
+        import_export_layout.addWidget(self.main_window.import_btn, 0, 2)
 
-        # 项目结构说明
+        self.main_window.import_export_section.setLayout(import_export_layout)
+        layout.addWidget(self.main_window.import_export_section, 2, 0, 1, 3)
+
+        # ===== 项目结构说明 =====
         self.main_window.project_structure_group = QGroupBox(self.main_window.tr("项目结构"))
         structure_layout = QVBoxLayout()
         self.main_window.project_structure_label = QLabel(
@@ -152,7 +179,7 @@ class UIFactory:
         self.main_window.project_structure_label.setStyleSheet("font-family: monospace; color: #666;")
         structure_layout.addWidget(self.main_window.project_structure_label)
         self.main_window.project_structure_group.setLayout(structure_layout)
-        layout.addWidget(self.main_window.project_structure_group, 14, 0, 1, 3)
+        layout.addWidget(self.main_window.project_structure_group, 3, 0, 1, 3)
 
         self.main_window.project_group.setLayout(layout)
 

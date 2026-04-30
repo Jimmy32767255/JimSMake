@@ -1,8 +1,9 @@
 import os
 import json
 import sys
+import shutil
 from loguru import logger
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QComboBox
 
 class ProjectManager:
     """项目管理工具类"""
@@ -1120,3 +1121,146 @@ class ProjectManager:
             logger.error(f"删除项目失败: {e}")
             QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
                                self.main_window.tr(f"删除项目失败: {str(e)}"))
+
+    def copy_project(self):
+        """复制项目到当前项目组"""
+        project_name = self.main_window.project_list.currentData()
+
+        if not project_name:
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("请先选择一个项目！"))
+            return
+
+        # 输入新项目名称
+        new_name, ok = QInputDialog.getText(
+            self.main_window,
+            self.main_window.tr("复制项目"),
+            self.main_window.tr(f"复制项目 '{project_name}'，新项目名称:"),
+            text=f"{project_name}_副本"
+        )
+
+        if not ok or not new_name:
+            return
+
+        new_name = new_name.strip()
+        if not new_name:
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("项目名称不能为空！"))
+            return
+
+        import re
+        if not re.match(r'^[\w\-\s]+$', new_name):
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("项目名称只能包含字母、数字、下划线、横线和空格！"))
+            return
+
+        try:
+            source_dir = os.path.join(self.get_current_project_group_dir(), project_name)
+            target_dir = os.path.join(self.get_current_project_group_dir(), new_name)
+
+            if os.path.exists(target_dir):
+                QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                                   self.main_window.tr(f"项目 '{new_name}' 已存在！"))
+                return
+
+            shutil.copytree(source_dir, target_dir)
+
+            logger.info(f"项目复制成功: {project_name} -> {new_name}")
+            QMessageBox.information(self.main_window, self.main_window.tr("成功"),
+                                   self.main_window.tr(f"项目 '{project_name}' 已复制为 '{new_name}'！"))
+
+            self.refresh_project_list()
+            index = self.main_window.project_list.findData(new_name)
+            if index >= 0:
+                self.main_window.project_list.setCurrentIndex(index)
+
+        except Exception as e:
+            logger.error(f"复制项目失败: {e}")
+            QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
+                               self.main_window.tr(f"复制项目失败: {str(e)}"))
+
+    def cut_project(self):
+        """剪切项目到其他项目组（移动并可选重命名）"""
+        project_name = self.main_window.project_list.currentData()
+
+        if not project_name:
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("请先选择一个项目！"))
+            return
+
+        # 获取所有项目组列表
+        project_base = self.get_project_base_dir()
+        groups = []
+        try:
+            for item in os.listdir(project_base):
+                item_path = os.path.join(project_base, item)
+                if os.path.isdir(item_path) and item != self.main_window.current_project_group:
+                    groups.append(item)
+        except Exception as e:
+            logger.error(f"读取项目组列表失败: {e}")
+
+        if not groups:
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("没有其他项目组可以移动！请先创建新的项目组。"))
+            return
+
+        # 弹出对话框选择目标项目组
+        target_group, ok = QInputDialog.getItem(
+            self.main_window,
+            self.main_window.tr("剪切项目"),
+            self.main_window.tr(f"将项目 '{project_name}' 剪切到:"),
+            groups,
+            0,
+            False
+        )
+
+        if not ok or not target_group:
+            return
+
+        # 询问是否重命名
+        new_name, ok = QInputDialog.getText(
+            self.main_window,
+            self.main_window.tr("剪切项目"),
+            self.main_window.tr("新项目名称（留空保持原名）:"),
+            text=project_name
+        )
+
+        if not ok:
+            return
+
+        new_name = new_name.strip() if new_name else project_name
+
+        if new_name != project_name:
+            import re
+            if not re.match(r'^[\w\-\s]+$', new_name):
+                QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                                   self.main_window.tr("项目名称只能包含字母、数字、下划线、横线和空格！"))
+                return
+
+        try:
+            source_dir = os.path.join(self.get_current_project_group_dir(), project_name)
+            target_dir = os.path.join(project_base, target_group, new_name)
+
+            if os.path.exists(target_dir):
+                QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                                   self.main_window.tr(f"目标位置已存在同名项目 '{new_name}'！"))
+                return
+
+            shutil.move(source_dir, target_dir)
+
+            logger.info(f"项目剪切成功: {project_name} -> {target_group}/{new_name}")
+            QMessageBox.information(self.main_window, self.main_window.tr("成功"),
+                                   self.main_window.tr(f"项目 '{project_name}' 已剪切到 '{target_group}/{new_name}'！"))
+
+            if self.main_window.current_project_name == project_name:
+                self.main_window.current_project_name = None
+                self.main_window.current_project_label.setText(self.main_window.tr("未选择项目"))
+                self.main_window.project_path_label.setText("./Project/")
+                self.main_window.settings.remove("current_project")
+
+            self.refresh_project_list()
+
+        except Exception as e:
+            logger.error(f"剪切项目失败: {e}")
+            QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
+                               self.main_window.tr(f"剪切项目失败: {str(e)}"))

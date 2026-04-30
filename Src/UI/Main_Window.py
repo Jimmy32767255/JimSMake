@@ -419,40 +419,51 @@ class MainWindow(QMainWindow):
         # 更新项目组
         if hasattr(self, 'project_group'):
             self.project_group.setTitle(self.tr("项目管理"))
-            # 项目组相关
-            self.label_current_project_group.setText(self.tr("当前项目组:"))
-            if not hasattr(self, 'current_project_group') or not self.current_project_group:
-                self.current_project_group_label.setText(self.tr("未选择项目组"))
-            self.label_project_group_list.setText(self.tr("项目组列表:"))
-            self.project_group_list.setToolTip(self.tr("选择或切换当前项目组"))
-            self.label_new_project_group.setText(self.tr("新建项目组:"))
-            if hasattr(self, 'new_project_group_name'):
-                self.new_project_group_name.setToolTip(self.tr("输入新项目组名称"))
-                self.new_project_group_name.setPlaceholderText(self.tr("输入项目组名称"))
-            self.create_project_group_btn.setText(self.tr("创建项目组"))
-            self.create_project_group_btn.setToolTip(self.tr("创建新项目组"))
-            self.delete_project_group_btn.setText(self.tr("删除项目组"))
-            self.delete_project_group_btn.setToolTip(self.tr("删除选中的项目组"))
-            # 项目相关
-            self.label_current_project.setText(self.tr("当前项目:"))
-            if not hasattr(self, 'current_project_name') or not self.current_project_name:
-                self.current_project_label.setText(self.tr("未选择项目"))
-            self.label_project_list.setText(self.tr("项目列表:"))
-            self.project_list.setToolTip(self.tr("选择或切换当前项目"))
-            self.refresh_projects_btn.setText(self.tr("刷新"))
-            self.refresh_projects_btn.setToolTip(self.tr("刷新项目列表"))
-            self.label_new_project.setText(self.tr("新建项目:"))
-            if hasattr(self, 'new_project_name'):
-                self.new_project_name.setToolTip(self.tr("输入新项目名称"))
-                self.new_project_name.setPlaceholderText(self.tr("输入项目名称"))
-            self.create_project_btn.setText(self.tr("创建项目"))
-            self.create_project_btn.setToolTip(self.tr("创建新项目"))
-            self.delete_project_btn.setText(self.tr("删除项目"))
-            self.delete_project_btn.setToolTip(self.tr("删除选中的项目"))
-            self.label_project_path.setText(self.tr("项目路径:"))
-            # 导入导出相关
-            if hasattr(self, 'label_import_export'):
-                self.label_import_export.setText(self.tr("导入/导出:"))
+            # 项目组区域
+            if hasattr(self, 'project_group_section'):
+                self.project_group_section.setTitle(self.tr("项目组"))
+                self.label_current_project_group.setText(self.tr("当前:"))
+                if not hasattr(self, 'current_project_group') or not self.current_project_group:
+                    self.current_project_group_label.setText(self.tr("未选择项目组"))
+                self.label_project_group_list.setText(self.tr("切换:"))
+                self.project_group_list.setToolTip(self.tr("选择或切换当前项目组"))
+                self.label_new_project_group.setText(self.tr("新建:"))
+                if hasattr(self, 'new_project_group_name'):
+                    self.new_project_group_name.setToolTip(self.tr("输入新项目组名称"))
+                    self.new_project_group_name.setPlaceholderText(self.tr("项目组名称"))
+                self.create_project_group_btn.setText(self.tr("创建"))
+                self.create_project_group_btn.setToolTip(self.tr("创建新项目组"))
+                self.delete_project_group_btn.setText(self.tr("删除项目组"))
+                self.delete_project_group_btn.setToolTip(self.tr("删除选中的项目组"))
+            # 项目区域
+            if hasattr(self, 'project_section'):
+                self.project_section.setTitle(self.tr("项目"))
+                self.label_current_project.setText(self.tr("当前:"))
+                if not hasattr(self, 'current_project_name') or not self.current_project_name:
+                    self.current_project_label.setText(self.tr("未选择项目"))
+                self.label_project_list.setText(self.tr("切换:"))
+                self.project_list.setToolTip(self.tr("选择或切换当前项目"))
+                self.refresh_projects_btn.setText(self.tr("刷新"))
+                self.refresh_projects_btn.setToolTip(self.tr("刷新项目列表"))
+                self.label_new_project.setText(self.tr("新建:"))
+                if hasattr(self, 'new_project_name'):
+                    self.new_project_name.setToolTip(self.tr("输入新项目名称"))
+                    self.new_project_name.setPlaceholderText(self.tr("项目名称"))
+                self.create_project_btn.setText(self.tr("创建"))
+                self.create_project_btn.setToolTip(self.tr("创建新项目"))
+                # 项目操作按钮
+                if hasattr(self, 'copy_project_btn'):
+                    self.copy_project_btn.setText(self.tr("复制"))
+                    self.copy_project_btn.setToolTip(self.tr("复制项目到当前项目组"))
+                if hasattr(self, 'cut_project_btn'):
+                    self.cut_project_btn.setText(self.tr("剪切"))
+                    self.cut_project_btn.setToolTip(self.tr("剪切项目到其他项目组"))
+                self.delete_project_btn.setText(self.tr("删除"))
+                self.delete_project_btn.setToolTip(self.tr("删除选中的项目"))
+                self.label_project_path.setText(self.tr("路径:"))
+            # 导入导出区域
+            if hasattr(self, 'import_export_section'):
+                self.import_export_section.setTitle(self.tr("导入/导出"))
                 self.export_project_btn.setText(self.tr("导出项目"))
                 self.export_project_btn.setToolTip(self.tr("将当前项目导出为压缩文件"))
                 self.export_project_group_btn.setText(self.tr("导出项目组"))
