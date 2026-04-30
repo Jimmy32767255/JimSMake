@@ -13,17 +13,17 @@ class ExportWorker(QThread):
     progress_updated = pyqtSignal(int)
     file_processed = pyqtSignal(str)
     export_finished = pyqtSignal(bool, str)
-    
+
     def __init__(self, source_dir, output_path, export_type="project"):
         super().__init__()
         self.source_dir = source_dir
         self.output_path = output_path
         self.export_type = export_type
         self.is_cancelled = False
-        
+
     def cancel(self):
         self.is_cancelled = True
-        
+
     def run(self):
         try:
             if self.output_path.endswith('.zip'):
@@ -33,18 +33,16 @@ class ExportWorker(QThread):
             else:
                 self.output_path += '.zip'
                 self._compress_to_zip()
-                
+
             if not self.is_cancelled:
                 self.export_finished.emit(True, self.output_path)
             else:
-                # 删除未完成的文件
                 if os.path.exists(self.output_path):
                     os.remove(self.output_path)
                 self.export_finished.emit(False, "导出已取消")
-                
+
         except Exception as e:
             logger.error(f"导出失败: {e}")
-            # 删除未完成的文件
             if os.path.exists(self.output_path):
                 os.remove(self.output_path)
             self.export_finished.emit(False, str(e))
@@ -76,7 +74,6 @@ class ExportWorker(QThread):
 
     def _compress_to_tar_xz(self):
         """将目录压缩为TAR.XZ文件，包含顶级目录名"""
-        # 获取所有文件列表
         all_files = []
         for root, dirs, files in os.walk(self.source_dir):
             for file in files:
@@ -90,14 +87,104 @@ class ExportWorker(QThread):
                 if self.is_cancelled:
                     return
 
-                # 包含顶级目录名的路径
                 arcname = os.path.relpath(file_path, os.path.dirname(self.source_dir))
                 tar.add(file_path, arcname)
 
-                # 更新进度
                 progress = int((i + 1) / total_files * 100)
                 self.progress_updated.emit(progress)
                 self.file_processed.emit(arcname)
+
+
+class ImportWorker(QThread):
+    """导入工作线程"""
+    progress_updated = pyqtSignal(int)
+    file_processed = pyqtSignal(str)
+    import_finished = pyqtSignal(bool, str)
+
+    def __init__(self, file_path, target_path, import_type="project"):
+        super().__init__()
+        self.file_path = file_path
+        self.target_path = target_path
+        self.import_type = import_type
+        self.is_cancelled = False
+
+    def cancel(self):
+        self.is_cancelled = True
+
+    def run(self):
+        try:
+            if self.file_path.endswith('.zip'):
+                self._extract_zip()
+            elif self.file_path.endswith('.tar.xz'):
+                self._extract_tar_xz()
+            else:
+                self.import_finished.emit(False, "不支持的文件格式")
+                return
+
+            if not self.is_cancelled:
+                self.import_finished.emit(True, "导入成功")
+            else:
+                self.import_finished.emit(False, "导入已取消")
+
+        except Exception as e:
+            logger.error(f"导入失败: {e}")
+            self.import_finished.emit(False, str(e))
+
+    def _extract_zip(self):
+        """解压ZIP文件，去掉顶级目录层级"""
+        with zipfile.ZipFile(self.file_path, 'r') as zipf:
+            file_list = zipf.namelist()
+            total_files = len([f for f in file_list if not f.endswith('/')])
+            processed = 0
+
+            for member in file_list:
+                if self.is_cancelled:
+                    return
+
+                parts = member.split('/')
+                if len(parts) > 1:
+                    target_file_path = os.path.join(self.target_path, '/'.join(parts[1:]))
+                else:
+                    continue
+
+                if member.endswith('/'):
+                    os.makedirs(target_file_path, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(target_file_path), exist_ok=True)
+                    with zipf.open(member) as source, open(target_file_path, 'wb') as target:
+                        target.write(source.read())
+                    processed += 1
+                    progress = int(processed / total_files * 100)
+                    self.progress_updated.emit(progress)
+                    self.file_processed.emit(member)
+
+    def _extract_tar_xz(self):
+        """解压TAR.XZ文件，去掉顶级目录层级"""
+        with tarfile.open(self.file_path, 'r:xz') as tar:
+            members = tar.getmembers()
+            total_files = len([m for m in members if m.isfile()])
+            processed = 0
+
+            for member in members:
+                if self.is_cancelled:
+                    return
+
+                parts = member.name.split('/')
+                if len(parts) > 1:
+                    target_file_path = os.path.join(self.target_path, '/'.join(parts[1:]))
+                else:
+                    continue
+
+                if member.isdir():
+                    os.makedirs(target_file_path, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(target_file_path), exist_ok=True)
+                    with tar.extractfile(member) as source, open(target_file_path, 'wb') as target:
+                        target.write(source.read())
+                    processed += 1
+                    progress = int(processed / total_files * 100)
+                    self.progress_updated.emit(progress)
+                    self.file_processed.emit(member.name)
 
 
 class ProjectManager:
@@ -851,7 +938,7 @@ class ProjectManager:
         # 检查目标项目是否已存在
         target_dir = self.get_current_project_group_dir()
         project_path = os.path.join(target_dir, project_name)
-        
+
         if os.path.exists(project_path):
             from PyQt5.QtWidgets import QMessageBox
             reply = QMessageBox.question(
@@ -867,24 +954,53 @@ class ProjectManager:
             import shutil
             shutil.rmtree(project_path)
 
-        # 创建项目目录并解压
+        # 创建项目目录
         os.makedirs(project_path, exist_ok=True)
 
-        if file_path.endswith('.zip'):
-            self._extract_zip_to_dir(file_path, project_path)
-        elif file_path.endswith('.tar.xz'):
-            self._extract_tar_xz_to_dir(file_path, project_path)
+        # 创建进度对话框
+        progress_dialog = QProgressDialog(
+            self.main_window.tr("正在导入项目..."),
+            self.main_window.tr("取消"),
+            0, 100, self.main_window
+        )
+        progress_dialog.setWindowTitle(self.main_window.tr("导入进度"))
+        progress_dialog.setWindowModality(Qt.WindowModal)
+        progress_dialog.setMinimumDuration(0)
+        progress_dialog.setValue(0)
 
-        logger.info(f"项目导入成功到: {project_path}")
-        from PyQt5.QtWidgets import QMessageBox
-        QMessageBox.information(self.main_window, self.main_window.tr("成功"),
-                               self.main_window.tr(f"项目 '{project_name}' 导入成功！"))
+        # 创建导入工作线程
+        self.import_worker = ImportWorker(file_path, project_path, "project")
 
-        self.refresh_project_list()
-        # 自动选中新导入的项目
-        index = self.main_window.project_list.findData(project_name)
-        if index >= 0:
-            self.main_window.project_list.setCurrentIndex(index)
+        # 连接信号
+        self.import_worker.progress_updated.connect(progress_dialog.setValue)
+        self.import_worker.file_processed.connect(
+            lambda f: progress_dialog.setLabelText(self.main_window.tr(f"正在导入: {f}"))
+        )
+
+        def on_import_finished(success, message):
+            progress_dialog.close()
+            if success:
+                logger.info(f"项目导入成功到: {project_path}")
+                QMessageBox.information(self.main_window, self.main_window.tr("成功"),
+                                       self.main_window.tr(f"项目 '{project_name}' 导入成功！"))
+                self.refresh_project_list()
+                # 自动选中新导入的项目
+                index = self.main_window.project_list.findData(project_name)
+                if index >= 0:
+                    self.main_window.project_list.setCurrentIndex(index)
+            else:
+                logger.error(f"项目导入失败: {message}")
+                QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
+                                    self.main_window.tr(f"导入失败: {message}"))
+                # 清理未完成的导入
+                if os.path.exists(project_path):
+                    shutil.rmtree(project_path)
+
+        self.import_worker.import_finished.connect(on_import_finished)
+        progress_dialog.canceled.connect(self.import_worker.cancel)
+
+        # 启动导入
+        self.import_worker.start()
 
     def _import_project_group(self, file_path):
         """导入项目组"""
@@ -901,7 +1017,7 @@ class ProjectManager:
         # 检查目标项目组是否已存在
         target_dir = self.get_project_base_dir()
         group_path = os.path.join(target_dir, group_name)
-        
+
         if os.path.exists(group_path):
             from PyQt5.QtWidgets import QMessageBox
             reply = QMessageBox.question(
@@ -913,28 +1029,54 @@ class ProjectManager:
             )
             if reply != QMessageBox.Yes:
                 return
-            # 删除旧项目组
             import shutil
             shutil.rmtree(group_path)
 
-        # 创建项目组目录并解压
+        # 创建项目组目录
         os.makedirs(group_path, exist_ok=True)
 
-        if file_path.endswith('.zip'):
-            self._extract_zip_to_dir(file_path, group_path)
-        elif file_path.endswith('.tar.xz'):
-            self._extract_tar_xz_to_dir(file_path, group_path)
+        # 创建进度对话框
+        progress_dialog = QProgressDialog(
+            self.main_window.tr("正在导入项目组..."),
+            self.main_window.tr("取消"),
+            0, 100, self.main_window
+        )
+        progress_dialog.setWindowTitle(self.main_window.tr("导入进度"))
+        progress_dialog.setWindowModality(Qt.WindowModal)
+        progress_dialog.setMinimumDuration(0)
+        progress_dialog.setValue(0)
 
-        logger.info(f"项目组导入成功到: {group_path}")
-        from PyQt5.QtWidgets import QMessageBox
-        QMessageBox.information(self.main_window, self.main_window.tr("成功"),
-                               self.main_window.tr(f"项目组 '{group_name}' 导入成功！"))
+        # 创建导入工作线程
+        self.import_worker = ImportWorker(file_path, group_path, "group")
 
-        self.refresh_project_group_list()
-        # 自动选中新导入的项目组
-        index = self.main_window.project_group_list.findData(group_name)
-        if index >= 0:
-            self.main_window.project_group_list.setCurrentIndex(index)
+        # 连接信号
+        self.import_worker.progress_updated.connect(progress_dialog.setValue)
+        self.import_worker.file_processed.connect(
+            lambda f: progress_dialog.setLabelText(self.main_window.tr(f"正在导入: {f}"))
+        )
+
+        def on_import_finished(success, message):
+            progress_dialog.close()
+            if success:
+                logger.info(f"项目组导入成功到: {group_path}")
+                QMessageBox.information(self.main_window, self.main_window.tr("成功"),
+                                       self.main_window.tr(f"项目组 '{group_name}' 导入成功！"))
+                self.refresh_project_group_list()
+                index = self.main_window.project_group_list.findData(group_name)
+                if index >= 0:
+                    self.main_window.project_group_list.setCurrentIndex(index)
+            else:
+                logger.error(f"项目组导入失败: {message}")
+                QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
+                                    self.main_window.tr(f"导入失败: {message}"))
+                if os.path.exists(group_path):
+                    shutil.rmtree(group_path)
+
+        self.import_worker.import_finished.connect(on_import_finished)
+        progress_dialog.canceled.connect(self.import_worker.cancel)
+
+        # 启动导入
+        self.import_worker.start()
 
     def refresh_project_group_list(self):
         """刷新项目组列表"""
