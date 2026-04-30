@@ -2,8 +2,101 @@ import os
 import json
 import sys
 import shutil
+import zipfile
+import tarfile
 from loguru import logger
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QComboBox
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QComboBox, QProgressDialog
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+
+class ExportWorker(QThread):
+    """导出工作线程"""
+    progress_updated = pyqtSignal(int)
+    file_processed = pyqtSignal(str)
+    export_finished = pyqtSignal(bool, str)
+    
+    def __init__(self, source_dir, output_path, export_type="project"):
+        super().__init__()
+        self.source_dir = source_dir
+        self.output_path = output_path
+        self.export_type = export_type
+        self.is_cancelled = False
+        
+    def cancel(self):
+        self.is_cancelled = True
+        
+    def run(self):
+        try:
+            if self.output_path.endswith('.zip'):
+                self._compress_to_zip()
+            elif self.output_path.endswith('.tar.xz'):
+                self._compress_to_tar_xz()
+            else:
+                self.output_path += '.zip'
+                self._compress_to_zip()
+                
+            if not self.is_cancelled:
+                self.export_finished.emit(True, self.output_path)
+            else:
+                # 删除未完成的文件
+                if os.path.exists(self.output_path):
+                    os.remove(self.output_path)
+                self.export_finished.emit(False, "导出已取消")
+                
+        except Exception as e:
+            logger.error(f"导出失败: {e}")
+            # 删除未完成的文件
+            if os.path.exists(self.output_path):
+                os.remove(self.output_path)
+            self.export_finished.emit(False, str(e))
+    
+    def _compress_to_zip(self):
+        """将目录压缩为ZIP文件"""
+        # 获取所有文件列表
+        all_files = []
+        for root, dirs, files in os.walk(self.source_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                all_files.append(file_path)
+        
+        total_files = len(all_files)
+        
+        with zipfile.ZipFile(self.output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for i, file_path in enumerate(all_files):
+                if self.is_cancelled:
+                    return
+                    
+                arcname = os.path.relpath(file_path, self.source_dir)
+                zipf.write(file_path, arcname)
+                
+                # 更新进度
+                progress = int((i + 1) / total_files * 100)
+                self.progress_updated.emit(progress)
+                self.file_processed.emit(arcname)
+    
+    def _compress_to_tar_xz(self):
+        """将目录压缩为TAR.XZ文件"""
+        # 获取所有文件列表
+        all_files = []
+        for root, dirs, files in os.walk(self.source_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                all_files.append(file_path)
+        
+        total_files = len(all_files)
+        
+        with tarfile.open(self.output_path, "w:xz") as tar:
+            for i, file_path in enumerate(all_files):
+                if self.is_cancelled:
+                    return
+                    
+                arcname = os.path.relpath(file_path, self.source_dir)
+                tar.add(file_path, arcname)
+                
+                # 更新进度
+                progress = int((i + 1) / total_files * 100)
+                self.progress_updated.emit(progress)
+                self.file_processed.emit(arcname)
+
 
 class ProjectManager:
     """项目管理工具类"""

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget)
+                             QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget, QProgressDialog)
 from PyQt5.QtCore import Qt, QTranslator, QSettings
 import os
 import subprocess
@@ -1239,25 +1239,51 @@ class MainWindow(QMainWindow):
         if not file_path:
             return
 
-        try:
-            if "tar.xz" in selected_filter.lower() or file_path.endswith('.tar.xz'):
-                if not file_path.endswith('.tar.xz'):
-                    file_path += '.tar.xz'
-            else:
-                if not file_path.endswith('.zip'):
-                    file_path += '.zip'
+        if "tar.xz" in selected_filter.lower() or file_path.endswith('.tar.xz'):
+            if not file_path.endswith('.tar.xz'):
+                file_path += '.tar.xz'
+        else:
+            if not file_path.endswith('.zip'):
+                file_path += '.zip'
 
-            if self.project_manager.export_project(project_dir, file_path):
-                logger.info(f"项目导出成功: {file_path}")
+        # 创建进度对话框
+        progress_dialog = QProgressDialog(
+            self.tr("正在导出项目..."),
+            self.tr("取消"),
+            0, 100, self
+        )
+        progress_dialog.setWindowTitle(self.tr("导出进度"))
+        progress_dialog.setWindowModality(Qt.WindowModal)
+        progress_dialog.setMinimumDuration(0)
+        progress_dialog.setValue(0)
+
+        # 创建导出工作线程
+        from .ProjectManager import ExportWorker
+        self.export_worker = ExportWorker(project_dir, file_path, "project")
+        
+        # 连接信号
+        self.export_worker.progress_updated.connect(progress_dialog.setValue)
+        self.export_worker.file_processed.connect(
+            lambda f: progress_dialog.setLabelText(self.tr(f"正在导出: {f}"))
+        )
+        
+        def on_export_finished(success, message):
+            progress_dialog.close()
+            if success:
+                logger.info(f"项目导出成功: {message}")
                 QMessageBox.information(self, self.tr("成功"),
-                                   self.tr(f"项目 '{self.current_project_name}' 导出成功！\n保存位置: {file_path}"))
+                                   self.tr(f"项目 '{self.current_project_name}' 导出成功！\n保存位置: {message}"))
             else:
-                raise Exception("导出失败")
-
-        except Exception as e:
-            logger.error(f"导出项目失败: {e}")
-            QMessageBox.critical(self, self.tr("错误"),
-                               self.tr(f"导出项目失败: {str(e)}"))
+                if message != "导出已取消":
+                    logger.error(f"导出项目失败: {message}")
+                    QMessageBox.critical(self, self.tr("错误"),
+                                       self.tr(f"导出项目失败: {message}"))
+        
+        self.export_worker.export_finished.connect(on_export_finished)
+        progress_dialog.canceled.connect(self.export_worker.cancel)
+        
+        # 启动导出
+        self.export_worker.start()
 
     def export_project_group(self):
         """导出当前项目组"""
@@ -1282,25 +1308,51 @@ class MainWindow(QMainWindow):
         if not file_path:
             return
 
-        try:
-            if "tar.xz" in selected_filter.lower() or file_path.endswith('.tar.xz'):
-                if not file_path.endswith('.tar.xz'):
-                    file_path += '.tar.xz'
-            else:
-                if not file_path.endswith('.zip'):
-                    file_path += '.zip'
+        if "tar.xz" in selected_filter.lower() or file_path.endswith('.tar.xz'):
+            if not file_path.endswith('.tar.xz'):
+                file_path += '.tar.xz'
+        else:
+            if not file_path.endswith('.zip'):
+                file_path += '.zip'
 
-            if self.project_manager.export_project_group(group_dir, file_path):
-                logger.info(f"项目组导出成功: {file_path}")
+        # 创建进度对话框
+        progress_dialog = QProgressDialog(
+            self.tr("正在导出项目组..."),
+            self.tr("取消"),
+            0, 100, self
+        )
+        progress_dialog.setWindowTitle(self.tr("导出进度"))
+        progress_dialog.setWindowModality(Qt.WindowModal)
+        progress_dialog.setMinimumDuration(0)
+        progress_dialog.setValue(0)
+
+        # 创建导出工作线程
+        from .ProjectManager import ExportWorker
+        self.export_worker = ExportWorker(group_dir, file_path, "group")
+        
+        # 连接信号
+        self.export_worker.progress_updated.connect(progress_dialog.setValue)
+        self.export_worker.file_processed.connect(
+            lambda f: progress_dialog.setLabelText(self.tr(f"正在导出: {f}"))
+        )
+        
+        def on_export_finished(success, message):
+            progress_dialog.close()
+            if success:
+                logger.info(f"项目组导出成功: {message}")
                 QMessageBox.information(self, self.tr("成功"),
-                                   self.tr(f"项目组 '{self.current_project_group}' 导出成功！\n保存位置: {file_path}"))
+                                   self.tr(f"项目组 '{self.current_project_group}' 导出成功！\n保存位置: {message}"))
             else:
-                raise Exception("导出失败")
-
-        except Exception as e:
-            logger.error(f"导出项目组失败: {e}")
-            QMessageBox.critical(self, self.tr("错误"),
-                               self.tr(f"导出项目组失败: {str(e)}"))
+                if message != "导出已取消":
+                    logger.error(f"导出项目组失败: {message}")
+                    QMessageBox.critical(self, self.tr("错误"),
+                                       self.tr(f"导出项目组失败: {message}"))
+        
+        self.export_worker.export_finished.connect(on_export_finished)
+        progress_dialog.canceled.connect(self.export_worker.cancel)
+        
+        # 启动导出
+        self.export_worker.start()
 
     def import_project_or_group(self):
         """导入项目或项目组"""
