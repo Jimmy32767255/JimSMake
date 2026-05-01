@@ -2,9 +2,9 @@ from PyQt5.QtWidgets import (
     QGroupBox, QGridLayout, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QSpinBox,
     QDoubleSpinBox, QCheckBox, QTextEdit, QSlider,
-    QFrame, QScrollArea, QWidget
+    QFrame, QScrollArea, QWidget, QListWidget
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from loguru import logger
 
 class UIFactory:
@@ -183,8 +183,8 @@ class UIFactory:
 
         self.main_window.project_group.setLayout(layout)
 
-        # 初始化时刷新项目组列表
-        self.main_window.project_manager.refresh_project_group_list()
+        # 注意：项目组列表的刷新被延迟到所有UI组件创建完成后
+        # 在Main_Window.initUI()的最后调用
 
         return self.main_window.project_group
 
@@ -727,3 +727,46 @@ class UIFactory:
 
         self.main_window.log_group.setLayout(layout)
         return self.main_window.log_group
+
+    def create_release_group(self):
+        """创建输出文件管理组"""
+        self.main_window.release_group = QGroupBox(self.main_window.tr("输出文件管理"))
+        layout = QVBoxLayout()
+
+        # 说明标签
+        info_label = QLabel(self.main_window.tr("管理项目的输出文件（音频/视频）。双击文件可用系统播放器打开。"))
+        info_label.setStyleSheet("color: #666; font-size: 12px;")
+        info_label.setWordWrap(True)
+        layout.addWidget(info_label)
+
+        # 文件列表
+        self.main_window.output_list = QListWidget()
+        self.main_window.output_list.setIconSize(QSize(24, 24))
+        self.main_window.output_list.setMinimumHeight(300)
+        self.main_window.output_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 5px;
+                background-color: #f9f9f9;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+            }
+            QListWidget::item:selected {
+                background-color: #2196F3;
+                color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #e3f2fd;
+            }
+        """)
+        layout.addWidget(self.main_window.output_list)
+
+        # 立即设置 release_manager 的 output_list
+        if hasattr(self.main_window, 'release_manager') and self.main_window.release_manager:
+            self.main_window.release_manager.setup_ui(self.main_window.output_list)
+
+        self.main_window.release_group.setLayout(layout)
+        return self.main_window.release_group

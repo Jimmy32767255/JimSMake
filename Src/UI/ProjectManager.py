@@ -1277,6 +1277,10 @@ class ProjectManager:
         if project_dir:
             self.main_window.project_path_label.setText(project_dir)
             self.load_project_resources(project_dir)
+            # 刷新输出文件列表（仅在output_list已设置时）
+            if (hasattr(self.main_window, 'release_manager') and self.main_window.release_manager and
+                self.main_window.release_manager.output_list is not None):
+                self.main_window.release_manager.refresh_output_list()
 
         self.main_window.settings.setValue("current_project", project_name)
 

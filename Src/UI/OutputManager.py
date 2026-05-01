@@ -158,6 +158,10 @@ class OutputManager:
 
             QMessageBox.information(self.main_window, self.main_window.tr("成功"),
                                    self.main_window.tr(f"音频生成成功！\n保存路径: {output_path}"))
+            # 刷新输出文件列表
+            if (hasattr(self.main_window, 'release_manager') and self.main_window.release_manager and
+                self.main_window.release_manager.output_list is not None):
+                self.main_window.release_manager.refresh_output_list()
 
     def start_video_generation(self, audio_path):
         """开始视频生成"""
@@ -243,6 +247,10 @@ class OutputManager:
 
         QMessageBox.information(self.main_window, self.main_window.tr("成功"),
                                self.main_window.tr(f"视频生成成功！\n保存路径: {output_path}"))
+        # 刷新输出文件列表
+        if (hasattr(self.main_window, 'release_manager') and self.main_window.release_manager and
+            self.main_window.release_manager.output_list is not None):
+            self.main_window.release_manager.refresh_output_list()
 
     def on_generation_error(self, error_message):
         """生成错误回调"""

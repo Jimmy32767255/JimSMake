@@ -17,6 +17,7 @@ from .OutputManager import OutputManager
 from .LogHandler import LogHandler
 from .TextFileSync import TextFileSync
 from .ProjectManager import ProjectManager
+from .ReleaseManager import ReleaseManager
 from .UIFactory import UIFactory
 
 class MainWindow(QMainWindow):
@@ -34,6 +35,11 @@ class MainWindow(QMainWindow):
         self.current_language = self.settings.value("language", "zh_CN")
         self.current_project_group = self.settings.value("current_project_group", self.tr("默认项目组"))
         self.current_project_name = self.settings.value("current_project", "")
+        # 确保字符串类型（PyQt5可能返回QByteArray）
+        if isinstance(self.current_project_group, bytes):
+            self.current_project_group = self.current_project_group.decode('utf-8')
+        if isinstance(self.current_project_name, bytes):
+            self.current_project_name = self.current_project_name.decode('utf-8')
         logger.info(f"加载设置，当前语言: {self.current_language}, 当前项目组: {self.current_project_group}, 当前项目: {self.current_project_name}")
 
         # 初始化录音相关变量
@@ -55,34 +61,32 @@ class MainWindow(QMainWindow):
         self.output_manager = OutputManager(self)
         self.project_manager = ProjectManager(self)
         self.preview_manager = PreviewManager(self)
-        
+        self.release_manager = ReleaseManager(self)
+
         # 初始化文本文件同步处理器（需要在ui_factory之前）
         self.text_sync = TextFileSync(self)
-        
+
         # 初始化日志处理器（需要在ui_factory之前）
         self.log_handler = LogHandler(self)
-        
+
         self.ui_factory = UIFactory(self)
         
         self.initUI()
         self.setupTranslations()
-        
+
         # 枚举设备
         self.audio_manager.enumerate_tts_engines()
         self.audio_manager.enumerate_audio_devices()
-        
+
         # 设置文本同步
         self.text_sync.setup_text_file_sync()
-        
+
         # 设置日志处理器
         self.log_handler.setup_log_handler()
 
-        # UI初始化完成后，如果当前有项目，自动加载资源
-        if hasattr(self, 'current_project_name') and self.current_project_name:
-            project_dir = self.get_current_project_dir()
-            if project_dir:
-                logger.info(f"UI初始化完成，自动加载项目资源: {project_dir}")
-                self.project_manager.load_project_resources(project_dir)
+        # UI初始化完成后，自动加载项目资源
+        # 注意：项目资源会在project_manager.refresh_project_group_list()中自动加载
+        # 该函数在initUI()的最后被调用，确保所有UI组件（包括output_list）已创建
 
         logger.info("主窗口初始化完成")
 
@@ -275,6 +279,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.freq_track_tab_index, self.tr("特定频率音轨"))
             if hasattr(self, 'output_tab_index'):
                 self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
+            if hasattr(self, 'release_tab_index'):
+                self.tab_widget.setTabText(self.release_tab_index, self.tr("输出管理"))
             if hasattr(self, 'settings_tab_index'):
                 self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
             if hasattr(self, 'log_tab_index'):
@@ -876,19 +882,32 @@ class MainWindow(QMainWindow):
         log_layout = QVBoxLayout(log_widget)
         log_layout.addWidget(self.ui_factory.create_log_group())
 
+        # 创建输出文件管理选项卡内容
+        release_widget = QWidget()
+        release_layout = QVBoxLayout(release_widget)
+        release_layout.addWidget(self.ui_factory.create_release_group())
+
         # 添加选项卡
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
         self.background_tab_index = self.tab_widget.addTab(background_widget, self.tr("背景音"))
         self.freq_track_tab_index = self.tab_widget.addTab(freq_track_widget, self.tr("特定频率音轨"))
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
+        self.release_tab_index = self.tab_widget.addTab(release_widget, self.tr("输出管理"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
+
+        # 连接选项卡切换信号，用于刷新输出列表
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         main_layout.addWidget(self.tab_widget)
 
         # 根据ffmpeg可用性更新UI
         self.update_ui_for_ffmpeg_availability()
+
+        # 所有UI组件创建完成后，刷新项目列表
+        # 这必须在所有UI组件（包括output_list）创建完成后调用
+        self.project_manager.refresh_project_group_list()
 
     def on_generate_audio_toggled(self, checked):
         """生成音频复选框状态变化处理"""
@@ -1059,6 +1078,14 @@ class MainWindow(QMainWindow):
     def on_generation_error(self, error_msg):
         """生成错误回调"""
         self.output_manager.on_generation_error(error_msg)
+
+    def on_tab_changed(self, index):
+        """选项卡切换回调"""
+        # 如果切换到输出管理选项卡，刷新输出列表
+        if hasattr(self, 'release_tab_index') and index == self.release_tab_index:
+            if (hasattr(self, 'release_manager') and self.release_manager and
+                self.release_manager.output_list is not None):
+                self.release_manager.refresh_output_list()
 
     def get_available_translations(self):
         """获取所有可用的翻译文件"""
