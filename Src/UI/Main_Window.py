@@ -19,6 +19,7 @@ from .TextFileSync import TextFileSync
 from .ProjectManager import ProjectManager
 from .ReleaseManager import ReleaseManager
 from .UIFactory import UIFactory
+from .BatchProcessor import BatchProcessorDialog
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
@@ -476,6 +477,11 @@ class MainWindow(QMainWindow):
                 self.export_project_group_btn.setToolTip(self.tr("将当前项目组导出为压缩文件"))
                 self.import_btn.setText(self.tr("导入"))
                 self.import_btn.setToolTip(self.tr("从压缩文件导入项目或项目组"))
+            # 批量处理区域
+            if hasattr(self, 'batch_section'):
+                self.batch_section.setTitle(self.tr("批量处理"))
+                self.batch_generate_btn.setText(self.tr("批量生成"))
+                self.batch_generate_btn.setToolTip(self.tr("批量生成选中的项目/项目组"))
             # 项目结构
             self.project_structure_group.setTitle(self.tr("项目结构"))
             self.project_structure_label.setText(
@@ -1449,3 +1455,9 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'log_text_edit'):
             self.log_text_edit.clear()
             logger.info("日志显示区域已清空")
+
+    def open_batch_processor(self):
+        """打开批量处理对话框"""
+        logger.info("打开批量处理对话框")
+        dialog = BatchProcessorDialog(self, self.project_manager, self.output_manager)
+        dialog.exec_()

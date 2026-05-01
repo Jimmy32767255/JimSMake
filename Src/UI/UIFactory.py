@@ -158,6 +158,19 @@ class UIFactory:
         self.main_window.import_export_section.setLayout(import_export_layout)
         layout.addWidget(self.main_window.import_export_section, 2, 0, 1, 3)
 
+        # ===== 批量处理区域 =====
+        self.main_window.batch_section = QGroupBox(self.main_window.tr("批量处理"))
+        batch_layout = QGridLayout()
+        batch_layout.setSpacing(8)
+
+        self.main_window.batch_generate_btn = QPushButton(self.main_window.tr("批量生成"))
+        self.main_window.batch_generate_btn.setToolTip(self.main_window.tr("批量生成选中的项目/项目组"))
+        self.main_window.batch_generate_btn.clicked.connect(self.main_window.open_batch_processor)
+        batch_layout.addWidget(self.main_window.batch_generate_btn, 0, 0, 1, 3)
+
+        self.main_window.batch_section.setLayout(batch_layout)
+        layout.addWidget(self.main_window.batch_section, 3, 0, 1, 3)
+
         # ===== 项目结构说明 =====
         self.main_window.project_structure_group = QGroupBox(self.main_window.tr("项目结构"))
         structure_layout = QVBoxLayout()
@@ -179,7 +192,7 @@ class UIFactory:
         self.main_window.project_structure_label.setStyleSheet("font-family: monospace; color: #666;")
         structure_layout.addWidget(self.main_window.project_structure_label)
         self.main_window.project_structure_group.setLayout(structure_layout)
-        layout.addWidget(self.main_window.project_structure_group, 3, 0, 1, 3)
+        layout.addWidget(self.main_window.project_structure_group, 4, 0, 1, 3)
 
         self.main_window.project_group.setLayout(layout)
 
