@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QGroupBox, QGridLayout, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QSpinBox,
     QDoubleSpinBox, QCheckBox, QTextEdit, QSlider,
-    QFrame, QScrollArea, QWidget, QListWidget
+    QFrame, QScrollArea, QWidget, QListWidget, QGroupBox
 )
 from PyQt5.QtCore import Qt, QSize
 from loguru import logger
@@ -783,3 +783,183 @@ class UIFactory:
 
         self.main_window.release_group.setLayout(layout)
         return self.main_window.release_group
+
+    def create_decompile_group(self):
+        """创建反编译组（实验性功能）"""
+        self.main_window.decompile_group = QGroupBox(self.main_window.tr("反编译（实验性）"))
+        layout = QVBoxLayout()
+        layout.setSpacing(10)
+
+        # ===== 警告区域 =====
+        warning_group = QGroupBox(self.main_window.tr("⚠️ 重要警告"))
+        warning_layout = QVBoxLayout()
+
+        warning_text = QLabel(
+            self.main_window.tr(
+                "<b>此功能仅用于安全审计</b>（如检查对方的作品中是否包含负面暗示肯定语）。<br><br>"
+                "<b>请勿用于抄袭</b>（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。<br><br>"
+                "<b>该功能的可用性不受任何保障</b>，不接受任何'我无法反编译特定音频文件'的报告，"
+                "但仍然允许对该功能本身提出缺陷和建议报告。<br><br>"
+                "<b>不提供任何全自动和人工智能相关的功能</b>，您可能需要多次调整参数才能得到理想的结果。<br><br>"
+                "受限于物理法则，<b>肯定语速度过快/音量过小将无法反编译</b>，也无法反编译任何能量音频。"
+            )
+        )
+        warning_text.setWordWrap(True)
+        warning_text.setStyleSheet("color: #d32f2f; background-color: #ffebee; padding: 10px; border-radius: 4px;")
+        warning_layout.addWidget(warning_text)
+        warning_group.setLayout(warning_layout)
+        layout.addWidget(warning_group)
+
+        # ===== 音频文件选择区域 =====
+        file_group = QGroupBox(self.main_window.tr("音频文件"))
+        file_layout = QGridLayout()
+
+        self.main_window.label_decompile_file = QLabel(self.main_window.tr("文件路径:"))
+        file_layout.addWidget(self.main_window.label_decompile_file, 0, 0)
+
+        self.main_window.decompile_file = QLineEdit()
+        self.main_window.decompile_file.setToolTip(self.main_window.tr("选择要反编译的音频文件"))
+        file_layout.addWidget(self.main_window.decompile_file, 0, 1)
+
+        self.main_window.btn_browse_decompile = QPushButton(self.main_window.tr("浏览..."))
+        self.main_window.btn_browse_decompile.setToolTip(self.main_window.tr("选择要反编译的音频文件"))
+        file_layout.addWidget(self.main_window.btn_browse_decompile, 0, 2)
+
+        file_group.setLayout(file_layout)
+        layout.addWidget(file_group)
+
+        # ===== 参数调整区域 =====
+        params_group = QGroupBox(self.main_window.tr("参数调整"))
+        params_layout = QGridLayout()
+
+        # 音量（默认取反：+23 dB）
+        self.main_window.label_decompile_volume = QLabel(self.main_window.tr("音量 (dB):"))
+        params_layout.addWidget(self.main_window.label_decompile_volume, 0, 0)
+        self.main_window.decompile_volume = QDoubleSpinBox()
+        self.main_window.decompile_volume.setRange(0.0, 60.0)
+        self.main_window.decompile_volume.setValue(23.0)
+        self.main_window.decompile_volume.setSingleStep(0.5)
+        self.main_window.decompile_volume.setToolTip(self.main_window.tr("反编译时的音量调整"))
+        params_layout.addWidget(self.main_window.decompile_volume, 0, 1)
+
+        # 频率模式
+        self.main_window.label_decompile_freq_mode = QLabel(self.main_window.tr("频率模式:"))
+        params_layout.addWidget(self.main_window.label_decompile_freq_mode, 0, 2)
+        self.main_window.decompile_freq_mode = QLineEdit()
+        self.main_window.decompile_freq_mode.setPlaceholderText(self.main_window.tr("输入频率值"))
+        self.main_window.decompile_freq_mode.setToolTip(self.main_window.tr("输入反编译时的频率值"))
+        params_layout.addWidget(self.main_window.decompile_freq_mode, 0, 3)
+
+        # 倍速
+        self.main_window.label_decompile_speed = QLabel(self.main_window.tr("倍速:"))
+        params_layout.addWidget(self.main_window.label_decompile_speed, 1, 0)
+        self.main_window.decompile_speed = QDoubleSpinBox()
+        self.main_window.decompile_speed.setRange(0.1, 10.0)
+        self.main_window.decompile_speed.setValue(1.0)
+        self.main_window.decompile_speed.setSingleStep(0.1)
+        self.main_window.decompile_speed.setToolTip(self.main_window.tr("反编译时的倍速调整"))
+        params_layout.addWidget(self.main_window.decompile_speed, 1, 1)
+
+        # 倒放
+        self.main_window.decompile_reverse = QCheckBox(self.main_window.tr("倒放"))
+        self.main_window.decompile_reverse.setChecked(False)
+        self.main_window.decompile_reverse.setToolTip(self.main_window.tr("是否对音频进行倒放处理"))
+        params_layout.addWidget(self.main_window.decompile_reverse, 1, 2, 1, 2)
+
+        params_group.setLayout(params_layout)
+        layout.addWidget(params_group)
+
+        # ===== 预览和导出区域 =====
+        preview_group = QGroupBox(self.main_window.tr("预览和导出"))
+        preview_layout = QVBoxLayout()
+        preview_layout.setSpacing(10)
+
+        # 播放器控制区域
+        player_control_layout = QHBoxLayout()
+
+        # 播放/暂停按钮
+        self.main_window.decompile_play_pause_btn = QPushButton("▶")
+        self.main_window.decompile_play_pause_btn.setFixedSize(40, 40)
+        self.main_window.decompile_play_pause_btn.setToolTip(self.main_window.tr("播放/暂停"))
+        player_control_layout.addWidget(self.main_window.decompile_play_pause_btn)
+
+        # 停止按钮
+        self.main_window.decompile_stop_btn = QPushButton("⏹")
+        self.main_window.decompile_stop_btn.setFixedSize(40, 40)
+        self.main_window.decompile_stop_btn.setToolTip(self.main_window.tr("停止"))
+        player_control_layout.addWidget(self.main_window.decompile_stop_btn)
+
+        # 进度条
+        self.main_window.decompile_progress_slider = QSlider(Qt.Horizontal)
+        self.main_window.decompile_progress_slider.setRange(0, 1000)
+        self.main_window.decompile_progress_slider.setValue(0)
+        self.main_window.decompile_progress_slider.setToolTip(self.main_window.tr("播放进度"))
+        player_control_layout.addWidget(self.main_window.decompile_progress_slider, 1)
+
+        # 时间显示
+        self.main_window.decompile_time_label = QLabel("00:00 / 00:00")
+        self.main_window.decompile_time_label.setToolTip(self.main_window.tr("当前时间 / 总时长"))
+        self.main_window.decompile_time_label.setStyleSheet("font-family: monospace; font-size: 12px;")
+        player_control_layout.addWidget(self.main_window.decompile_time_label)
+
+        preview_layout.addLayout(player_control_layout)
+
+        # 生成预览按钮
+        self.main_window.decompile_preview_btn = QPushButton(self.main_window.tr("生成预览"))
+        self.main_window.decompile_preview_btn.setToolTip(self.main_window.tr("根据当前参数生成反编译预览音频"))
+        preview_layout.addWidget(self.main_window.decompile_preview_btn)
+
+        # 导出按钮
+        self.main_window.decompile_export_btn = QPushButton(self.main_window.tr("导出"))
+        self.main_window.decompile_export_btn.setToolTip(self.main_window.tr("导出反编译后的音频文件"))
+        preview_layout.addWidget(self.main_window.decompile_export_btn)
+
+        preview_group.setLayout(preview_layout)
+        layout.addWidget(preview_group)
+
+        # ===== 听写引擎区域（暂时搁置） =====
+        transcription_group = QGroupBox(self.main_window.tr("听写引擎（暂时搁置）"))
+        transcription_layout = QVBoxLayout()
+
+        transcription_info = QLabel(self.main_window.tr("自动本地语音转文字功能暂时搁置，将在未来版本中实现。"))
+        transcription_info.setStyleSheet("color: #666; font-style: italic;")
+        transcription_layout.addWidget(transcription_info)
+
+        transcription_group.setLayout(transcription_layout)
+        layout.addWidget(transcription_group)
+
+        # ===== 文本对比区域 =====
+        compare_group = QGroupBox(self.main_window.tr("文本对比（安全审计）"))
+        compare_layout = QGridLayout()
+
+        # 左侧：对方公开的肯定语
+        self.main_window.label_public_affirmation = QLabel(self.main_window.tr("对方公开的肯定语:"))
+        compare_layout.addWidget(self.main_window.label_public_affirmation, 0, 0)
+
+        self.main_window.public_affirmation_text = QTextEdit()
+        self.main_window.public_affirmation_text.setToolTip(self.main_window.tr("输入对方公开的肯定语内容，用于对比"))
+        self.main_window.public_affirmation_text.setMaximumHeight(100)
+        compare_layout.addWidget(self.main_window.public_affirmation_text, 1, 0)
+
+        # 右侧：反编译识别结果
+        self.main_window.label_decompile_result = QLabel(self.main_window.tr("反编译识别结果:"))
+        compare_layout.addWidget(self.main_window.label_decompile_result, 0, 1)
+
+        self.main_window.decompile_result_text = QTextEdit()
+        self.main_window.decompile_result_text.setToolTip(self.main_window.tr("输入反编译后的识别结果，用于对比"))
+        self.main_window.decompile_result_text.setMaximumHeight(100)
+        compare_layout.addWidget(self.main_window.decompile_result_text, 1, 1)
+
+        # 对比按钮
+        self.main_window.compare_btn = QPushButton(self.main_window.tr("对比"))
+        self.main_window.compare_btn.setToolTip(self.main_window.tr("对比两段文本的差异"))
+        compare_layout.addWidget(self.main_window.compare_btn, 2, 0, 1, 2)
+
+        compare_group.setLayout(compare_layout)
+        layout.addWidget(compare_group)
+
+        # 添加弹性空间
+        layout.addStretch()
+
+        self.main_window.decompile_group.setLayout(layout)
+        return self.main_window.decompile_group

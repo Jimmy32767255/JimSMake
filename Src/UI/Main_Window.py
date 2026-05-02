@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget, QProgressDialog)
+                             QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget,
+                             QProgressDialog, QGroupBox)
 from PyQt5.QtCore import Qt, QTranslator, QSettings
 import os
 import subprocess
@@ -8,7 +9,6 @@ from loguru import logger
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from .AudioRecorder import AudioRecorder
 from .AudioManager import AudioManager
 from .RecordingManager import RecordingManager
 from .PreviewManager import PreviewManager
@@ -282,6 +282,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.output_tab_index, self.tr("输出"))
             if hasattr(self, 'release_tab_index'):
                 self.tab_widget.setTabText(self.release_tab_index, self.tr("输出管理"))
+            if hasattr(self, 'decompile_tab_index'):
+                self.tab_widget.setTabText(self.decompile_tab_index, self.tr("反编译"))
             if hasattr(self, 'settings_tab_index'):
                 self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
             if hasattr(self, 'log_tab_index'):
@@ -422,6 +424,50 @@ class MainWindow(QMainWindow):
             self.log_group.setTitle(self.tr("日志输出"))
             self.clear_log_btn.setText(self.tr("清空日志"))
             self.clear_log_btn.setToolTip(self.tr("清空日志显示区域"))
+
+        # 更新反编译组
+        if hasattr(self, 'decompile_group'):
+            self.decompile_group.setTitle(self.tr("反编译（实验性）"))
+            # 警告区域
+            for child in self.decompile_group.findChildren(QGroupBox):
+                if child.title().startswith("⚠️") or "警告" in child.title():
+                    child.setTitle(self.tr("⚠️ 重要警告"))
+                    break
+            # 文件选择区域
+            if hasattr(self, 'label_decompile_file'):
+                self.label_decompile_file.setText(self.tr("文件路径:"))
+                self.decompile_file.setToolTip(self.tr("选择要反编译的音频文件"))
+                self.btn_browse_decompile.setText(self.tr("浏览..."))
+                self.btn_browse_decompile.setToolTip(self.tr("选择要反编译的音频文件"))
+            # 参数调整区域
+            if hasattr(self, 'label_decompile_volume'):
+                self.label_decompile_volume.setText(self.tr("音量 (dB):"))
+                self.decompile_volume.setToolTip(self.tr("反编译时的音量调整"))
+                self.label_decompile_freq_mode.setText(self.tr("频率模式:"))
+                self.decompile_freq_mode.setPlaceholderText(self.tr("输入频率值"))
+                self.decompile_freq_mode.setToolTip(self.tr("输入反编译时的具体频率值"))
+                self.label_decompile_speed.setText(self.tr("倍速:"))
+                self.decompile_speed.setToolTip(self.tr("反编译时的倍速调整"))
+                self.decompile_reverse.setText(self.tr("倒放"))
+                self.decompile_reverse.setToolTip(self.tr("是否对音频进行倒放处理"))
+            # 预览和导出区域
+            if hasattr(self, 'decompile_preview_btn'):
+                self.decompile_preview_btn.setText(self.tr("生成预览"))
+                self.decompile_preview_btn.setToolTip(self.tr("根据当前参数生成反编译预览音频"))
+                self.decompile_export_btn.setText(self.tr("导出"))
+                self.decompile_export_btn.setToolTip(self.tr("导出反编译后的音频文件"))
+                self.decompile_play_pause_btn.setToolTip(self.tr("播放/暂停"))
+                self.decompile_stop_btn.setToolTip(self.tr("停止"))
+                self.decompile_progress_slider.setToolTip(self.tr("播放进度"))
+                self.decompile_time_label.setToolTip(self.tr("当前时间 / 总时长"))
+            # 听写引擎区域
+            if hasattr(self, 'label_public_affirmation'):
+                self.label_public_affirmation.setText(self.tr("对方公开的肯定语:"))
+                self.public_affirmation_text.setToolTip(self.tr("输入对方公开的肯定语内容，用于对比"))
+                self.label_decompile_result.setText(self.tr("反编译识别结果:"))
+                self.decompile_result_text.setToolTip(self.tr("输入反编译后的识别结果，用于对比"))
+                self.compare_btn.setText(self.tr("对比"))
+                self.compare_btn.setToolTip(self.tr("对比两段文本的差异"))
 
         # 更新项目组
         if hasattr(self, 'project_group'):
@@ -893,6 +939,11 @@ class MainWindow(QMainWindow):
         release_layout = QVBoxLayout(release_widget)
         release_layout.addWidget(self.ui_factory.create_release_group())
 
+        # 创建反编译选项卡内容
+        decompile_widget = QWidget()
+        decompile_layout = QVBoxLayout(decompile_widget)
+        decompile_layout.addWidget(self.ui_factory.create_decompile_group())
+
         # 添加选项卡
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
@@ -900,6 +951,7 @@ class MainWindow(QMainWindow):
         self.freq_track_tab_index = self.tab_widget.addTab(freq_track_widget, self.tr("特定频率音轨"))
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.release_tab_index = self.tab_widget.addTab(release_widget, self.tr("输出管理"))
+        self.decompile_tab_index = self.tab_widget.addTab(decompile_widget, self.tr("反编译"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
 
@@ -907,6 +959,9 @@ class MainWindow(QMainWindow):
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         main_layout.addWidget(self.tab_widget)
+
+        # 连接反编译选项卡的按钮信号
+        self.setup_decompile_connections()
 
         # 根据ffmpeg可用性更新UI
         self.update_ui_for_ffmpeg_availability()
@@ -1445,3 +1500,200 @@ class MainWindow(QMainWindow):
         logger.info("打开批量处理对话框")
         dialog = BatchProcessorDialog(self, self.project_manager, self.output_manager)
         dialog.exec_()
+
+    def setup_decompile_connections(self):
+        """设置反编译选项卡的按钮连接"""
+        # 浏览按钮
+        self.btn_browse_decompile.clicked.connect(
+            lambda: self.browse_file(self.decompile_file,
+                                    self.tr("音频文件 (*.wav *.mp3)"))
+        )
+
+        # 生成预览按钮
+        self.decompile_preview_btn.clicked.connect(self.on_decompile_preview)
+
+        # 导出按钮
+        self.decompile_export_btn.clicked.connect(self.on_decompile_export)
+
+        # 播放/暂停按钮
+        self.decompile_play_pause_btn.clicked.connect(self.on_decompile_play_pause)
+
+        # 停止按钮
+        self.decompile_stop_btn.clicked.connect(self.on_decompile_stop)
+
+        # 进度条
+        self.decompile_progress_slider.sliderPressed.connect(self.on_decompile_slider_pressed)
+        self.decompile_progress_slider.sliderReleased.connect(self.on_decompile_slider_released)
+
+        # 对比按钮
+        self.compare_btn.clicked.connect(self.on_compare_texts)
+
+        # 初始化播放器状态
+        self.decompile_is_playing = False
+        self.decompile_is_paused = False
+        self.decompile_current_position = 0
+        self.decompile_total_duration = 0
+        self.decompile_slider_dragging = False
+
+    def on_decompile_preview(self):
+        """生成反编译预览"""
+        file_path = self.decompile_file.text().strip()
+        if not file_path:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请先选择要反编译的音频文件！"))
+            return
+
+        if not os.path.exists(file_path):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("音频文件不存在！"))
+            return
+
+        logger.info(f"开始生成反编译预览: {file_path}")
+        # TODO: 实现反编译预览音频生成逻辑
+        # 生成完成后自动开始播放
+        self.decompile_is_playing = True
+        self.decompile_is_paused = False
+        self.decompile_play_pause_btn.setText("⏸")
+        QMessageBox.information(self, self.tr("提示"),
+                               self.tr("反编译预览功能将在后续版本中实现。"))
+
+    def on_decompile_export(self):
+        """反编译导出按钮点击处理"""
+        file_path = self.decompile_file.text().strip()
+        if not file_path:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请先选择要反编译的音频文件！"))
+            return
+
+        if not os.path.exists(file_path):
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("音频文件不存在！"))
+            return
+
+        # 选择导出路径
+        output_path, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("导出反编译音频"),
+            "",
+            self.tr("WAV 文件 (*.wav)")
+        )
+
+        if not output_path:
+            return
+
+        if not output_path.endswith('.wav'):
+            output_path += '.wav'
+
+        logger.info(f"开始反编译导出: {file_path} -> {output_path}")
+        # TODO: 实现反编译导出逻辑
+        QMessageBox.information(self, self.tr("提示"),
+                               self.tr("反编译导出功能将在后续版本中实现。"))
+
+    def on_decompile_play_pause(self):
+        """播放/暂停切换"""
+        if not self.decompile_is_playing:
+            # 如果没有正在播放，开始播放
+            logger.info("开始播放")
+            self.decompile_is_playing = True
+            self.decompile_is_paused = False
+            self.decompile_play_pause_btn.setText("⏸")
+            # TODO: 实现实际播放逻辑
+        elif self.decompile_is_paused:
+            # 如果暂停中，恢复播放
+            logger.info("恢复播放")
+            self.decompile_is_paused = False
+            self.decompile_play_pause_btn.setText("⏸")
+            # TODO: 实现恢复播放逻辑
+        else:
+            # 如果正在播放，暂停
+            logger.info("暂停播放")
+            self.decompile_is_paused = True
+            self.decompile_play_pause_btn.setText("▶")
+            # TODO: 实现暂停逻辑
+
+    def on_decompile_stop(self):
+        """停止播放"""
+        logger.info("停止播放")
+        self.decompile_is_playing = False
+        self.decompile_is_paused = False
+        self.decompile_current_position = 0
+        self.decompile_play_pause_btn.setText("▶")
+        self.decompile_progress_slider.setValue(0)
+        self.decompile_time_label.setText("00:00 / 00:00")
+        # TODO: 实现停止播放逻辑
+
+    def on_decompile_slider_pressed(self):
+        """进度条被按下"""
+        self.decompile_slider_dragging = True
+
+    def on_decompile_slider_released(self):
+        """进度条被释放"""
+        self.decompile_slider_dragging = False
+        position = self.decompile_progress_slider.value()
+        logger.info(f"进度条拖动到: {position}")
+        # TODO: 实现跳转到指定位置播放的逻辑
+
+    def update_decompile_progress(self, current_ms, total_ms):
+        """更新播放进度显示
+        
+        Args:
+            current_ms: 当前播放位置（毫秒）
+            total_ms: 总时长（毫秒）
+        """
+        if not self.decompile_slider_dragging:
+            self.decompile_current_position = current_ms
+            self.decompile_total_duration = total_ms
+
+            # 更新进度条
+            if total_ms > 0:
+                progress = int((current_ms / total_ms) * 1000)
+                self.decompile_progress_slider.setValue(progress)
+
+            # 更新时间显示
+            current_sec = current_ms // 1000
+            total_sec = total_ms // 1000
+            current_str = f"{current_sec // 60:02d}:{current_sec % 60:02d}"
+            total_str = f"{total_sec // 60:02d}:{total_sec % 60:02d}"
+            self.decompile_time_label.setText(f"{current_str} / {total_str}")
+
+    def format_time(self, seconds):
+        """将秒数格式化为 MM:SS 格式"""
+        return f"{seconds // 60:02d}:{seconds % 60:02d}"
+
+    def on_compare_texts(self):
+        """对比两段文本"""
+        public_text = self.public_affirmation_text.toPlainText().strip()
+        decompile_text = self.decompile_result_text.toPlainText().strip()
+
+        if not public_text:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请输入对方公开的肯定语！"))
+            return
+
+        if not decompile_text:
+            QMessageBox.warning(self, self.tr("警告"),
+                               self.tr("请输入反编译识别结果！"))
+            return
+
+        logger.info("开始对比文本")
+
+        # 简单的文本对比
+        if public_text == decompile_text:
+            QMessageBox.information(self, self.tr("对比结果"),
+                                   self.tr("✓ 两段文本完全一致！"))
+        else:
+            # 计算相似度（简单的字符匹配）
+            import difflib
+            similarity = difflib.SequenceMatcher(None, public_text, decompile_text).ratio()
+            similarity_percent = int(similarity * 100)
+
+            result_msg = self.tr(f"相似度: {similarity_percent}%\n\n")
+
+            if similarity_percent >= 90:
+                result_msg += self.tr("✓ 两段文本高度相似，基本一致。")
+            elif similarity_percent >= 70:
+                result_msg += self.tr("△ 两段文本有一定差异，建议进一步核实。")
+            else:
+                result_msg += self.tr("✗ 两段文本差异较大，可能存在隐藏内容！")
+
+            QMessageBox.information(self, self.tr("对比结果"), result_msg)
