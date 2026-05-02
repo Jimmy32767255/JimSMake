@@ -1169,27 +1169,11 @@ class MainWindow(QMainWindow):
         Args:
             project_dir: 项目目录路径
         """
-        config_path = os.path.join(project_dir, "config.json")
-        logger.debug(f"保存项目配置: {config_path}")
-
-        try:
-            # 构建配置数据
-            config = {
-                "version": "1.0",
-                "metadata": {
-                    "title": self.metadata_title.text() if hasattr(self, 'metadata_title') else "",
-                    "author": self.metadata_author.text() if hasattr(self, 'metadata_author') else ""
-                }
-            }
-
-            # 写入JSON文件
-            with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump(config, f, ensure_ascii=False, indent=2)
-
-            logger.info(f"项目配置保存成功: {config_path}")
-
-        except Exception as e:
-            logger.error(f"保存项目配置失败: {config_path}, 错误: {e}")
+        # 委托给 ProjectManager 的完整保存方法
+        if hasattr(self, 'project_manager') and self.project_manager is not None:
+            self.project_manager.save_project_config(project_dir)
+        else:
+            logger.error("ProjectManager 未初始化，无法保存项目配置")
 
     def get_project_base_dir(self):
         """获取项目基础目录"""
