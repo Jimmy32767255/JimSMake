@@ -356,7 +356,11 @@ class MainWindow(QMainWindow):
             self.freq_track_enabled.setText(self.tr("启用特定频率音轨"))
             self.freq_track_enabled.setToolTip(self.tr("在音频中叠加特定频率的音轨。"))
             self.label_freq_track_freq.setText(self.tr("频率 (Hz):"))
-            self.freq_track_freq.setToolTip(self.tr("选择或输入要叠加的特定频率(Hz)。"))
+            self.freq_track_freq.setToolTip(self.tr("普通模式：输入要叠加的特定频率；差值模式：输入目标频率(Hz)。"))
+            self.freq_track_diff_mode.setText(self.tr("差值模式"))
+            self.freq_track_diff_mode.setToolTip(self.tr("启用差值模式：左右声道使用不同频率，通过差值产生目标频率效果。"))
+            self.freq_track_swap_channels.setText(self.tr("反转左右声道"))
+            self.freq_track_swap_channels.setToolTip(self.tr("交换左右声道的频率设置。"))
             self.label_freq_track_volume.setText(self.tr("音量 (dB):"))
             self.freq_track_volume.setToolTip(self.tr("特定频率音轨的音量（分贝）。"))
 

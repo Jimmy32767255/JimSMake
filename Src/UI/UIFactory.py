@@ -417,7 +417,7 @@ class UIFactory:
         self.main_window.freq_track_enabled.setToolTip(self.main_window.tr("在音频中叠加特定频率的音轨。"))
         layout.addWidget(self.main_window.freq_track_enabled, 0, 0, 1, 3)
 
-        # 频率选择
+        # 频率输入（普通模式：直接频率，差值模式：目标频率）
         self.main_window.label_freq_track_freq = QLabel(self.main_window.tr("频率 (Hz):"))
         layout.addWidget(self.main_window.label_freq_track_freq, 1, 0)
         self.main_window.freq_track_freq = QLineEdit()
@@ -425,15 +425,27 @@ class UIFactory:
         self.main_window.freq_track_freq.setToolTip(self.main_window.tr("输入要叠加的特定频率(Hz)。"))
         layout.addWidget(self.main_window.freq_track_freq, 1, 1, 1, 2)
 
+        # 差值模式复选框
+        self.main_window.freq_track_diff_mode = QCheckBox(self.main_window.tr("差值模式"))
+        self.main_window.freq_track_diff_mode.setChecked(False)
+        self.main_window.freq_track_diff_mode.setToolTip(self.main_window.tr("启用差值模式：左右声道使用不同频率，通过差值产生目标频率效果。"))
+        layout.addWidget(self.main_window.freq_track_diff_mode, 2, 0, 1, 3)
+
+        # 反转左右声道复选框
+        self.main_window.freq_track_swap_channels = QCheckBox(self.main_window.tr("反转左右声道"))
+        self.main_window.freq_track_swap_channels.setChecked(False)
+        self.main_window.freq_track_swap_channels.setToolTip(self.main_window.tr("交换左右声道的频率设置。"))
+        layout.addWidget(self.main_window.freq_track_swap_channels, 3, 0, 1, 3)
+
         # 音量设置
         self.main_window.label_freq_track_volume = QLabel(self.main_window.tr("音量 (dB):"))
-        layout.addWidget(self.main_window.label_freq_track_volume, 2, 0)
+        layout.addWidget(self.main_window.label_freq_track_volume, 5, 0)
         self.main_window.freq_track_volume = QDoubleSpinBox()
         self.main_window.freq_track_volume.setRange(-60.0, 0.0)
         self.main_window.freq_track_volume.setValue(-23.0)
         self.main_window.freq_track_volume.setSingleStep(1.0)
         self.main_window.freq_track_volume.setToolTip(self.main_window.tr("特定频率音轨的音量（分贝）。"))
-        layout.addWidget(self.main_window.freq_track_volume, 2, 1, 1, 2)
+        layout.addWidget(self.main_window.freq_track_volume, 5, 1, 1, 2)
 
         self.main_window.freq_track_group.setLayout(layout)
         return self.main_window.freq_track_group

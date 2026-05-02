@@ -292,6 +292,8 @@ class ProjectManager:
             self._load_checkbox_setting('freq_track_enabled', freq_track.get('enabled'))
             self._load_text_setting('freq_track_freq', freq_track.get('frequency'))
             self._load_spin_setting('freq_track_volume', freq_track.get('volume'))
+            self._load_checkbox_setting('freq_track_diff_mode', freq_track.get('diff_mode'))
+            self._load_checkbox_setting('freq_track_swap_channels', freq_track.get('swap_channels'))
 
             # 加载输出设置
             output = config.get('output', {})
@@ -376,6 +378,10 @@ class ProjectManager:
             self.main_window.freq_track_freq.setText("432")
         if hasattr(self.main_window, 'freq_track_volume') and self.main_window.freq_track_volume is not None:
             self.main_window.freq_track_volume.setValue(-23.0)
+        if hasattr(self.main_window, 'freq_track_diff_mode') and self.main_window.freq_track_diff_mode is not None:
+            self.main_window.freq_track_diff_mode.setChecked(False)
+        if hasattr(self.main_window, 'freq_track_swap_channels') and self.main_window.freq_track_swap_channels is not None:
+            self.main_window.freq_track_swap_channels.setChecked(False)
 
         # 输出设置
         if hasattr(self.main_window, 'generate_audio') and self.main_window.generate_audio is not None:
@@ -454,7 +460,9 @@ class ProjectManager:
                 "freq_track": {
                     "enabled": False,
                     "frequency": "432",
-                    "volume": -23.0
+                    "volume": -23.0,
+                    "diff_mode": False,
+                    "swap_channels": False
                 },
                 "output": {
                     "generate_audio": True,
@@ -575,7 +583,9 @@ class ProjectManager:
                 "freq_track": {
                     "enabled": self._get_checkbox_value('freq_track_enabled'),
                     "frequency": self._get_text_value('freq_track_freq'),
-                    "volume": self._get_spin_value('freq_track_volume')
+                    "volume": self._get_spin_value('freq_track_volume'),
+                    "diff_mode": self._get_checkbox_value('freq_track_diff_mode'),
+                    "swap_channels": self._get_checkbox_value('freq_track_swap_channels')
                 },
                 "output": {
                     "generate_audio": self._get_checkbox_value('generate_audio'),

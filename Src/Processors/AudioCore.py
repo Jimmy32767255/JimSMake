@@ -551,6 +551,8 @@ class AudioCore:
 
         freq_str = params.get('freq_track_freq', '432')
         volume_db = params.get('freq_track_volume', -20.0)
+        diff_mode = params.get('freq_track_diff_mode', False)
+        swap_channels = params.get('freq_track_swap_channels', False)
 
         try:
             frequency = float(freq_str)
@@ -558,23 +560,63 @@ class AudioCore:
             logger.error(f"无效的频率值: {freq_str}")
             return audio_data
 
-        logger.info(f"叠加特定频率音轨: {frequency}Hz, 音量: {volume_db}dB")
-
         data = audio_data['data']
         sample_rate = audio_data['sample_rate']
+        channels = audio_data.get('channels', 2)
         volume_factor = 10 ** (volume_db / 20.0)
 
-        # 生成特定频率的正弦波并叠加
-        result = []
-        for i, sample in enumerate(data):
-            t = i / sample_rate
-            sine_wave = math.sin(2 * math.pi * frequency * t) * volume_factor
-            mixed = sample + sine_wave
-            # 限制在有效范围内
-            mixed = max(-1.0, min(1.0, mixed))
-            result.append(mixed)
+        if diff_mode and channels == 2:
+            # 差值模式：左右声道使用不同频率
+            # 使用频率输入框的值作为目标频率
+            target_freq = frequency
 
-        logger.debug(f"特定频率音轨叠加完成，数据长度: {len(result)} samples")
+            # 计算左右声道频率（目标频率 +/- 差值）
+            # 使用目标频率的一半作为基础偏移量
+            freq_offset = target_freq / 2
+            left_freq = target_freq + freq_offset
+            right_freq = target_freq - freq_offset
+
+            # 反转左右声道
+            if swap_channels:
+                left_freq, right_freq = right_freq, left_freq
+
+            logger.info(f"差值模式 - 目标频率: {target_freq}Hz, 左声道: {left_freq}Hz, 右声道: {right_freq}Hz, 音量: {volume_db}dB")
+
+            # 生成立体声差值频率音轨
+            result = []
+            for i in range(0, len(data), 2):
+                t = i / sample_rate
+                # 左声道
+                left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
+                # 右声道
+                right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
+
+                if i < len(data):
+                    left_mixed = data[i] + left_sine
+                    left_mixed = max(-1.0, min(1.0, left_mixed))
+                    result.append(left_mixed)
+
+                if i + 1 < len(data):
+                    right_mixed = data[i + 1] + right_sine
+                    right_mixed = max(-1.0, min(1.0, right_mixed))
+                    result.append(right_mixed)
+
+            logger.debug(f"差值模式音轨叠加完成，数据长度: {len(result)} samples")
+        else:
+            # 普通模式
+            logger.info(f"叠加特定频率音轨: {frequency}Hz, 音量: {volume_db}dB")
+
+            # 生成特定频率的正弦波并叠加
+            result = []
+            for i, sample in enumerate(data):
+                t = i / sample_rate
+                sine_wave = math.sin(2 * math.pi * frequency * t) * volume_factor
+                mixed = sample + sine_wave
+                # 限制在有效范围内
+                mixed = max(-1.0, min(1.0, mixed))
+                result.append(mixed)
+
+            logger.debug(f"特定频率音轨叠加完成，数据长度: {len(result)} samples")
 
         audio_data['data'] = result
         return audio_data
