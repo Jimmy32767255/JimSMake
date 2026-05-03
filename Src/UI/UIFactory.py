@@ -614,66 +614,66 @@ class UIFactory:
 
         row += 1
 
-        # 预览组
-        self.main_window.preview_group = QGroupBox(self.main_window.tr("预览"))
-        preview_layout = QVBoxLayout()
-
-        # 预览控制按钮
-        preview_control_layout = QHBoxLayout()
-
-        self.main_window.preview_zoom_in_btn = QPushButton(self.main_window.tr("放大"))
-        self.main_window.preview_zoom_in_btn.setToolTip(self.main_window.tr("放大预览视图"))
-        self.main_window.preview_zoom_in_btn.clicked.connect(self.main_window.preview_manager.preview_zoom_in)
-        preview_control_layout.addWidget(self.main_window.preview_zoom_in_btn)
-
-        self.main_window.preview_zoom_out_btn = QPushButton(self.main_window.tr("缩小"))
-        self.main_window.preview_zoom_out_btn.setToolTip(self.main_window.tr("缩小预览视图"))
-        self.main_window.preview_zoom_out_btn.clicked.connect(self.main_window.preview_manager.preview_zoom_out)
-        preview_control_layout.addWidget(self.main_window.preview_zoom_out_btn)
-
-        self.main_window.preview_reset_btn = QPushButton(self.main_window.tr("重置视图"))
-        self.main_window.preview_reset_btn.setToolTip(self.main_window.tr("重置预览视图缩放和位置"))
-        self.main_window.preview_reset_btn.clicked.connect(self.main_window.preview_manager.preview_reset)
-        preview_control_layout.addWidget(self.main_window.preview_reset_btn)
-
-        self.main_window.preview_update_btn = QPushButton(self.main_window.tr("更新预览"))
-        self.main_window.preview_update_btn.setToolTip(self.main_window.tr("根据当前配置更新预览"))
-        self.main_window.preview_update_btn.clicked.connect(self.main_window.preview_manager.update_preview)
-        preview_control_layout.addWidget(self.main_window.preview_update_btn)
-
-        preview_control_layout.addStretch()
-        preview_layout.addLayout(preview_control_layout)
-
-        # 预览画布
-        self.main_window.preview_scroll = QScrollArea()
-        self.main_window.preview_scroll.setWidgetResizable(False)
-        self.main_window.preview_scroll.setMinimumHeight(200)
-        self.main_window.preview_scroll.setStyleSheet("QScrollArea { border: 1px solid #ccc; background-color: #f5f5f5; }")
-
-        self.main_window.preview_widget = QWidget()
-        self.main_window.preview_widget.setMinimumSize(800, 300)
-        self.main_window.preview_layout = QVBoxLayout(self.main_window.preview_widget)
-        self.main_window.preview_layout.setSpacing(10)
-        self.main_window.preview_layout.setContentsMargins(10, 10, 10, 10)
-
-        # 轨道标签
-        self.main_window.preview_tracks_label = QLabel(self.main_window.tr('轨道预览（点击"更新预览"查看）'))
-        self.main_window.preview_tracks_label.setAlignment(Qt.AlignCenter)
-        self.main_window.preview_tracks_label.setStyleSheet("color: #666; font-size: 12px;")
-        self.main_window.preview_layout.addWidget(self.main_window.preview_tracks_label)
-
-        self.main_window.preview_scroll.setWidget(self.main_window.preview_widget)
-        preview_layout.addWidget(self.main_window.preview_scroll)
-
-        # 缩放比例显示
-        self.main_window.preview_zoom_label = QLabel(self.main_window.tr("缩放: 100%"))
-        self.main_window.preview_zoom_label.setAlignment(Qt.AlignRight)
-        preview_layout.addWidget(self.main_window.preview_zoom_label)
-
-        self.main_window.preview_group.setLayout(preview_layout)
-        layout.addWidget(self.main_window.preview_group, row, 0, 1, 3)
-
-        row += 1
+        # 预览组 (已禁用)
+        # self.main_window.preview_group = QGroupBox(self.main_window.tr("预览"))
+        # preview_layout = QVBoxLayout()
+        #
+        # # 预览控制按钮
+        # preview_control_layout = QHBoxLayout()
+        #
+        # self.main_window.preview_zoom_in_btn = QPushButton(self.main_window.tr("放大"))
+        # self.main_window.preview_zoom_in_btn.setToolTip(self.main_window.tr("放大预览视图"))
+        # self.main_window.preview_zoom_in_btn.clicked.connect(self.main_window.preview_manager.preview_zoom_in)
+        # preview_control_layout.addWidget(self.main_window.preview_zoom_in_btn)
+        #
+        # self.main_window.preview_zoom_out_btn = QPushButton(self.main_window.tr("缩小"))
+        # self.main_window.preview_zoom_out_btn.setToolTip(self.main_window.tr("缩小预览视图"))
+        # self.main_window.preview_zoom_out_btn.clicked.connect(self.main_window.preview_manager.preview_zoom_out)
+        # preview_control_layout.addWidget(self.main_window.preview_zoom_out_btn)
+        #
+        # self.main_window.preview_reset_btn = QPushButton(self.main_window.tr("重置视图"))
+        # self.main_window.preview_reset_btn.setToolTip(self.main_window.tr("重置预览视图缩放和位置"))
+        # self.main_window.preview_reset_btn.clicked.connect(self.main_window.preview_manager.preview_reset)
+        # preview_control_layout.addWidget(self.main_window.preview_reset_btn)
+        #
+        # self.main_window.preview_update_btn = QPushButton(self.main_window.tr("更新预览"))
+        # self.main_window.preview_update_btn.setToolTip(self.main_window.tr("根据当前配置更新预览"))
+        # self.main_window.preview_update_btn.clicked.connect(self.main_window.preview_manager.update_preview)
+        # preview_control_layout.addWidget(self.main_window.preview_update_btn)
+        #
+        # preview_control_layout.addStretch()
+        # preview_layout.addLayout(preview_control_layout)
+        #
+        # # 预览画布
+        # self.main_window.preview_scroll = QScrollArea()
+        # self.main_window.preview_scroll.setWidgetResizable(False)
+        # self.main_window.preview_scroll.setMinimumHeight(200)
+        # self.main_window.preview_scroll.setStyleSheet("QScrollArea { border: 1px solid #ccc; background-color: #f5f5f5; }")
+        #
+        # self.main_window.preview_widget = QWidget()
+        # self.main_window.preview_widget.setMinimumSize(800, 300)
+        # self.main_window.preview_layout = QVBoxLayout(self.main_window.preview_widget)
+        # self.main_window.preview_layout.setSpacing(10)
+        # self.main_window.preview_layout.setContentsMargins(10, 10, 10, 10)
+        #
+        # # 轨道标签
+        # self.main_window.preview_tracks_label = QLabel(self.main_window.tr('轨道预览（点击"更新预览"查看）'))
+        # self.main_window.preview_tracks_label.setAlignment(Qt.AlignCenter)
+        # self.main_window.preview_tracks_label.setStyleSheet("color: #666; font-size: 12px;")
+        # self.main_window.preview_layout.addWidget(self.main_window.preview_tracks_label)
+        #
+        # self.main_window.preview_scroll.setWidget(self.main_window.preview_widget)
+        # preview_layout.addWidget(self.main_window.preview_scroll)
+        #
+        # # 缩放比例显示
+        # self.main_window.preview_zoom_label = QLabel(self.main_window.tr("缩放: 100%"))
+        # self.main_window.preview_zoom_label.setAlignment(Qt.AlignRight)
+        # preview_layout.addWidget(self.main_window.preview_zoom_label)
+        #
+        # self.main_window.preview_group.setLayout(preview_layout)
+        # layout.addWidget(self.main_window.preview_group, row, 0, 1, 3)
+        #
+        # row += 1
 
         # 生成按钮
         self.main_window.generate_btn = QPushButton(self.main_window.tr("生成项目"))

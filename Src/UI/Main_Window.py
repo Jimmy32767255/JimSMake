@@ -420,19 +420,19 @@ class MainWindow(QMainWindow):
             self.metadata_author.setToolTip(self.tr("设置项目输出元数据中的作者。"))
             self.generate_btn.setText(self.tr("生成项目"))
             self.generate_btn.setToolTip(self.tr("开始生成项目！"))
-            # 预览组
-            if hasattr(self, 'preview_group'):
-                self.preview_group.setTitle(self.tr("预览"))
-                self.preview_zoom_in_btn.setText(self.tr("放大"))
-                self.preview_zoom_in_btn.setToolTip(self.tr("放大预览视图"))
-                self.preview_zoom_out_btn.setText(self.tr("缩小"))
-                self.preview_zoom_out_btn.setToolTip(self.tr("缩小预览视图"))
-                self.preview_reset_btn.setText(self.tr("重置视图"))
-                self.preview_reset_btn.setToolTip(self.tr("重置预览视图缩放和位置"))
-                self.preview_update_btn.setText(self.tr("更新预览"))
-                self.preview_update_btn.setToolTip(self.tr("根据当前配置更新预览"))
-                self.preview_tracks_label.setText(self.tr('轨道预览（点击"更新预览"查看）'))
-                self.preview_zoom_label.setText(self.tr("缩放: 100%"))
+            # 预览组 (已禁用)
+            # if hasattr(self, 'preview_group'):
+            #     self.preview_group.setTitle(self.tr("预览"))
+            #     self.preview_zoom_in_btn.setText(self.tr("放大"))
+            #     self.preview_zoom_in_btn.setToolTip(self.tr("放大预览视图"))
+            #     self.preview_zoom_out_btn.setText(self.tr("缩小"))
+            #     self.preview_zoom_out_btn.setToolTip(self.tr("缩小预览视图"))
+            #     self.preview_reset_btn.setText(self.tr("重置视图"))
+            #     self.preview_reset_btn.setToolTip(self.tr("重置预览视图缩放和位置"))
+            #     self.preview_update_btn.setText(self.tr("更新预览"))
+            #     self.preview_update_btn.setToolTip(self.tr("根据当前配置更新预览"))
+            #     self.preview_tracks_label.setText(self.tr('轨道预览（点击"更新预览"查看）'))
+            #     self.preview_zoom_label.setText(self.tr("缩放: 100%"))
 
         # 更新设置组
         if hasattr(self, 'settings_group'):
@@ -990,52 +990,20 @@ class MainWindow(QMainWindow):
         # 根据ffmpeg可用性更新UI
         self.update_ui_for_ffmpeg_availability()
 
-        # 连接特定频率音轨的信号，用于更新频率预览
-        self.setup_freq_track_preview()
+        # 连接特定频率音轨的信号，用于更新频率预览 (已禁用)
+        # self.setup_freq_track_preview()
 
         # 所有UI组件创建完成后，刷新项目列表
         # 这必须在所有UI组件（包括output_list）创建完成后调用
         self.project_manager.refresh_project_group_list()
 
     def setup_freq_track_preview(self):
-        """设置特定频率音轨的频率预览更新"""
-        if hasattr(self, 'freq_track_freq') and hasattr(self, 'freq_track_diff') and hasattr(self, 'freq_preview'):
-            # 连接信号
-            self.freq_track_freq.textChanged.connect(self.update_freq_preview)
-            self.freq_track_diff.textChanged.connect(self.update_freq_preview)
-            self.freq_track_diff_mode.toggled.connect(self.update_freq_preview)
-            self.freq_track_swap_channels.toggled.connect(self.update_freq_preview)
-            # 初始更新
-            self.update_freq_preview()
+        """设置特定频率音轨的频率预览更新 (已禁用)"""
+        pass
 
     def update_freq_preview(self):
-        """更新左右声道频率预览"""
-        try:
-            target_freq = float(self.freq_track_freq.text() or 0)
-            freq_diff = float(self.freq_track_diff.text() or 0)
-            diff_mode = self.freq_track_diff_mode.isChecked()
-            swap_channels = self.freq_track_swap_channels.isChecked()
-
-            if diff_mode and target_freq > 0:
-                # 计算左右声道频率
-                freq_offset = freq_diff / 2
-                left_freq = target_freq + freq_offset
-                right_freq = target_freq - freq_offset
-
-                # 确保频率不为负数
-                if right_freq < 0:
-                    right_freq = 0
-                    left_freq = freq_diff
-
-                # 反转左右声道
-                if swap_channels:
-                    left_freq, right_freq = right_freq, left_freq
-
-                self.freq_preview.setText(self.tr(f"左: {left_freq:.1f} Hz | 右: {right_freq:.1f} Hz"))
-            else:
-                self.freq_preview.setText(self.tr("左: -- Hz | 右: -- Hz"))
-        except ValueError:
-            self.freq_preview.setText(self.tr("左: -- Hz | 右: -- Hz"))
+        """更新左右声道频率预览 (已禁用)"""
+        pass
 
     def on_generate_audio_toggled(self, checked):
         """生成音频复选框状态变化处理"""
