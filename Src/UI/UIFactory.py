@@ -431,21 +431,36 @@ class UIFactory:
         self.main_window.freq_track_diff_mode.setToolTip(self.main_window.tr("启用差值模式：左右声道使用不同频率，通过差值产生目标频率效果。"))
         layout.addWidget(self.main_window.freq_track_diff_mode, 2, 0, 1, 3)
 
+        # 频率差值输入
+        self.main_window.label_freq_track_diff = QLabel(self.main_window.tr("频率差值 (Hz):"))
+        layout.addWidget(self.main_window.label_freq_track_diff, 3, 0)
+        self.main_window.freq_track_diff = QLineEdit()
+        self.main_window.freq_track_diff.setText("10")
+        self.main_window.freq_track_diff.setToolTip(self.main_window.tr("左右声道之间的频率差值(Hz)。"))
+        layout.addWidget(self.main_window.freq_track_diff, 3, 1, 1, 2)
+
+        # 左右声道频率预览
+        self.main_window.label_freq_preview = QLabel(self.main_window.tr("声道频率:"))
+        layout.addWidget(self.main_window.label_freq_preview, 4, 0)
+        self.main_window.freq_preview = QLabel(self.main_window.tr("左: -- Hz | 右: -- Hz"))
+        self.main_window.freq_preview.setToolTip(self.main_window.tr("当前左右声道的实际频率。"))
+        layout.addWidget(self.main_window.freq_preview, 4, 1, 1, 2)
+
         # 反转左右声道复选框
         self.main_window.freq_track_swap_channels = QCheckBox(self.main_window.tr("反转左右声道"))
         self.main_window.freq_track_swap_channels.setChecked(False)
         self.main_window.freq_track_swap_channels.setToolTip(self.main_window.tr("交换左右声道的频率设置。"))
-        layout.addWidget(self.main_window.freq_track_swap_channels, 3, 0, 1, 3)
+        layout.addWidget(self.main_window.freq_track_swap_channels, 5, 0, 1, 3)
 
         # 音量设置
         self.main_window.label_freq_track_volume = QLabel(self.main_window.tr("音量 (dB):"))
-        layout.addWidget(self.main_window.label_freq_track_volume, 5, 0)
+        layout.addWidget(self.main_window.label_freq_track_volume, 6, 0)
         self.main_window.freq_track_volume = QDoubleSpinBox()
         self.main_window.freq_track_volume.setRange(-60.0, 0.0)
         self.main_window.freq_track_volume.setValue(-23.0)
         self.main_window.freq_track_volume.setSingleStep(1.0)
         self.main_window.freq_track_volume.setToolTip(self.main_window.tr("特定频率音轨的音量（分贝）。"))
-        layout.addWidget(self.main_window.freq_track_volume, 5, 1, 1, 2)
+        layout.addWidget(self.main_window.freq_track_volume, 6, 1, 1, 2)
 
         self.main_window.freq_track_group.setLayout(layout)
         return self.main_window.freq_track_group

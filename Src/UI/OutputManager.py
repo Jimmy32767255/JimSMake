@@ -82,6 +82,7 @@ class OutputManager:
             'freq_track_freq': self.main_window.freq_track_freq.text(),
             'freq_track_volume': self.main_window.freq_track_volume.value(),
             'freq_track_diff_mode': self.main_window.freq_track_diff_mode.isChecked(),
+            'freq_track_diff': self.main_window.freq_track_diff.text(),
             'freq_track_swap_channels': self.main_window.freq_track_swap_channels.isChecked(),
             'output_format': self.main_window.audio_format.currentText(),
             'output_path': audio_output_path,
@@ -103,6 +104,7 @@ class OutputManager:
         logger.debug(f"生成项目参数 - freq_track_freq: {params['freq_track_freq']}")
         logger.debug(f"生成项目参数 - freq_track_volume: {params['freq_track_volume']}")
         logger.debug(f"生成项目参数 - freq_track_diff_mode: {params['freq_track_diff_mode']}")
+        logger.debug(f"生成项目参数 - freq_track_diff: {params['freq_track_diff']}")
         logger.debug(f"生成项目参数 - freq_track_swap_channels: {params['freq_track_swap_channels']}")
 
         self.main_window.progress_dialog = QProgressDialog(

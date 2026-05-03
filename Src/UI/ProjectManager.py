@@ -293,6 +293,7 @@ class ProjectManager:
             self._load_text_setting('freq_track_freq', freq_track.get('frequency'))
             self._load_spin_setting('freq_track_volume', freq_track.get('volume'))
             self._load_checkbox_setting('freq_track_diff_mode', freq_track.get('diff_mode'))
+            self._load_text_setting('freq_track_diff', freq_track.get('diff_value'))
             self._load_checkbox_setting('freq_track_swap_channels', freq_track.get('swap_channels'))
 
             # 加载输出设置
@@ -380,6 +381,8 @@ class ProjectManager:
             self.main_window.freq_track_volume.setValue(-23.0)
         if hasattr(self.main_window, 'freq_track_diff_mode') and self.main_window.freq_track_diff_mode is not None:
             self.main_window.freq_track_diff_mode.setChecked(False)
+        if hasattr(self.main_window, 'freq_track_diff') and self.main_window.freq_track_diff is not None:
+            self.main_window.freq_track_diff.setText("10")
         if hasattr(self.main_window, 'freq_track_swap_channels') and self.main_window.freq_track_swap_channels is not None:
             self.main_window.freq_track_swap_channels.setChecked(False)
 
@@ -462,6 +465,7 @@ class ProjectManager:
                     "frequency": "432",
                     "volume": -23.0,
                     "diff_mode": False,
+                    "diff_value": "10",
                     "swap_channels": False
                 },
                 "output": {
@@ -585,6 +589,7 @@ class ProjectManager:
                     "frequency": self._get_text_value('freq_track_freq'),
                     "volume": self._get_spin_value('freq_track_volume'),
                     "diff_mode": self._get_checkbox_value('freq_track_diff_mode'),
+                    "diff_value": self._get_text_value('freq_track_diff'),
                     "swap_channels": self._get_checkbox_value('freq_track_swap_channels')
                 },
                 "output": {

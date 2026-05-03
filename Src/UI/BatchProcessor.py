@@ -265,6 +265,7 @@ class BatchGenerationWorker(QThread):
             'freq_track_freq': freq_track.get('frequency', '432'),
             'freq_track_volume': freq_track.get('volume', -23.0),
             'freq_track_diff_mode': freq_track.get('diff_mode', False),
+            'freq_track_diff': freq_track.get('diff_value', '100'),
             'freq_track_swap_channels': freq_track.get('swap_channels', False),
             'output_format': audio_format,
             'output_path': audio_output_path,

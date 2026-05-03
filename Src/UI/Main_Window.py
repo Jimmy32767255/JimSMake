@@ -376,6 +376,9 @@ class MainWindow(QMainWindow):
             self.freq_track_freq.setToolTip(self.tr("普通模式：输入要叠加的特定频率；差值模式：输入目标频率(Hz)。"))
             self.freq_track_diff_mode.setText(self.tr("差值模式"))
             self.freq_track_diff_mode.setToolTip(self.tr("启用差值模式：左右声道使用不同频率，通过差值产生目标频率效果。"))
+            self.label_freq_track_diff.setText(self.tr("频率差值 (Hz):"))
+            self.freq_track_diff.setToolTip(self.tr("左右声道之间的频率差值(Hz)。"))
+            self.label_freq_preview.setText(self.tr("声道频率:"))
             self.freq_track_swap_channels.setText(self.tr("反转左右声道"))
             self.freq_track_swap_channels.setToolTip(self.tr("交换左右声道的频率设置。"))
             self.label_freq_track_volume.setText(self.tr("音量 (dB):"))
@@ -987,9 +990,52 @@ class MainWindow(QMainWindow):
         # 根据ffmpeg可用性更新UI
         self.update_ui_for_ffmpeg_availability()
 
+        # 连接特定频率音轨的信号，用于更新频率预览
+        self.setup_freq_track_preview()
+
         # 所有UI组件创建完成后，刷新项目列表
         # 这必须在所有UI组件（包括output_list）创建完成后调用
         self.project_manager.refresh_project_group_list()
+
+    def setup_freq_track_preview(self):
+        """设置特定频率音轨的频率预览更新"""
+        if hasattr(self, 'freq_track_freq') and hasattr(self, 'freq_track_diff') and hasattr(self, 'freq_preview'):
+            # 连接信号
+            self.freq_track_freq.textChanged.connect(self.update_freq_preview)
+            self.freq_track_diff.textChanged.connect(self.update_freq_preview)
+            self.freq_track_diff_mode.toggled.connect(self.update_freq_preview)
+            self.freq_track_swap_channels.toggled.connect(self.update_freq_preview)
+            # 初始更新
+            self.update_freq_preview()
+
+    def update_freq_preview(self):
+        """更新左右声道频率预览"""
+        try:
+            target_freq = float(self.freq_track_freq.text() or 0)
+            freq_diff = float(self.freq_track_diff.text() or 0)
+            diff_mode = self.freq_track_diff_mode.isChecked()
+            swap_channels = self.freq_track_swap_channels.isChecked()
+
+            if diff_mode and target_freq > 0:
+                # 计算左右声道频率
+                freq_offset = freq_diff / 2
+                left_freq = target_freq + freq_offset
+                right_freq = target_freq - freq_offset
+
+                # 确保频率不为负数
+                if right_freq < 0:
+                    right_freq = 0
+                    left_freq = freq_diff
+
+                # 反转左右声道
+                if swap_channels:
+                    left_freq, right_freq = right_freq, left_freq
+
+                self.freq_preview.setText(self.tr(f"左: {left_freq:.1f} Hz | 右: {right_freq:.1f} Hz"))
+            else:
+                self.freq_preview.setText(self.tr("左: -- Hz | 右: -- Hz"))
+        except ValueError:
+            self.freq_preview.setText(self.tr("左: -- Hz | 右: -- Hz"))
 
     def on_generate_audio_toggled(self, checked):
         """生成音频复选框状态变化处理"""

@@ -552,6 +552,7 @@ class AudioCore:
         freq_str = params.get('freq_track_freq', '432')
         volume_db = params.get('freq_track_volume', -20.0)
         diff_mode = params.get('freq_track_diff_mode', False)
+        diff_str = params.get('freq_track_diff', '10')
         swap_channels = params.get('freq_track_swap_channels', False)
 
         try:
@@ -559,6 +560,12 @@ class AudioCore:
         except ValueError:
             logger.error(f"无效的频率值: {freq_str}")
             return audio_data
+
+        try:
+            freq_diff = float(diff_str)
+        except ValueError:
+            logger.error(f"无效的频率差值: {diff_str}")
+            freq_diff = 100.0
 
         data = audio_data['data']
         sample_rate = audio_data['sample_rate']
@@ -570,17 +577,21 @@ class AudioCore:
             # 使用频率输入框的值作为目标频率
             target_freq = frequency
 
-            # 计算左右声道频率（目标频率 +/- 差值）
-            # 使用目标频率的一半作为基础偏移量
-            freq_offset = target_freq / 2
+            # 计算左右声道频率（目标频率 +/- 差值/2）
+            freq_offset = freq_diff / 2
             left_freq = target_freq + freq_offset
             right_freq = target_freq - freq_offset
+
+            # 确保频率不为负数
+            if right_freq < 0:
+                right_freq = 0
+                left_freq = freq_diff
 
             # 反转左右声道
             if swap_channels:
                 left_freq, right_freq = right_freq, left_freq
 
-            logger.info(f"差值模式 - 目标频率: {target_freq}Hz, 左声道: {left_freq}Hz, 右声道: {right_freq}Hz, 音量: {volume_db}dB")
+            logger.info(f"差值模式 - 目标频率: {target_freq}Hz, 差值: {freq_diff}Hz, 左声道: {left_freq}Hz, 右声道: {right_freq}Hz, 音量: {volume_db}dB")
 
             # 生成立体声差值频率音轨
             result = []
