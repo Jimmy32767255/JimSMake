@@ -428,8 +428,9 @@ class UIFactory:
         # 频率输入（普通模式：直接频率，差值模式：目标频率）
         self.main_window.label_freq_track_freq = QLabel(self.main_window.tr("频率 (Hz):"))
         layout.addWidget(self.main_window.label_freq_track_freq, 1, 0)
-        self.main_window.freq_track_freq = QLineEdit()
-        self.main_window.freq_track_freq.setText("432")
+        self.main_window.freq_track_freq = QSpinBox()
+        self.main_window.freq_track_freq.setRange(1, 20000)
+        self.main_window.freq_track_freq.setValue(432)
         self.main_window.freq_track_freq.setToolTip(self.main_window.tr("输入要叠加的特定频率(Hz)。"))
         layout.addWidget(self.main_window.freq_track_freq, 1, 1, 1, 2)
 
@@ -442,8 +443,9 @@ class UIFactory:
         # 频率差值输入
         self.main_window.label_freq_track_diff = QLabel(self.main_window.tr("频率差值 (Hz):"))
         layout.addWidget(self.main_window.label_freq_track_diff, 3, 0)
-        self.main_window.freq_track_diff = QLineEdit()
-        self.main_window.freq_track_diff.setText("10")
+        self.main_window.freq_track_diff = QSpinBox()
+        self.main_window.freq_track_diff.setRange(1, 1000)
+        self.main_window.freq_track_diff.setValue(10)
         self.main_window.freq_track_diff.setToolTip(self.main_window.tr("左右声道之间的频率差值(Hz)。"))
         layout.addWidget(self.main_window.freq_track_diff, 3, 1, 1, 2)
 
