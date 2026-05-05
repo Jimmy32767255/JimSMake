@@ -22,11 +22,13 @@ Qt：Qt 界面设计文件
 Src：SMake 源代码文件
     Processors：处理器
         AudioCore.py: 音频处理核心模块
-        AudioProcessors.py：音频处理器代码文件
+        AudioProcessors.py：音频处理器
+        DecompileCore.py: 音频反编译核心模块
+        DecompileProcessor.py: 音频反编译处理器
         VideoCore.py: 视频处理核心模块
-        VideoProcessors.py：视频处理器代码文件
+        VideoProcessors.py：视频处理器
     UI:UI 代码文件
-        Main_Window.py：主窗口代码文件
+        Main_Window.py：主窗口
         AudioRecorder.py：音频录制线程模块
         AudioManager.py：音频设备和TTS引擎枚举模块
         RecordingManager.py：录音控制模块
@@ -37,8 +39,8 @@ Src：SMake 源代码文件
         TextFileSync.py：文本文件同步模块
         ProjectManager.py：项目管理工具模块
         UIFactory.py：UI组件工厂模块
-    Cli.py：命令行支持模块代码文件
-    Main.py：程序入口点代码文件
+    Cli.py：命令行支持模块
+    Main.py：程序入口点
 Tools：工具
 Translation：UI 翻译文件
     $语言名.qm
