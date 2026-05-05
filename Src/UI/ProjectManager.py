@@ -5,7 +5,7 @@ import shutil
 import zipfile
 import tarfile
 from loguru import logger
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QComboBox, QProgressDialog
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QProgressDialog
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 class ExportWorker(QThread):
@@ -1375,6 +1375,9 @@ class ProjectManager:
                 else:
                     self.main_window.video_image.clear()
 
+        # 加载README文件
+        self.load_readme()
+
     def find_first_audio_file(self, directory, exclude_names=None):
         """查找目录中的第一个音频文件"""
         if not directory or not os.path.exists(directory):
@@ -1684,3 +1687,67 @@ class ProjectManager:
             logger.error(f"剪切项目失败: {e}")
             QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
                                self.main_window.tr(f"剪切项目失败: {str(e)}"))
+
+    def load_readme(self):
+        """加载当前项目的README.md文件"""
+        project_dir = self.get_current_project_dir()
+        if not project_dir:
+            logger.warning("没有当前项目，无法加载README")
+            return
+
+        readme_path = os.path.join(project_dir, "README.md")
+        logger.debug(f"尝试加载README: {readme_path}")
+
+        try:
+            if os.path.exists(readme_path):
+                with open(readme_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                if hasattr(self.main_window, 'readme_text_edit') and self.main_window.readme_text_edit is not None:
+                    self.main_window.readme_text_edit.setPlainText(content)
+                logger.info(f"README加载成功: {readme_path}")
+            else:
+                # 如果README不存在，创建默认内容
+                default_content = f"# {self.main_window.current_project_name}\n\n"
+                default_content += self.main_window.tr("项目描述\n\n")
+                default_content += self.main_window.tr("## 肯定语\n\n")
+                default_content += self.main_window.tr("在此添加肯定语描述...\n\n")
+                default_content += self.main_window.tr("## 背景音乐\n\n")
+                default_content += self.main_window.tr("在此添加背景音乐描述...\n\n")
+
+                with open(readme_path, 'w', encoding='utf-8') as f:
+                    f.write(default_content)
+
+                if hasattr(self.main_window, 'readme_text_edit') and self.main_window.readme_text_edit is not None:
+                    self.main_window.readme_text_edit.setPlainText(default_content)
+                logger.info(f"README不存在，已创建默认文件: {readme_path}")
+        except Exception as e:
+            logger.error(f"加载README失败: {e}")
+            QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
+                               self.main_window.tr(f"加载README失败: {str(e)}"))
+
+    def save_readme(self):
+        """保存当前项目的README.md文件"""
+        project_dir = self.get_current_project_dir()
+        if not project_dir:
+            logger.warning("没有当前项目，无法保存README")
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                               self.main_window.tr("请先选择一个项目！"))
+            return
+
+        readme_path = os.path.join(project_dir, "README.md")
+        logger.debug(f"尝试保存README: {readme_path}")
+
+        try:
+            if hasattr(self.main_window, 'readme_text_edit') and self.main_window.readme_text_edit is not None:
+                content = self.main_window.readme_text_edit.toPlainText()
+                with open(readme_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                logger.info(f"README保存成功: {readme_path}")
+                QMessageBox.information(self.main_window, self.main_window.tr("成功"),
+                                       self.main_window.tr("README.md 保存成功！"))
+            else:
+                logger.warning("README编辑器不存在")
+        except Exception as e:
+            logger.error(f"保存README失败: {e}")
+            QMessageBox.critical(self.main_window, self.main_window.tr("错误"),
+                               self.main_window.tr(f"保存README失败: {str(e)}"))

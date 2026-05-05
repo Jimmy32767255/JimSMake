@@ -293,6 +293,8 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(self.release_tab_index, self.tr("输出管理"))
             if hasattr(self, 'decompile_tab_index'):
                 self.tab_widget.setTabText(self.decompile_tab_index, self.tr("反编译"))
+            if hasattr(self, 'readme_tab_index'):
+                self.tab_widget.setTabText(self.readme_tab_index, self.tr("项目介绍"))
             if hasattr(self, 'settings_tab_index'):
                 self.tab_widget.setTabText(self.settings_tab_index, self.tr("设置"))
             if hasattr(self, 'log_tab_index'):
@@ -474,6 +476,19 @@ class MainWindow(QMainWindow):
                 self.decompile_result_text.setToolTip(self.tr("输入反编译后的识别结果，用于对比"))
                 self.compare_btn.setText(self.tr("对比"))
                 self.compare_btn.setToolTip(self.tr("对比两段文本的差异"))
+
+        # 更新README编辑器组
+        if hasattr(self, 'readme_group'):
+            self.readme_group.setTitle(self.tr("项目介绍"))
+            if hasattr(self, 'readme_text_edit'):
+                self.readme_text_edit.setToolTip(self.tr("在此编辑项目介绍"))
+                self.readme_text_edit.setPlaceholderText(self.tr("请输入项目介绍..."))
+            if hasattr(self, 'save_readme_btn'):
+                self.save_readme_btn.setText(self.tr("保存"))
+                self.save_readme_btn.setToolTip(self.tr("保存README.md文件"))
+            if hasattr(self, 'reload_readme_btn'):
+                self.reload_readme_btn.setText(self.tr("刷新"))
+                self.reload_readme_btn.setToolTip(self.tr("重新加载README.md文件"))
 
         # 更新项目组
         if hasattr(self, 'project_group'):
@@ -950,6 +965,11 @@ class MainWindow(QMainWindow):
         decompile_layout = QVBoxLayout(decompile_widget)
         decompile_layout.addWidget(self.ui_factory.create_decompile_group())
 
+        # 创建README编辑器选项卡内容
+        readme_widget = QWidget()
+        readme_layout = QVBoxLayout(readme_widget)
+        readme_layout.addWidget(self.ui_factory.create_readme_group())
+
         # 添加选项卡
         self.project_tab_index = self.tab_widget.addTab(project_widget, self.tr("项目"))
         self.affirmation_tab_index = self.tab_widget.addTab(affirmation_widget, self.tr("肯定语"))
@@ -958,6 +978,7 @@ class MainWindow(QMainWindow):
         self.output_tab_index = self.tab_widget.addTab(output_widget, self.tr("输出"))
         self.release_tab_index = self.tab_widget.addTab(release_widget, self.tr("输出管理"))
         self.decompile_tab_index = self.tab_widget.addTab(decompile_widget, self.tr("反编译"))
+        self.readme_tab_index = self.tab_widget.addTab(readme_widget, self.tr("项目介绍"))
         self.settings_tab_index = self.tab_widget.addTab(settings_widget, self.tr("设置"))
         self.log_tab_index = self.tab_widget.addTab(log_widget, self.tr("日志"))
 

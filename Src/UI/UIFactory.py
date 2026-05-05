@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QGroupBox, QGridLayout, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QSpinBox,
     QDoubleSpinBox, QCheckBox, QTextEdit, QSlider,
-    QFrame, QScrollArea, QWidget, QListWidget, QGroupBox
+    QListWidget, QGroupBox
 )
 from PyQt5.QtCore import Qt, QSize
 from loguru import logger
@@ -966,3 +966,42 @@ class UIFactory:
 
         self.main_window.decompile_group.setLayout(layout)
         return self.main_window.decompile_group
+
+    def create_readme_group(self):
+        """创建README编辑器组"""
+        self.main_window.readme_group = QGroupBox(self.main_window.tr("项目介绍"))
+        layout = QVBoxLayout()
+
+        # 说明标签
+        info_label = QLabel(self.main_window.tr("编辑当前项目的 README.md 文件。"))
+        info_label.setStyleSheet("color: #666; font-size: 12px;")
+        layout.addWidget(info_label)
+
+        # README编辑区域
+        self.main_window.readme_text_edit = QTextEdit()
+        self.main_window.readme_text_edit.setToolTip(self.main_window.tr("在此编辑项目介绍"))
+        self.main_window.readme_text_edit.setPlaceholderText(self.main_window.tr("请输入项目介绍..."))
+        layout.addWidget(self.main_window.readme_text_edit)
+
+        # 按钮区域
+        button_layout = QHBoxLayout()
+
+        # 保存按钮
+        self.main_window.save_readme_btn = QPushButton(self.main_window.tr("保存"))
+        self.main_window.save_readme_btn.setToolTip(self.main_window.tr("保存README.md文件"))
+        self.main_window.save_readme_btn.clicked.connect(self.main_window.project_manager.save_readme)
+        button_layout.addWidget(self.main_window.save_readme_btn)
+
+        # 刷新按钮
+        self.main_window.reload_readme_btn = QPushButton(self.main_window.tr("刷新"))
+        self.main_window.reload_readme_btn.setToolTip(self.main_window.tr("重新加载README.md文件"))
+        self.main_window.reload_readme_btn.clicked.connect(self.main_window.project_manager.load_readme)
+        button_layout.addWidget(self.main_window.reload_readme_btn)
+
+        # 添加弹性空间
+        button_layout.addStretch()
+
+        layout.addLayout(button_layout)
+
+        self.main_window.readme_group.setLayout(layout)
+        return self.main_window.readme_group
