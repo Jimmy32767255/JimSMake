@@ -31,13 +31,22 @@ class UIFactory:
         self.main_window.current_project_group_label.setStyleSheet("font-weight: bold; color: #9C27B0;")
         group_section_layout.addWidget(self.main_window.current_project_group_label, 0, 1, 1, 2)
 
-        # 项目组列表
+        # 项目组列表和操作按钮行
+        project_group_list_row = QHBoxLayout()
         self.main_window.label_project_group_list = QLabel(self.main_window.tr("切换:"))
-        group_section_layout.addWidget(self.main_window.label_project_group_list, 1, 0)
+        project_group_list_row.addWidget(self.main_window.label_project_group_list)
+        
         self.main_window.project_group_list = QComboBox()
         self.main_window.project_group_list.setToolTip(self.main_window.tr("选择或切换当前项目组"))
         self.main_window.project_group_list.currentIndexChanged.connect(self.main_window.project_manager.on_project_group_selected)
-        group_section_layout.addWidget(self.main_window.project_group_list, 1, 1, 1, 2)
+        project_group_list_row.addWidget(self.main_window.project_group_list, 1)
+
+        self.main_window.refresh_project_groups_btn = QPushButton(self.main_window.tr("刷新"))
+        self.main_window.refresh_project_groups_btn.setToolTip(self.main_window.tr("刷新项目组列表"))
+        self.main_window.refresh_project_groups_btn.clicked.connect(self.main_window.project_manager.refresh_project_group_list)
+        project_group_list_row.addWidget(self.main_window.refresh_project_groups_btn)
+        
+        group_section_layout.addLayout(project_group_list_row, 1, 0, 1, 3)
 
         # 新建项目组
         self.main_window.label_new_project_group = QLabel(self.main_window.tr("新建:"))
