@@ -3,30 +3,44 @@ Assets: 资产
     SMakelconOutput.ico：图标最终输出版本
     SMakelconRaw.svg：图标原始矢量图
 Project：项目
-    $项目名
-        README.md：项目描述
-            Assets：资产
-                BGM.wav：背景音乐
-                Visualization.png：视觉化图片
-                Affirmation：肯定语
-                    $生成方式.wav：肯定语音频
-                    Raw.txt：肯定语文本
-        Releases：发行版/输出
-            Audio：音频
-                $版本号.wav
-            Video：视频
-                $版本号.mkv
+    $项目组名
+        $项目名
+            README.md：项目描述
+            config.json：项目配置文件
+                Assets：资产
+                    BGM.wav：背景音乐
+                    Visualization.png：视觉化图片
+                    Affirmation：肯定语
+                        $生成方式.wav：肯定语音频
+                        Raw.txt：肯定语文本
+            Releases：发行版/输出
+                Audio：音频
+                    $版本号.wav
+                Video：视频
+                    $版本号.mkv
 Qt：Qt 界面设计文件
 Src：SMake 源代码文件
     Processors：处理器
         AudioCore.py: 音频处理核心模块
-        AudioProcessors.py：音频处理器代码文件
+        AudioProcessors.py：音频处理器
+        DecompileCore.py: 音频反编译核心模块
+        DecompileProcessor.py: 音频反编译处理器
         VideoCore.py: 视频处理核心模块
-        VideoProcessors.py：视频处理器代码文件
+        VideoProcessors.py：视频处理器
     UI:UI 代码文件
-        Main_Windows.py：主窗口代码文件
-    Cli.py：命令行支持模块代码文件
-    Main.py：程序入口点代码文件
+        Main_Window.py：主窗口
+        AudioRecorder.py：音频录制线程模块
+        AudioManager.py：音频设备和TTS引擎枚举模块
+        RecordingManager.py：录音控制模块
+        TTSManager.py：TTS音频生成模块
+        OutputManager.py：输出生成管理模块
+        PreviewManager.py：预览和时间轴管理模块
+        LogHandler.py：日志处理模块
+        TextFileSync.py：文本文件同步模块
+        ProjectManager.py：项目管理工具模块
+        UIFactory.py：UI组件工厂模块
+    Cli.py：命令行支持模块
+    Main.py：程序入口点
 Tools：工具
 Translation：UI 翻译文件
     $语言名.qm

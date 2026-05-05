@@ -1,6 +1,6 @@
 # JimSMake - 一站式潜意识音频制作工具
 
-简体中文 | [English](./Docs/README_en-US.md)
+简体中文 | [English](Docs/Readme/en-US.md)
 
 ## 项目简介
 
@@ -41,29 +41,25 @@ QQ 交流群：1095279278
 
 - 操作系统：Windows 11、Linux 主要发行版
   
-- 您还需要在您的操作系统中安装 [FFmpeg](https://ffmpeg.org/) 。
+- 强烈建议您在您的操作系统中安装 [FFmpeg](https://ffmpeg.org/) ，否则您将只能使用基础功能。
 
-#### Linux 安装方式
+**注意**：如果您未安装 FFmpeg，以下功能将无法使用：
+- 视频生成功能
+- 非 WAV 格式的音频文件导入（仅支持 WAV 格式）
+- 输出格式选择（仅支持输出 WAV 格式）
+- 元数据添加功能
 
-```bash
-# 下载 AppImage 文件
-wget https://github.com/Jimmy32767255/JimSMake/releases/latest/download/GNU-Linux-amd64.AppImage
-
-# 添加执行权限
-chmod +x GNU-Linux-amd64.AppImage
-
-# 运行
-./GNU-Linux-amd64.AppImage
-```
+无论是打包版本还是解释执行版本，使用高级功能都需要安装FFmpeg，**打包版本不包含FFmpeg！**
 
 对于解释执行版本则需要以下额外条件：
 
 - Python 3.6 或更高版本
-- PyQt5 5.15 或更高版本
 
 ### 安装步骤
 
 #### 打包版本
+
+**推荐普通用户使用此方式**
 
 1. **下载打包版本**
 
@@ -71,9 +67,13 @@ chmod +x GNU-Linux-amd64.AppImage
 
    下载完成后，解压文件到您选择的目录。
 
-   可选：校验下载的文件是否完整（md5/sha256/sha512）。
+   可选：校验下载的文件是否完整（md5/sha1/sha256/sha512）。
 
-#### 解释执行（建议用于开发）
+#### 解释执行
+
+如果您想要参与项目开发或进行调试/修改，您需要下载解释执行版本。
+
+*（解释执行版本仅建议用于开发，不推荐普通用户使用）*
 
 1. **克隆仓库**
    
@@ -110,7 +110,7 @@ chmod +x GNU-Linux-amd64.AppImage
    
    Linux：
    ```bash
-   ./Start.sh
+   Start.sh
    ```
    
    **CLI 模式**:
@@ -122,7 +122,7 @@ chmod +x GNU-Linux-amd64.AppImage
    
    Linux：
    ```bash
-   ./Start.sh -c
+   Start.sh -c
    ```
 
 ### GUI 模式
@@ -190,129 +190,13 @@ chmod +x GNU-Linux-amd64.AppImage
 
 CLI 模式适用于批量处理、自动化脚本或无图形界面环境。
 
-#### 基本用法
-
-```bash
-python -m Src.Main -c [选项]
-```
-
-或使用启动脚本：
-
-```bash
-# Windows
-Start.bat -c [选项]
-
-# Linux
-./Start.sh -c [选项]
-```
-
-#### 完整示例
-
-```bash
-python -m Src.Main -c \
-  -a ./Project/My_Project/Assets/Affirmation/Microsoft_Huihui_zh-CN.wav \
-  -b ./Project/My_Project/Assets/BGM.wav \
-  -o ./Project/My_Project/Releases.mp3 \
-  -f MP3 \
-  --freq-mode 1 \
-  --speed 3.5 \
-  --overlay-times 3 \
-  --overlay-interval 2.0 \
-  --volume-decrease 5.0 \
-  --ensure-integrity \
-  -v ./Project/My_Project/Assets/Visualization.png \
-  --video \
-  --title "我的潜意识音频" \
-  --author "Your name"
-```
-
-#### CLI 参数说明
-
-| 参数 | 简写 | 说明 | 默认值 |
-|------|------|------|--------|
-| `--cli` | `-c` | 启动 CLI 模式 | - |
-| `--affirmation` | `-a` | 肯定语音频文件路径 (WAV格式) | 必填 |
-| `--output` | `-o` | 输出文件路径 | 必填 |
-| `--background` | `-b` | 背景音文件路径 (WAV格式) | 无 |
-| `--format` | `-f` | 输出格式 (WAV/MP3) | WAV |
-| `--volume` | - | 肯定语音量调整 (dB) | -23 |
-| `--bg-volume` | - | 背景音量调整 (dB) | 0 |
-| `--freq-mode` | - | 频率模式 (0=Raw, 1=UG, 2=传统) | 0 |
-| `--speed` | - | 倍速 | 1.0 |
-| `--reverse` | - | 倒放肯定语 | False |
-| `--overlay-times` | - | 叠加次数 | 1 |
-| `--overlay-interval` | - | 叠加间隔 (秒) | 1.0 |
-| `--volume-decrease` | - | 每次叠加音量递减 (dB) | 0.0 |
-| `--ensure-integrity` | - | 确保肯定语完整性 | False |
-| `--image` | `-v` | 视觉化图片路径 | 无 |
-| `--video` | - | 同时生成视频 | False |
-| `--resolution` | - | 视频分辨率 | 1920x1080 |
-| `--title` | - | 音频/视频标题元数据 | 无 |
-| `--author` | - | 音频/视频作者元数据 | 无 |
-| `--version` | - | 显示版本信息 | - |
-| `--help` | `-h` | 显示帮助信息 | - |
-
-#### 频率模式说明
-
-- **0 (Raw)**：保持不变，原始频率
-- **1 (UG)**：亚超声波模式，将音频搬移到 17500-20000Hz 范围
-- **2 (传统)**：次声波模式，将音频降低到 100-300Hz 范围
-
-#### 自动切换 CLI 模式
-
-当 GUI 启动失败时（如缺少 PyQt5 依赖），程序会自动切换到 CLI 模式。此时需要确保已提供 `-a` 和 `-o` 参数。
+详细说明请参阅 [CLI 模式文档](Docs/CLI/zh-CN.md)。
 
 ## 开发指南
 
 ### 打包
 
-#### 在本地计算机上为当前操作系统打包
-
-Windows：
-
-```bash
-build.bat
-```
-
-#### 构建 AppImage (Linux 通用包)
-
-```bash
-./Build.sh
-```
-
-构建产物生成于 `./dist/Linux/GNU-Linux-amd64.AppImage` 。
-
-#### 在本地计算机上为其它操作系统打包
-
-##### 在 Windows 上为 Linux 打包
-
-在 Windows 上为 Linux 打包前，需要先安装 [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
-
-1. 进入 WSL 终端
-
-2. 切换工作目录为 SMake 仓库根目录
-
-3. 执行 `build.sh --wsl`
-
-`--wsl` 参数会使用 venv-wsl 虚拟环境目录，以避免与宿主机的虚拟环境冲突
-
-##### 在 Windows 上构建 AppImage 包
-
-1. 进入 WSL 终端
-
-2. 切换工作目录为 SMake 仓库根目录
-
-3. 与上述 Linux 上构建 AppImage 包相同。
-
-#### 不使用虚拟环境进行打包
-
-Windows：
-
-```bash
-build.bat -g
-```
-
-`-g` 参数会跳过创建或进入虚拟环境，直接安装依赖到系统全局（不建议这样做）
+详细说明请参阅 [打包指南](Docs/Build/zh-CN.md)。
 
 ### 国际化支持
 
@@ -338,6 +222,8 @@ build.bat -g
 
 - 创建一个[议题](https://github.com/Jimmy32767255/JimSMake/issues/new)
 - 发送邮件至：Jimmy32767255@outlook.com
+- 添加QQ交流群聊：1095279278
+- 通过[在线表格](https://docs.qq.com/sheet/DYURpZFBCVkNYSWVh?tab=BB08J2)
 
 ---
 

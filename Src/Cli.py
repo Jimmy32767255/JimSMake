@@ -69,6 +69,9 @@ class SMakeCLI:
             'freq_track_enabled': parsed_args.freq_track_enabled,
             'freq_track_freq': parsed_args.freq_track_freq,
             'freq_track_volume': parsed_args.freq_track_volume,
+            'freq_track_diff_mode': parsed_args.freq_track_diff_mode,
+            'freq_track_diff': parsed_args.freq_track_diff,
+            'freq_track_swap_channels': parsed_args.freq_track_swap_channels,
             'metadata_title': parsed_args.title or '',
             'metadata_author': parsed_args.author or ''
         }
@@ -181,15 +184,20 @@ class SMakeCLI:
         parser.add_argument('--bg-volume', type=float, default=0.0,
                             help='背景音量调整 (dB, 默认: 0)')
 
-        parser.add_argument('--freq-mode', type=int, default=0,
-                            choices=[0, 1, 2],
-                            help='频率模式: 0=Raw, 1=UG(亚超声波), 2=传统(次声波) (默认: 0)')
+        parser.add_argument('--freq-mode', type=int, default=17500,
+                            help='频率值(Hz) (默认: 440)')
         parser.add_argument('--freq-track', action='store_true', dest='freq_track_enabled',
                             help='启用特定频率音轨')
         parser.add_argument('--freq-track-freq', default='432',
                             help='特定频率音轨频率(Hz), 可选: 432, 639, 666, 777, 888, 1111 (默认: 432)')
         parser.add_argument('--freq-track-volume', type=float, default=-20.0,
                             help='特定频率音轨音量(dB, 默认: -20)')
+        parser.add_argument('--freq-track-diff-mode', action='store_true', dest='freq_track_diff_mode',
+                            help='启用差值模式：左右声道使用不同频率')
+        parser.add_argument('--freq-track-diff', default='10',
+                            help='频率差值(Hz) (默认: 10)')
+        parser.add_argument('--freq-track-swap-channels', action='store_true', dest='freq_track_swap_channels',
+                            help='反转左右声道频率')
         parser.add_argument('--speed', type=float, default=1.0,
                             help='倍速 (默认: 1.0)')
         parser.add_argument('--reverse', action='store_true',
