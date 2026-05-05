@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from .AudioManager import AudioManager
 from .RecordingManager import RecordingManager
-from .PreviewManager import PreviewManager
+
 from .TTSManager import TTSManager
 from .OutputManager import OutputManager
 from .LogHandler import LogHandler
@@ -20,7 +20,7 @@ from .ProjectManager import ProjectManager
 from .ReleaseManager import ReleaseManager
 from .UIFactory import UIFactory
 from .BatchProcessor import BatchProcessorDialog
-from Processors.DecompileProcessor import DecompileProcessor, DecompilePlayer
+from Processors.DecompileProcessor import DecompileProcessor
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
@@ -55,9 +55,6 @@ class MainWindow(QMainWindow):
 
         # 初始化反编译相关变量
         self.decompile_processor = None
-        self.decompile_player = None
-        self.decompile_audio_info = None  # 存储加载的音频信息
-        self.decompile_preview_audio = None  # 存储预览音频
 
         # 检测ffmpeg是否可用
         self.ffmpeg_available = self.check_ffmpeg_available()
@@ -68,7 +65,7 @@ class MainWindow(QMainWindow):
         self.tts_manager = TTSManager(self)
         self.output_manager = OutputManager(self)
         self.project_manager = ProjectManager(self)
-        self.preview_manager = PreviewManager(self)
+
         self.release_manager = ReleaseManager(self)
 
         # 初始化文本文件同步处理器（需要在ui_factory之前）
@@ -125,11 +122,6 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'decompile_processor') and self.decompile_processor and self.decompile_processor.isRunning():
             self.decompile_processor.cancel()
             self.decompile_processor.wait(1000)
-
-        # 如果反编译播放器正在运行，停止它
-        if hasattr(self, 'decompile_player') and self.decompile_player and self.decompile_player.isRunning():
-            self.decompile_player.stop()
-            self.decompile_player.wait(1000)
 
         event.accept()
 
@@ -335,11 +327,8 @@ class MainWindow(QMainWindow):
             self.record_btn.setToolTip(self.tr("开始/停止录制肯定语。"))
             self.label_volume.setText(self.tr("音量:"))
             self.affirmation_volume.setToolTip(self.tr("改变肯定语音轨的音量。（单位为分贝）"))
-            self.label_freq_mode.setText(self.tr("频率模式:"))
-            self.frequency_mode.setItemText(0, self.tr("Raw（保持不变）"))
-            self.frequency_mode.setItemText(1, self.tr("UG（亚超声波）"))
-            self.frequency_mode.setItemText(2, self.tr("传统（次声波）"))
-            self.frequency_mode.setToolTip(self.tr("改变肯定语音轨的频率，推荐使用地下（UG）模式。"))
+            self.label_freq_mode.setText(self.tr("频率:"))
+            self.frequency_mode.setToolTip(self.tr("设置频率值(Hz)。"))
             self.label_speed.setText(self.tr("倍速:"))
             self.speed_slider.setToolTip(self.tr("改变肯定语音轨的倍速。"))
             self.reverse_check.setText(self.tr("倒放"))
@@ -467,23 +456,16 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'label_decompile_volume'):
                 self.label_decompile_volume.setText(self.tr("音量 (dB):"))
                 self.decompile_volume.setToolTip(self.tr("反编译时的音量调整"))
-                self.label_decompile_freq_mode.setText(self.tr("频率模式:"))
-                self.decompile_freq_mode.setPlaceholderText(self.tr("输入频率值"))
-                self.decompile_freq_mode.setToolTip(self.tr("输入反编译时的具体频率值"))
+                self.label_decompile_freq_mode.setText(self.tr("频率:"))
+                self.decompile_freq_mode.setToolTip(self.tr("设置频率值(Hz)"))
                 self.label_decompile_speed.setText(self.tr("倍速:"))
                 self.decompile_speed.setToolTip(self.tr("反编译时的倍速调整"))
                 self.decompile_reverse.setText(self.tr("倒放"))
                 self.decompile_reverse.setToolTip(self.tr("是否对音频进行倒放处理"))
             # 预览和导出区域
-            if hasattr(self, 'decompile_preview_btn'):
-                self.decompile_preview_btn.setText(self.tr("生成预览"))
-                self.decompile_preview_btn.setToolTip(self.tr("根据当前参数生成反编译预览音频"))
+            if hasattr(self, 'decompile_export_btn'):
                 self.decompile_export_btn.setText(self.tr("导出"))
                 self.decompile_export_btn.setToolTip(self.tr("导出反编译后的音频文件"))
-                self.decompile_play_pause_btn.setToolTip(self.tr("播放/暂停"))
-                self.decompile_stop_btn.setToolTip(self.tr("停止"))
-                self.decompile_progress_slider.setToolTip(self.tr("播放进度"))
-                self.decompile_time_label.setToolTip(self.tr("当前时间 / 总时长"))
             # 听写引擎区域
             if hasattr(self, 'label_public_affirmation'):
                 self.label_public_affirmation.setText(self.tr("对方公开的肯定语:"))
@@ -1544,79 +1526,18 @@ class MainWindow(QMainWindow):
                                     self.tr("音频文件 (*.wav *.mp3)"))
         )
 
-        # 生成预览按钮
-        self.decompile_preview_btn.clicked.connect(self.on_decompile_preview)
-
         # 导出按钮
         self.decompile_export_btn.clicked.connect(self.on_decompile_export)
 
-        # 播放/暂停按钮
-        self.decompile_play_pause_btn.clicked.connect(self.on_decompile_play_pause)
-
-        # 停止按钮
-        self.decompile_stop_btn.clicked.connect(self.on_decompile_stop)
-
-        # 进度条
-        self.decompile_progress_slider.sliderPressed.connect(self.on_decompile_slider_pressed)
-        self.decompile_progress_slider.sliderReleased.connect(self.on_decompile_slider_released)
-
         # 对比按钮
         self.compare_btn.clicked.connect(self.on_compare_texts)
-
-        # 初始化播放器状态
-        self.decompile_is_playing = False
-        self.decompile_is_paused = False
-        self.decompile_current_position = 0
-        self.decompile_total_duration = 0
-        self.decompile_slider_dragging = False
-
-    def on_decompile_preview(self):
-        """生成反编译预览"""
-        file_path = self.decompile_file.text().strip()
-        if not file_path:
-            QMessageBox.warning(self, self.tr("警告"),
-                               self.tr("请先选择要反编译的音频文件！"))
-            return
-
-        if not os.path.exists(file_path):
-            QMessageBox.warning(self, self.tr("警告"),
-                               self.tr("音频文件不存在！"))
-            return
-
-        logger.info(f"开始生成反编译预览: {file_path}")
-
-        # 获取参数
-        params = self.get_decompile_params()
-        params['input_file'] = file_path
-
-        # 加载音频
-        from Processors.DecompileCore import DecompileCore
-        core = DecompileCore(params)
-        self.decompile_audio_info = core.load_audio(file_path)
-
-        if not self.decompile_audio_info:
-            QMessageBox.warning(self, self.tr("错误"),
-                               self.tr("无法加载音频文件！"))
-            return
-
-        # 创建并启动预览处理器
-        self.decompile_processor = DecompileProcessor(params)
-        self.decompile_processor.set_mode('preview')
-        self.decompile_processor.set_audio_info(self.decompile_audio_info)
-        self.decompile_processor.preview_ready.connect(self.on_decompile_preview_ready)
-        self.decompile_processor.processing_error.connect(self.on_decompile_error)
-        self.decompile_processor.progress_updated.connect(self.on_decompile_progress_updated)
-
-        self.decompile_preview_btn.setEnabled(False)
-        self.decompile_preview_btn.setText(self.tr("生成中..."))
-        self.decompile_processor.start()
 
     def get_decompile_params(self):
         """获取反编译参数"""
         volume = self.decompile_volume.value()
         speed = self.decompile_speed.value()
         reverse = self.decompile_reverse.isChecked()
-        freq_mode = self.decompile_freq_mode.text().strip()
+        freq_mode = self.decompile_freq_mode.value()
 
         return {
             'volume': volume,
@@ -1624,30 +1545,6 @@ class MainWindow(QMainWindow):
             'reverse': reverse,
             'frequency_mode': freq_mode
         }
-
-    def on_decompile_preview_ready(self, audio_info):
-        """预览音频准备好"""
-        self.decompile_preview_audio = audio_info
-        self.decompile_preview_btn.setEnabled(True)
-        self.decompile_preview_btn.setText(self.tr("生成预览"))
-
-        # 初始化播放器
-        self.init_decompile_player()
-
-        # 开始播放
-        self.on_decompile_play_pause()
-
-        logger.info("反编译预览生成完成")
-
-    def on_decompile_error(self, error_msg):
-        """反编译错误处理"""
-        self.decompile_preview_btn.setEnabled(True)
-        self.decompile_preview_btn.setText(self.tr("生成预览"))
-        QMessageBox.warning(self, self.tr("错误"), error_msg)
-
-    def on_decompile_progress_updated(self, progress):
-        """反编译进度更新"""
-        self.decompile_preview_btn.setText(self.tr(f"生成中... {progress}%"))
 
     def on_decompile_export(self):
         """反编译导出按钮点击处理"""
@@ -1716,125 +1613,6 @@ class MainWindow(QMainWindow):
     def on_decompile_export_progress(self, progress):
         """反编译导出进度"""
         self.decompile_export_btn.setText(self.tr(f"导出中... {progress}%"))
-
-    def init_decompile_player(self):
-        """初始化反编译播放器"""
-        if self.decompile_player:
-            self.decompile_player.stop()
-            self.decompile_player.wait()
-
-        self.decompile_player = DecompilePlayer()
-        self.decompile_player.position_changed.connect(self.on_decompile_position_changed)
-        self.decompile_player.duration_changed.connect(self.on_decompile_duration_changed)
-        self.decompile_player.playback_finished.connect(self.on_decompile_playback_finished)
-        self.decompile_player.playback_error.connect(self.on_decompile_playback_error)
-
-        if self.decompile_preview_audio:
-            self.decompile_player.set_audio(self.decompile_preview_audio)
-
-    def on_decompile_play_pause(self):
-        """播放/暂停切换"""
-        if not self.decompile_player or not self.decompile_preview_audio:
-            QMessageBox.warning(self, self.tr("警告"),
-                               self.tr("请先生成预览音频！"))
-            return
-
-        if not self.decompile_is_playing:
-            # 如果没有正在播放，开始播放
-            logger.info("开始播放")
-            self.decompile_is_playing = True
-            self.decompile_is_paused = False
-            self.decompile_play_pause_btn.setText("⏸")
-            self.decompile_player.play()
-        elif self.decompile_is_paused:
-            # 如果暂停中，恢复播放
-            logger.info("恢复播放")
-            self.decompile_is_paused = False
-            self.decompile_play_pause_btn.setText("⏸")
-            self.decompile_player.play()
-        else:
-            # 如果正在播放，暂停
-            logger.info("暂停播放")
-            self.decompile_is_paused = True
-            self.decompile_play_pause_btn.setText("▶")
-            self.decompile_player.pause()
-
-    def on_decompile_stop(self):
-        """停止播放"""
-        logger.info("停止播放")
-        self.decompile_is_playing = False
-        self.decompile_is_paused = False
-        self.decompile_current_position = 0
-        self.decompile_play_pause_btn.setText("▶")
-        self.decompile_progress_slider.setValue(0)
-        self.decompile_time_label.setText("00:00 / 00:00")
-        if self.decompile_player:
-            self.decompile_player.stop()
-
-    def on_decompile_position_changed(self, position_ms):
-        """播放位置变化"""
-        self.update_decompile_progress(position_ms, self.decompile_total_duration)
-
-    def on_decompile_duration_changed(self, duration_ms):
-        """总时长变化"""
-        self.decompile_total_duration = duration_ms
-
-    def on_decompile_playback_finished(self):
-        """播放完成"""
-        self.decompile_is_playing = False
-        self.decompile_is_paused = False
-        self.decompile_play_pause_btn.setText("▶")
-        self.decompile_progress_slider.setValue(0)
-        self.decompile_time_label.setText("00:00 / 00:00")
-
-    def on_decompile_playback_error(self, error_msg):
-        """播放错误"""
-        logger.error(f"播放错误: {error_msg}")
-        self.decompile_is_playing = False
-        self.decompile_is_paused = False
-        self.decompile_play_pause_btn.setText("▶")
-
-    def on_decompile_slider_pressed(self):
-        """进度条被按下"""
-        self.decompile_slider_dragging = True
-
-    def on_decompile_slider_released(self):
-        """进度条被释放"""
-        self.decompile_slider_dragging = False
-        position = self.decompile_progress_slider.value()
-        logger.info(f"进度条拖动到: {position}")
-
-        # 跳转到指定位置
-        if self.decompile_player and self.decompile_total_duration > 0:
-            target_ms = int((position / 1000) * self.decompile_total_duration)
-            self.decompile_player.seek(target_ms)
-
-    def update_decompile_progress(self, current_ms, total_ms):
-        """更新播放进度显示
-        
-        Args:
-            current_ms: 当前播放位置（毫秒）
-            total_ms: 总时长（毫秒）
-        """
-        if not self.decompile_slider_dragging:
-            self.decompile_current_position = current_ms
-            self.decompile_total_duration = total_ms
-
-            # 更新进度条
-            if total_ms > 0:
-                progress = int((current_ms / total_ms) * 1000)
-                self.decompile_progress_slider.setValue(progress)
-
-            # 更新时间显示
-            current_sec = current_ms // 1000
-            total_sec = total_ms // 1000
-            current_str = f"{current_sec // 60:02d}:{current_sec % 60:02d}"
-            total_str = f"{total_sec // 60:02d}:{total_sec % 60:02d}"
-            self.decompile_time_label.setText(f"{current_str} / {total_str}")
-
-    def format_time(self, seconds):
-        """将秒数格式化为 MM:SS 格式"""
-        return f"{seconds // 60:02d}:{seconds % 60:02d}"
 
     def on_compare_texts(self):
         """对比两段文本"""

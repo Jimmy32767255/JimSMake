@@ -287,27 +287,26 @@ class UIFactory:
             lambda v: self.main_window.affirmation_volume_spin.setValue(v / 10.0))
         layout.addWidget(self.main_window.affirmation_volume_spin, 5, 2)
 
-        # 频率选择
-        self.main_window.label_freq_mode = QLabel(self.main_window.tr("频率模式:"))
+        # 频率
+        self.main_window.label_freq_mode = QLabel(self.main_window.tr("频率:"))
         layout.addWidget(self.main_window.label_freq_mode, 6, 0)
-        self.main_window.frequency_mode = QComboBox()
-        self.main_window.frequency_mode.addItems([self.main_window.tr("Raw（保持不变）"),
-                                                 self.main_window.tr("UG（亚超声波）"),
-                                                 self.main_window.tr("传统（次声波）")])
-        self.main_window.frequency_mode.setToolTip(self.main_window.tr("改变肯定语音轨的频率，推荐使用地下（UG）模式。"))
+        self.main_window.frequency_mode = QSpinBox()
+        self.main_window.frequency_mode.setRange(1, 999999)
+        self.main_window.frequency_mode.setValue(17500)
+        self.main_window.frequency_mode.setToolTip(self.main_window.tr("设置频率值(Hz)。"))
         layout.addWidget(self.main_window.frequency_mode, 6, 1, 1, 2)
 
         # 倍速滑条
         self.main_window.label_speed = QLabel(self.main_window.tr("倍速:"))
         layout.addWidget(self.main_window.label_speed, 7, 0)
         self.main_window.speed_slider = QSlider(Qt.Horizontal)
-        self.main_window.speed_slider.setRange(10, 100)
+        self.main_window.speed_slider.setRange(10, 300)
         self.main_window.speed_slider.setValue(10)
         self.main_window.speed_slider.setToolTip(self.main_window.tr("改变肯定语音轨的倍速。"))
         layout.addWidget(self.main_window.speed_slider, 7, 1)
 
         self.main_window.speed_spin = QDoubleSpinBox()
-        self.main_window.speed_spin.setRange(1.0, 10.0)
+        self.main_window.speed_spin.setRange(1.0, 30.0)
         self.main_window.speed_spin.setValue(1.0)
         self.main_window.speed_spin.setSingleStep(0.1)
         self.main_window.speed_spin.valueChanged.connect(
@@ -869,19 +868,20 @@ class UIFactory:
         self.main_window.decompile_volume.setToolTip(self.main_window.tr("反编译时的音量调整"))
         params_layout.addWidget(self.main_window.decompile_volume, 0, 1)
 
-        # 频率模式
-        self.main_window.label_decompile_freq_mode = QLabel(self.main_window.tr("频率模式:"))
+        # 频率
+        self.main_window.label_decompile_freq_mode = QLabel(self.main_window.tr("频率:"))
         params_layout.addWidget(self.main_window.label_decompile_freq_mode, 0, 2)
-        self.main_window.decompile_freq_mode = QLineEdit()
-        self.main_window.decompile_freq_mode.setPlaceholderText(self.main_window.tr("输入频率值"))
-        self.main_window.decompile_freq_mode.setToolTip(self.main_window.tr("输入反编译时的频率值"))
+        self.main_window.decompile_freq_mode = QSpinBox()
+        self.main_window.decompile_freq_mode.setRange(1, 999999)
+        self.main_window.decompile_freq_mode.setValue(17500)
+        self.main_window.decompile_freq_mode.setToolTip(self.main_window.tr("设置频率值(Hz)"))
         params_layout.addWidget(self.main_window.decompile_freq_mode, 0, 3)
 
         # 倍速
         self.main_window.label_decompile_speed = QLabel(self.main_window.tr("倍速:"))
         params_layout.addWidget(self.main_window.label_decompile_speed, 1, 0)
         self.main_window.decompile_speed = QDoubleSpinBox()
-        self.main_window.decompile_speed.setRange(0.1, 10.0)
+        self.main_window.decompile_speed.setRange(1.0, 30.0)
         self.main_window.decompile_speed.setValue(1.0)
         self.main_window.decompile_speed.setSingleStep(0.1)
         self.main_window.decompile_speed.setToolTip(self.main_window.tr("反编译时的倍速调整"))
@@ -896,53 +896,18 @@ class UIFactory:
         params_group.setLayout(params_layout)
         layout.addWidget(params_group)
 
-        # ===== 预览和导出区域 =====
-        preview_group = QGroupBox(self.main_window.tr("预览和导出"))
-        preview_layout = QVBoxLayout()
-        preview_layout.setSpacing(10)
-
-        # 播放器控制区域
-        player_control_layout = QHBoxLayout()
-
-        # 播放/暂停按钮
-        self.main_window.decompile_play_pause_btn = QPushButton("▶")
-        self.main_window.decompile_play_pause_btn.setFixedSize(40, 40)
-        self.main_window.decompile_play_pause_btn.setToolTip(self.main_window.tr("播放/暂停"))
-        player_control_layout.addWidget(self.main_window.decompile_play_pause_btn)
-
-        # 停止按钮
-        self.main_window.decompile_stop_btn = QPushButton("⏹")
-        self.main_window.decompile_stop_btn.setFixedSize(40, 40)
-        self.main_window.decompile_stop_btn.setToolTip(self.main_window.tr("停止"))
-        player_control_layout.addWidget(self.main_window.decompile_stop_btn)
-
-        # 进度条
-        self.main_window.decompile_progress_slider = QSlider(Qt.Horizontal)
-        self.main_window.decompile_progress_slider.setRange(0, 1000)
-        self.main_window.decompile_progress_slider.setValue(0)
-        self.main_window.decompile_progress_slider.setToolTip(self.main_window.tr("播放进度"))
-        player_control_layout.addWidget(self.main_window.decompile_progress_slider, 1)
-
-        # 时间显示
-        self.main_window.decompile_time_label = QLabel("00:00 / 00:00")
-        self.main_window.decompile_time_label.setToolTip(self.main_window.tr("当前时间 / 总时长"))
-        self.main_window.decompile_time_label.setStyleSheet("font-family: monospace; font-size: 12px;")
-        player_control_layout.addWidget(self.main_window.decompile_time_label)
-
-        preview_layout.addLayout(player_control_layout)
-
-        # 生成预览按钮
-        self.main_window.decompile_preview_btn = QPushButton(self.main_window.tr("生成预览"))
-        self.main_window.decompile_preview_btn.setToolTip(self.main_window.tr("根据当前参数生成反编译预览音频"))
-        preview_layout.addWidget(self.main_window.decompile_preview_btn)
+        # ===== 导出区域 =====
+        export_group = QGroupBox(self.main_window.tr("导出"))
+        export_layout = QVBoxLayout()
+        export_layout.setSpacing(10)
 
         # 导出按钮
         self.main_window.decompile_export_btn = QPushButton(self.main_window.tr("导出"))
         self.main_window.decompile_export_btn.setToolTip(self.main_window.tr("导出反编译后的音频文件"))
-        preview_layout.addWidget(self.main_window.decompile_export_btn)
+        export_layout.addWidget(self.main_window.decompile_export_btn)
 
-        preview_group.setLayout(preview_layout)
-        layout.addWidget(preview_group)
+        export_group.setLayout(export_layout)
+        layout.addWidget(export_group)
 
         # ===== 听写引擎区域（暂时搁置） =====
         transcription_group = QGroupBox(self.main_window.tr("听写引擎（暂时搁置）"))

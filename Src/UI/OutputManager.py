@@ -71,7 +71,7 @@ class OutputManager:
             'affirmation_file': affirmation_file,
             'background_file': self.main_window.background_file.text(),
             'volume': self.main_window.affirmation_volume_spin.value(),
-            'frequency_mode': self.main_window.frequency_mode.currentIndex(),
+            'frequency_mode': self.main_window.frequency_mode.value(),
             'speed': self.main_window.speed_spin.value(),
             'reverse': self.main_window.reverse_check.isChecked(),
             'overlay_times': self.main_window.overlay_times.value(),

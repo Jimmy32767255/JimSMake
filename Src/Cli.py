@@ -184,9 +184,8 @@ class SMakeCLI:
         parser.add_argument('--bg-volume', type=float, default=0.0,
                             help='背景音量调整 (dB, 默认: 0)')
 
-        parser.add_argument('--freq-mode', type=int, default=0,
-                            choices=[0, 1, 2],
-                            help='频率模式: 0=Raw, 1=UG(亚超声波), 2=传统(次声波) (默认: 0)')
+        parser.add_argument('--freq-mode', type=int, default=17500,
+                            help='频率值(Hz) (默认: 440)')
         parser.add_argument('--freq-track', action='store_true', dest='freq_track_enabled',
                             help='启用特定频率音轨')
         parser.add_argument('--freq-track-freq', default='432',

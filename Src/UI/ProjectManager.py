@@ -270,7 +270,7 @@ class ProjectManager:
             self._load_combo_setting('tts_engine', affirmation.get('tts_engine'))
             self._load_slider_setting('affirmation_volume', affirmation.get('volume'))
             self._load_spin_setting('affirmation_volume_spin', affirmation.get('volume'))
-            self._load_combo_setting('frequency_mode', affirmation.get('frequency_mode'))
+            self._load_spin_setting('frequency_mode', affirmation.get('frequency_mode'))
             self._load_slider_setting('speed_slider', affirmation.get('speed'))
             self._load_spin_setting('speed_spin', affirmation.get('speed'))
             self._load_checkbox_setting('reverse_check', affirmation.get('reverse'))
@@ -348,7 +348,7 @@ class ProjectManager:
         if hasattr(self.main_window, 'affirmation_volume_spin') and self.main_window.affirmation_volume_spin is not None:
             self.main_window.affirmation_volume_spin.setValue(-23.0)
         if hasattr(self.main_window, 'frequency_mode') and self.main_window.frequency_mode is not None:
-            self.main_window.frequency_mode.setCurrentIndex(0)
+            self.main_window.frequency_mode.setValue(17500)
         if hasattr(self.main_window, 'speed_slider') and self.main_window.speed_slider is not None:
             self.main_window.speed_slider.setValue(10)
         if hasattr(self.main_window, 'speed_spin') and self.main_window.speed_spin is not None:
@@ -447,7 +447,7 @@ class ProjectManager:
                     "text_file": "",
                     "tts_engine": "",
                     "volume": -23.0,
-                    "frequency_mode": "",
+                    "frequency_mode": 17500,
                     "speed": 1.0,
                     "reverse": False
                 },
@@ -571,7 +571,7 @@ class ProjectManager:
                     "text_file": self._get_relative_path('text_file', project_dir),
                     "tts_engine": self._get_combo_value('tts_engine'),
                     "volume": self._get_spin_value('affirmation_volume_spin'),
-                    "frequency_mode": self._get_combo_value('frequency_mode'),
+                    "frequency_mode": self._get_spin_value('frequency_mode'),
                     "speed": self._get_spin_value('speed_spin'),
                     "reverse": self._get_checkbox_value('reverse_check')
                 },

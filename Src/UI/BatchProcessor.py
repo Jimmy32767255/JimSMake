@@ -252,9 +252,7 @@ class BatchGenerationWorker(QThread):
             'affirmation_file': affirmation_file,
             'background_file': background_file,
             'volume': affirmation.get('volume', -23.0),
-            'frequency_mode': ['Raw（保持不变）', 'UG（亚超声波）', '传统（次声波）'].index(
-                affirmation.get('frequency_mode', 'Raw（保持不变）')
-            ) if affirmation.get('frequency_mode') else 0,
+            'frequency_mode': affirmation.get('frequency_mode', 17500),
             'speed': affirmation.get('speed', 1.0),
             'reverse': affirmation.get('reverse', False),
             'overlay_times': overlay.get('times', 1),
