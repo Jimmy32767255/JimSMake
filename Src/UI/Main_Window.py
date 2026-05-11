@@ -993,20 +993,48 @@ class MainWindow(QMainWindow):
         # 根据ffmpeg可用性更新UI
         self.update_ui_for_ffmpeg_availability()
 
-        # 连接特定频率音轨的信号，用于更新频率预览 (已禁用)
-        # self.setup_freq_track_preview()
+        # 连接特定频率音轨的信号，用于更新频率预览
+        self.setup_freq_track_preview()
 
         # 所有UI组件创建完成后，刷新项目列表
         # 这必须在所有UI组件（包括output_list）创建完成后调用
         self.project_manager.refresh_project_group_list()
 
     def setup_freq_track_preview(self):
-        """设置特定频率音轨的频率预览更新 (已禁用)"""
-        pass
+        """设置特定频率音轨的频率预览更新"""
+        self.freq_track_freq.valueChanged.connect(self.update_freq_preview)
+        self.freq_track_diff.valueChanged.connect(self.update_freq_preview)
+        self.freq_track_diff_mode.stateChanged.connect(self.update_freq_preview)
+        self.freq_track_swap_channels.stateChanged.connect(self.update_freq_preview)
+        self.freq_track_enabled.stateChanged.connect(self.update_freq_preview)
 
     def update_freq_preview(self):
-        """更新左右声道频率预览 (已禁用)"""
-        pass
+        """更新左右声道频率预览"""
+        if not hasattr(self, 'freq_preview'):
+            return
+
+        if not self.freq_track_enabled.isChecked():
+            self.freq_preview.setText(self.tr("左: -- Hz | 右: -- Hz"))
+            return
+
+        target_freq = self.freq_track_freq.value()
+
+        if self.freq_track_diff_mode.isChecked():
+            freq_diff = self.freq_track_diff.value()
+            freq_offset = freq_diff / 2
+            left_freq = target_freq + freq_offset
+            right_freq = target_freq - freq_offset
+
+            if right_freq < 0:
+                right_freq = 0
+                left_freq = freq_diff
+
+            if self.freq_track_swap_channels.isChecked():
+                left_freq, right_freq = right_freq, left_freq
+
+            self.freq_preview.setText(self.tr(f"左: {left_freq:.1f} Hz | 右: {right_freq:.1f} Hz"))
+        else:
+            self.freq_preview.setText(self.tr(f"左: {target_freq} Hz | 右: {target_freq} Hz"))
 
     def on_generate_audio_toggled(self, checked):
         """生成音频复选框状态变化处理"""
