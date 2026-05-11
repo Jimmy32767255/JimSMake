@@ -44,8 +44,8 @@ class TTSManager:
                     engine.setProperty('voice', voice.id)
                     break
 
-            engine.setProperty('rate', self.main_window.tts_rate.value())
-            engine.setProperty('volume', self.main_window.tts_volume.value() / 100.0)
+            engine.setProperty('rate', 200)
+            engine.setProperty('volume', 1.0)
 
             progress = QProgressDialog(
                 self.main_window.tr("正在生成TTS音频..."),
