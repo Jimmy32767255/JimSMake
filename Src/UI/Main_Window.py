@@ -916,7 +916,7 @@ class MainWindow(QMainWindow):
         
     def initUI(self):
         self.setWindowTitle(self.tr("SMake"))
-        self.setGeometry(100, 100, 640, 770)
+        self.setGeometry(100, 100, 1000, 770)
         
         # 创建中央widget和主布局
         central_widget = QWidget()
