@@ -21,5 +21,6 @@ SOURCES = ../Src/Processors/AudioCore.py \
           ../src/UI/ReleasesManager.py \
           ../src/UI/TextFileSync.py \
           ../src/UI/TTSManager.py \
+          ../Src/UI/UIFactory.py \
           ../src/Cli.py \
           ../src/Main.py
