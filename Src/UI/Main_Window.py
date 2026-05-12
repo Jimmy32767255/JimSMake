@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget,
                              QProgressDialog, QGroupBox)
 from PyQt5.QtCore import Qt, QTranslator, QSettings
+from PyQt5.QtGui import QIcon
 import os
 import subprocess
 import sys
@@ -917,6 +918,12 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle(self.tr("SMake"))
         self.setGeometry(100, 100, 1000, 770)
+
+        # 设置窗口图标
+        base_dir = self.get_resource_path()
+        icon_path = os.path.join(base_dir, "Assets", "SMakeIconOutput.ico")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         
         # 创建中央widget和主布局
         central_widget = QWidget()
