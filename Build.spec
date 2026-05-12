@@ -9,10 +9,12 @@ block_cipher = None
 root_dir = Path(SPECPATH)
 src_dir = root_dir / "Src"
 translation_dir = root_dir / "Translation"
+assets_dir = root_dir / "Assets"
 
 # 数据文件
 added_files = [
     (str(translation_dir), "Translation"),
+    (str(assets_dir), "Assets"),
 ]
 
 # 隐藏导入

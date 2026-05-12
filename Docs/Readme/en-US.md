@@ -12,11 +12,11 @@ JimSMake is a professional subliminal audio production tool that provides an int
 
 [Todos](../../todo.md)
 
-## Social Media
+### Social Media
 
 QQ Group: 1095279278
 
-## Related Videos
+### Related Videos
 
 [Feature Introduction Video](https://www.bilibili.com/video/BV1sKDZBwEEZ)
 
@@ -26,16 +26,35 @@ QQ Group: 1095279278
 
 ### Key Features
 
-- **Affirmation Processing** - Supports audio file import, text-to-speech, recording, and more
-- **Audio Effects** - Volume adjustment, frequency shifting, speed control, reverse playback
+- **Project Group** - Support creating and managing multiple project groups for organizing different types of audio production tasks
+- **Import/Export** - Support .zip and .tar.xz format project import/export for easy backup and sharing
+- **Batch Processing** - Support multi-project batch generation to improve work efficiency
+- **Affirmation Processing** - Supports audio file import, text-to-speech (TTS), microphone recording, and more
+- **Audio Effects** - Volume adjustment (dB), frequency shifting (e.g. 17500Hz), speed control, reverse playback
 - **Overlay Effects** - Multi-track overlay with adjustable count, interval, and volume decrease
 - **Background Music** - Add background tracks with independent volume control
-- **Video Generation** - Combine audio with visualization images to create videos
-- **Image Search** - Integrated search engines for online visualization images
-- **Metadata Management** - Set title, author, and other output file information
-- **CLI Support** - Command-line interface for batch processing and automation scripts
+- **Specific Frequency Overlay** - Support 432/639/1111Hz and other specific frequency track overlay, with difference mode and channel inversion
+- **Video Generation** - Combine audio with visualization images to create MP4 and other video formats
+- **Image Search** - Integrated search engines for online visualization image search
+- **Metadata Management** - Set title, author, and other ID3 tag information for output files
+- **Output File Management** - Automatically organize output files into audio/video directories with timestamp naming
+- **Decompilation** - Reverse-engineer affirmations from output audio for safety review (respect copyright, do not use for illegal purposes)
+- **Multi-language Interface** - Support Simplified Chinese, American English, and other language switching
+- **CLI Support** - Full command-line support for use in environments without a graphical interface
 
 ## Quick Start
+
+### Tips
+
+It is recommended to develop the good habit of proactively checking for updates. Check back periodically for new releases, as they will include new features and bug fixes!
+
+*Automatic update checking is planned*
+
+The Dev branch has more cutting-edge features. If you are capable, you can download and try it yourself. However, the Dev branch does not provide precompiled versions and does not accept feedback.
+
+Older versions are not supported. Please make sure you are using the latest version before reporting any issues!
+
+If you need to use an older version, please download the documentation for that version. The documentation is only updated with the latest version, so it may not apply to older versions.
 
 ### System Requirements
 
