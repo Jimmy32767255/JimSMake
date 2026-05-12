@@ -3,6 +3,9 @@ import os
 import argparse
 from loguru import logger
 
+# 应用程序版本常量
+APP_VERSION = "V2.0.1R"
+
 def parse_args():
     """解析命令行参数"""
     parser = argparse.ArgumentParser(
@@ -85,7 +88,7 @@ def run_cli(args):
     cli = SMakeCLI()
 
     if args.version:
-        print("SMake v1.0")
+        print(f"JimSMake {APP_VERSION}")
         return 0
 
     if not args.affirmation:
@@ -259,7 +262,7 @@ def main():
     logger.info(f"应用程序启动，日志级别: {args.log_level}")
 
     if args.version:
-        print("SMake v1.0")
+        print(f"JimSMake {APP_VERSION}")
         return 0
 
     if args.cli:

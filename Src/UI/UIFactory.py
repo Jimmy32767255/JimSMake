@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
     QListWidget, QGroupBox
 )
 from PyQt5.QtCore import Qt, QSize
-from loguru import logger
 
 class UIFactory:
     """UI工厂类 - 负责创建所有UI组件"""
@@ -296,23 +295,29 @@ class UIFactory:
             lambda v: self.main_window.affirmation_volume_spin.setValue(v / 10.0))
         layout.addWidget(self.main_window.affirmation_volume_spin, 5, 2)
 
+        # 启用频率调整复选框
+        self.main_window.freq_adjust_enabled = QCheckBox(self.main_window.tr("启用频率调整"))
+        self.main_window.freq_adjust_enabled.setChecked(False)
+        self.main_window.freq_adjust_enabled.setToolTip(self.main_window.tr("启用后，将对肯定语进行频率调整。"))
+        layout.addWidget(self.main_window.freq_adjust_enabled, 6, 0, 1, 3)
+
         # 频率
         self.main_window.label_freq_mode = QLabel(self.main_window.tr("频率:"))
-        layout.addWidget(self.main_window.label_freq_mode, 6, 0)
+        layout.addWidget(self.main_window.label_freq_mode, 7, 0)
         self.main_window.frequency_mode = QSpinBox()
         self.main_window.frequency_mode.setRange(1, 999999)
         self.main_window.frequency_mode.setValue(17500)
         self.main_window.frequency_mode.setToolTip(self.main_window.tr("设置频率值(Hz)。"))
-        layout.addWidget(self.main_window.frequency_mode, 6, 1, 1, 2)
+        layout.addWidget(self.main_window.frequency_mode, 7, 1, 1, 2)
 
         # 倍速滑条
         self.main_window.label_speed = QLabel(self.main_window.tr("倍速:"))
-        layout.addWidget(self.main_window.label_speed, 7, 0)
+        layout.addWidget(self.main_window.label_speed, 8, 0)
         self.main_window.speed_slider = QSlider(Qt.Horizontal)
         self.main_window.speed_slider.setRange(10, 300)
         self.main_window.speed_slider.setValue(10)
         self.main_window.speed_slider.setToolTip(self.main_window.tr("改变肯定语音轨的倍速。"))
-        layout.addWidget(self.main_window.speed_slider, 7, 1)
+        layout.addWidget(self.main_window.speed_slider, 8, 1)
 
         self.main_window.speed_spin = QDoubleSpinBox()
         self.main_window.speed_spin.setRange(1.0, 30.0)
@@ -322,12 +327,12 @@ class UIFactory:
             lambda v: self.main_window.speed_slider.setValue(int(v * 10)))
         self.main_window.speed_slider.valueChanged.connect(
             lambda v: self.main_window.speed_spin.setValue(v / 10.0))
-        layout.addWidget(self.main_window.speed_spin, 7, 2)
+        layout.addWidget(self.main_window.speed_spin, 8, 2)
 
         # 倒放复选框
         self.main_window.reverse_check = QCheckBox(self.main_window.tr("倒放"))
         self.main_window.reverse_check.setToolTip(self.main_window.tr("肯定语是否倒放。"))
-        layout.addWidget(self.main_window.reverse_check, 8, 1, 1, 2)
+        layout.addWidget(self.main_window.reverse_check, 9, 1, 1, 2)
 
         # 叠加组
         self.main_window.overlay_group = QGroupBox(self.main_window.tr("叠加设置"))
@@ -363,12 +368,12 @@ class UIFactory:
         overlay_layout.addWidget(self.main_window.volume_decrease, 2, 1)
 
         self.main_window.overlay_group.setLayout(overlay_layout)
-        layout.addWidget(self.main_window.overlay_group, 9, 0, 1, 3)
+        layout.addWidget(self.main_window.overlay_group, 10, 0, 1, 3)
 
         # 确保肯定语完整性复选框
         self.main_window.ensure_integrity_check = QCheckBox(self.main_window.tr("确保肯定语完整性"))
         self.main_window.ensure_integrity_check.setToolTip(self.main_window.tr("启用后，肯定语将在背景音乐中完整循环播放，不会被截断。如果肯定语比背景音乐长，将阻止生成。"))
-        layout.addWidget(self.main_window.ensure_integrity_check, 10, 0, 1, 3)
+        layout.addWidget(self.main_window.ensure_integrity_check, 11, 0, 1, 3)
 
         self.main_window.affirmation_group.setLayout(layout)
         return self.main_window.affirmation_group
@@ -732,9 +737,72 @@ class UIFactory:
         self.main_window.about_group = QGroupBox(self.main_window.tr("关于"))
         about_layout = QVBoxLayout()
 
-        self.main_window.about_label = QLabel(self.main_window.tr("SMake"))
-        self.main_window.about_label.setAlignment(Qt.AlignCenter)
-        about_layout.addWidget(self.main_window.about_label)
+        # 项目图标
+        import os
+        from PyQt5.QtGui import QPixmap
+        base_dir = self.main_window.get_resource_path()
+        icon_path = os.path.join(base_dir, "Assets", "SMakeIcon256.png")
+        icon_path = os.path.abspath(icon_path)
+        if os.path.exists(icon_path):
+            icon_label = QLabel()
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                icon_label.setPixmap(pixmap.scaled(96, 96, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            icon_label.setAlignment(Qt.AlignCenter)
+            about_layout.addWidget(icon_label)
+
+        # 应用名称和版本
+        self.main_window.about_title_label = QLabel(self.main_window.tr("JimSMake"))
+        self.main_window.about_title_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        about_layout.addWidget(self.main_window.about_title_label)
+
+        # 版本号
+        from Main import APP_VERSION
+        self.main_window.about_version_label = QLabel(self.main_window.tr("版本:") + f" {APP_VERSION}")
+        self.main_window.about_version_label.setAlignment(Qt.AlignCenter)
+        about_layout.addWidget(self.main_window.about_version_label)
+
+        # 副标题
+        self.main_window.about_subtitle_label = QLabel(self.main_window.tr("一站式潜意识音频制作工具"))
+        self.main_window.about_subtitle_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_subtitle_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        about_layout.addWidget(self.main_window.about_subtitle_label)
+
+        # 简介
+        self.main_window.about_text_label = QLabel(self.main_window.tr(
+            "JimSMake 是一款专业的潜意识音频制作工具，\n"
+            "提供直观的图形界面和命令行界面，\n"
+            "帮助用户轻松创建潜意识音频内容。"
+        ))
+        self.main_window.about_text_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_text_label.setWordWrap(True)
+        about_layout.addWidget(self.main_window.about_text_label)
+
+        # 自由软件声明
+        self.main_window.license_label = QLabel(self.main_window.tr(
+            "<br>"
+            "<b>自由软件声明</b><br>"
+            "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
+            "您可以自由使用、复制、修改和分发本软件。\n"
+            "软件按\"原样\"提供，不包含任何场景下的适用性保障。\n"
+            "详细信息请参阅 LICENSE 文件。"
+        ))
+        self.main_window.license_label.setAlignment(Qt.AlignCenter)
+        self.main_window.license_label.setWordWrap(True)
+        about_layout.addWidget(self.main_window.license_label)
+
+        # 联系方式
+        self.main_window.contact_label = QLabel(self.main_window.tr(
+            "<br>"
+            "<b>联系方式:</b><br>"
+            "QQ交流群: 1095279278<br>"
+            "邮箱: Jimmy32767255@outlook.com<br>"
+            "GitHub: github.com/Jimmy32767255/JimSMake"
+        ))
+        self.main_window.contact_label.setAlignment(Qt.AlignCenter)
+        self.main_window.contact_label.setOpenExternalLinks(True)
+        about_layout.addWidget(self.main_window.contact_label)
 
         self.main_window.about_group.setLayout(about_layout)
         layout.addWidget(self.main_window.about_group, 2, 0, 1, 3)
@@ -784,10 +852,10 @@ class UIFactory:
         layout = QVBoxLayout()
 
         # 说明标签
-        info_label = QLabel(self.main_window.tr("管理项目的输出文件（音频/视频）。双击文件可用系统播放器打开。"))
-        info_label.setStyleSheet("color: #666; font-size: 12px;")
-        info_label.setWordWrap(True)
-        layout.addWidget(info_label)
+        self.main_window.release_info_label = QLabel(self.main_window.tr("管理项目的输出文件（音频/视频）。双击文件可用系统播放器打开。"))
+        self.main_window.release_info_label.setStyleSheet("color: #666; font-size: 12px;")
+        self.main_window.release_info_label.setWordWrap(True)
+        layout.addWidget(self.main_window.release_info_label)
 
         # 文件列表
         self.main_window.output_list = QListWidget()
@@ -828,10 +896,10 @@ class UIFactory:
         layout.setSpacing(10)
 
         # ===== 警告区域 =====
-        warning_group = QGroupBox(self.main_window.tr("⚠️ 重要警告"))
+        self.main_window.warning_group = QGroupBox(self.main_window.tr("⚠️ 重要警告"))
         warning_layout = QVBoxLayout()
 
-        warning_text = QLabel(
+        self.main_window.warning_text = QLabel(
             self.main_window.tr(
                 "<b>此功能仅用于安全审计</b>（如检查对方的作品中是否包含负面暗示肯定语）。<br><br>"
                 "<b>请勿用于抄袭</b>（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。<br><br>"
@@ -841,14 +909,14 @@ class UIFactory:
                 "受限于物理法则，<b>肯定语速度过快/音量过小将无法反编译</b>，也无法反编译任何能量音频。"
             )
         )
-        warning_text.setWordWrap(True)
-        warning_text.setStyleSheet("color: #d32f2f; background-color: #ffebee; padding: 10px; border-radius: 4px;")
-        warning_layout.addWidget(warning_text)
-        warning_group.setLayout(warning_layout)
-        layout.addWidget(warning_group)
+        self.main_window.warning_text.setWordWrap(True)
+        self.main_window.warning_text.setStyleSheet("color: #d32f2f; background-color: #ffebee; padding: 10px; border-radius: 4px;")
+        warning_layout.addWidget(self.main_window.warning_text)
+        self.main_window.warning_group.setLayout(warning_layout)
+        layout.addWidget(self.main_window.warning_group)
 
         # ===== 音频文件选择区域 =====
-        file_group = QGroupBox(self.main_window.tr("音频文件"))
+        self.main_window.file_group = QGroupBox(self.main_window.tr("音频文件"))
         file_layout = QGridLayout()
 
         self.main_window.label_decompile_file = QLabel(self.main_window.tr("文件路径:"))
@@ -862,11 +930,11 @@ class UIFactory:
         self.main_window.btn_browse_decompile.setToolTip(self.main_window.tr("选择要反编译的音频文件"))
         file_layout.addWidget(self.main_window.btn_browse_decompile, 0, 2)
 
-        file_group.setLayout(file_layout)
-        layout.addWidget(file_group)
+        self.main_window.file_group.setLayout(file_layout)
+        layout.addWidget(self.main_window.file_group)
 
         # ===== 参数调整区域 =====
-        params_group = QGroupBox(self.main_window.tr("参数调整"))
+        self.main_window.params_group = QGroupBox(self.main_window.tr("参数调整"))
         params_layout = QGridLayout()
 
         # 音量（默认取反：+23 dB）
@@ -904,11 +972,11 @@ class UIFactory:
         self.main_window.decompile_reverse.setToolTip(self.main_window.tr("是否对音频进行倒放处理"))
         params_layout.addWidget(self.main_window.decompile_reverse, 1, 2, 1, 2)
 
-        params_group.setLayout(params_layout)
-        layout.addWidget(params_group)
+        self.main_window.params_group.setLayout(params_layout)
+        layout.addWidget(self.main_window.params_group)
 
         # ===== 导出区域 =====
-        export_group = QGroupBox(self.main_window.tr("导出"))
+        self.main_window.export_group = QGroupBox(self.main_window.tr("导出"))
         export_layout = QVBoxLayout()
         export_layout.setSpacing(10)
 
@@ -917,22 +985,22 @@ class UIFactory:
         self.main_window.decompile_export_btn.setToolTip(self.main_window.tr("导出反编译后的音频文件"))
         export_layout.addWidget(self.main_window.decompile_export_btn)
 
-        export_group.setLayout(export_layout)
-        layout.addWidget(export_group)
+        self.main_window.export_group.setLayout(export_layout)
+        layout.addWidget(self.main_window.export_group)
 
         # ===== 听写引擎区域（暂时搁置） =====
-        transcription_group = QGroupBox(self.main_window.tr("听写引擎（暂时搁置）"))
+        self.main_window.transcription_group = QGroupBox(self.main_window.tr("听写引擎（暂时搁置）"))
         transcription_layout = QVBoxLayout()
 
-        transcription_info = QLabel(self.main_window.tr("自动本地语音转文字功能暂时搁置，将在未来版本中实现。"))
-        transcription_info.setStyleSheet("color: #666; font-style: italic;")
-        transcription_layout.addWidget(transcription_info)
+        self.main_window.transcription_info = QLabel(self.main_window.tr("自动本地语音转文字功能暂时搁置，将在未来版本中实现。"))
+        self.main_window.transcription_info.setStyleSheet("color: #666; font-style: italic;")
+        transcription_layout.addWidget(self.main_window.transcription_info)
 
-        transcription_group.setLayout(transcription_layout)
-        layout.addWidget(transcription_group)
+        self.main_window.transcription_group.setLayout(transcription_layout)
+        layout.addWidget(self.main_window.transcription_group)
 
         # ===== 文本对比区域 =====
-        compare_group = QGroupBox(self.main_window.tr("文本对比（安全审计）"))
+        self.main_window.compare_group = QGroupBox(self.main_window.tr("文本对比（安全审计）"))
         compare_layout = QGridLayout()
 
         # 左侧：对方公开的肯定语
@@ -958,8 +1026,8 @@ class UIFactory:
         self.main_window.compare_btn.setToolTip(self.main_window.tr("对比两段文本的差异"))
         compare_layout.addWidget(self.main_window.compare_btn, 2, 0, 1, 2)
 
-        compare_group.setLayout(compare_layout)
-        layout.addWidget(compare_group)
+        self.main_window.compare_group.setLayout(compare_layout)
+        layout.addWidget(self.main_window.compare_group)
 
         # 添加弹性空间
         layout.addStretch()
@@ -973,9 +1041,9 @@ class UIFactory:
         layout = QVBoxLayout()
 
         # 说明标签
-        info_label = QLabel(self.main_window.tr("编辑当前项目的 README.md 文件。"))
-        info_label.setStyleSheet("color: #666; font-size: 12px;")
-        layout.addWidget(info_label)
+        self.main_window.readme_info_label = QLabel(self.main_window.tr("编辑当前项目的 README.md 文件。"))
+        self.main_window.readme_info_label.setStyleSheet("color: #666; font-size: 12px;")
+        layout.addWidget(self.main_window.readme_info_label)
 
         # README编辑区域
         self.main_window.readme_text_edit = QTextEdit()
