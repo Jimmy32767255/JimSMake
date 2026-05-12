@@ -24,7 +24,7 @@ from Processors.DecompileProcessor import DecompileProcessor
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
-    MAX_TEXT_SIZE_BYTES = 1024 * 1024  # 最大文本大小限制：1 MB
+    MAX_TEXT_SIZE_BYTES = 1048576  # 最大文本大小限制：1 MB
     TEXT_FILE_ENCODING = 'utf-8'  # 默认编码
     SUPPORTED_ENCODINGS = ['utf-8', 'gbk', 'gb2312', 'utf-16', 'latin-1', 'ascii']
 
