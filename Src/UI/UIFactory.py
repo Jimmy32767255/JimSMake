@@ -734,7 +734,8 @@ class UIFactory:
         # 项目图标
         import os
         from PyQt5.QtGui import QPixmap
-        icon_path = os.path.join(os.path.dirname(__file__), "..", "..", "Assets", "SMakeIcon256.png")
+        base_dir = self.main_window.get_resource_path()
+        icon_path = os.path.join(base_dir, "Assets", "SMakeIcon256.png")
         icon_path = os.path.abspath(icon_path)
         if os.path.exists(icon_path):
             icon_label = QLabel()
