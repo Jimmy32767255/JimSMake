@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
     QListWidget, QGroupBox
 )
 from PyQt5.QtCore import Qt, QSize
-from loguru import logger
 
 class UIFactory:
     """UI工厂类 - 负责创建所有UI组件"""
@@ -732,9 +731,70 @@ class UIFactory:
         self.main_window.about_group = QGroupBox(self.main_window.tr("关于"))
         about_layout = QVBoxLayout()
 
-        self.main_window.about_label = QLabel(self.main_window.tr("SMake"))
-        self.main_window.about_label.setAlignment(Qt.AlignCenter)
-        about_layout.addWidget(self.main_window.about_label)
+        # 项目图标
+        import os
+        from PyQt5.QtGui import QPixmap
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "..", "Assets", "SMakeIcon256.png")
+        icon_path = os.path.abspath(icon_path)
+        if os.path.exists(icon_path):
+            icon_label = QLabel()
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                icon_label.setPixmap(pixmap.scaled(96, 96, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            icon_label.setAlignment(Qt.AlignCenter)
+            about_layout.addWidget(icon_label)
+
+        # 应用名称和版本
+        self.main_window.about_title_label = QLabel(self.main_window.tr("JimSMake"))
+        self.main_window.about_title_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        about_layout.addWidget(self.main_window.about_title_label)
+
+        # 版本号
+        self.main_window.about_version_label = QLabel(self.main_window.tr("版本: v1.0"))
+        self.main_window.about_version_label.setAlignment(Qt.AlignCenter)
+        about_layout.addWidget(self.main_window.about_version_label)
+
+        # 副标题
+        self.main_window.about_subtitle_label = QLabel(self.main_window.tr("一站式潜意识音频制作工具"))
+        self.main_window.about_subtitle_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_subtitle_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        about_layout.addWidget(self.main_window.about_subtitle_label)
+
+        # 简介
+        about_text = QLabel(self.main_window.tr(
+            "JimSMake 是一款专业的潜意识音频制作工具，\n"
+            "提供直观的图形界面和命令行界面，\n"
+            "帮助用户轻松创建潜意识音频内容。"
+        ))
+        about_text.setAlignment(Qt.AlignCenter)
+        about_text.setWordWrap(True)
+        about_layout.addWidget(about_text)
+
+        # 自由软件声明
+        license_label = QLabel(self.main_window.tr(
+            "<br>"
+            "<b>自由软件声明</b><br>"
+            "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
+            "您可以自由使用、复制、修改和分发本软件。\n"
+            "软件按“原样”提供，不包含任何场景下的适用性保障。\n"
+            "详细信息请参阅 LICENSE 文件。"
+        ))
+        license_label.setAlignment(Qt.AlignCenter)
+        license_label.setWordWrap(True)
+        about_layout.addWidget(license_label)
+
+        # 联系方式
+        contact_label = QLabel(self.main_window.tr(
+            "<br>"
+            "<b>联系方式:</b><br>"
+            "QQ交流群: 1095279278<br>"
+            "邮箱: Jimmy32767255@outlook.com<br>"
+            "GitHub: github.com/Jimmy32767255/JimSMake"
+        ))
+        contact_label.setAlignment(Qt.AlignCenter)
+        contact_label.setOpenExternalLinks(True)
+        about_layout.addWidget(contact_label)
 
         self.main_window.about_group.setLayout(about_layout)
         layout.addWidget(self.main_window.about_group, 2, 0, 1, 3)

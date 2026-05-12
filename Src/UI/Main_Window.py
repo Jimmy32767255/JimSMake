@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 from loguru import logger
+from Main import APP_VERSION
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -432,7 +433,12 @@ class MainWindow(QMainWindow):
             self.apply_language_btn.setText(self.tr("应用语言"))
             self.reset_settings_btn.setText(self.tr("重置设置"))
             self.about_group.setTitle(self.tr("关于"))
-            self.about_label.setText(self.tr("SMake"))
+            if hasattr(self, 'about_title_label'):
+                self.about_title_label.setText(self.tr("JimSMake"))
+            if hasattr(self, 'about_version_label'):
+                self.about_version_label.setText(self.tr(f"版本: {APP_VERSION}"))
+            if hasattr(self, 'about_subtitle_label'):
+                self.about_subtitle_label.setText(self.tr("一站式潜意识音频制作工具"))
 
         # 更新日志组
         if hasattr(self, 'log_group'):
@@ -910,7 +916,7 @@ class MainWindow(QMainWindow):
         
     def initUI(self):
         self.setWindowTitle(self.tr("SMake"))
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 640, 770)
         
         # 创建中央widget和主布局
         central_widget = QWidget()

@@ -39,7 +39,7 @@ class SMakeCLI:
             parsed_args = parser.parse_args(args)
 
             if parsed_args.version:
-                print("SMake CLI v1.0")
+                print(f"JimSMake CLI {APP_VERSION}")
                 return 0
 
             if not parsed_args.affirmation:
