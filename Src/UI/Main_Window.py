@@ -2,10 +2,12 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget,
                              QProgressDialog, QGroupBox)
 from PyQt5.QtCore import Qt, QTranslator, QSettings
+from PyQt5.QtGui import QIcon
 import os
 import subprocess
 import sys
 from loguru import logger
+from Main import APP_VERSION
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -24,7 +26,7 @@ from Processors.DecompileProcessor import DecompileProcessor
 
 class MainWindow(QMainWindow):
     # 文本文件相关常量
-    MAX_TEXT_SIZE_BYTES = 1024 * 1024  # 最大文本大小限制：1 MB
+    MAX_TEXT_SIZE_BYTES = 1048576  # 最大文本大小限制：1 MB
     TEXT_FILE_ENCODING = 'utf-8'  # 默认编码
     SUPPORTED_ENCODINGS = ['utf-8', 'gbk', 'gb2312', 'utf-16', 'latin-1', 'ascii']
 
@@ -432,7 +434,12 @@ class MainWindow(QMainWindow):
             self.apply_language_btn.setText(self.tr("应用语言"))
             self.reset_settings_btn.setText(self.tr("重置设置"))
             self.about_group.setTitle(self.tr("关于"))
-            self.about_label.setText(self.tr("SMake"))
+            if hasattr(self, 'about_title_label'):
+                self.about_title_label.setText(self.tr("JimSMake"))
+            if hasattr(self, 'about_version_label'):
+                self.about_version_label.setText(self.tr(f"版本: {APP_VERSION}"))
+            if hasattr(self, 'about_subtitle_label'):
+                self.about_subtitle_label.setText(self.tr("一站式潜意识音频制作工具"))
 
         # 更新日志组
         if hasattr(self, 'log_group'):
@@ -910,7 +917,13 @@ class MainWindow(QMainWindow):
         
     def initUI(self):
         self.setWindowTitle(self.tr("SMake"))
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 1000, 770)
+
+        # 设置窗口图标
+        base_dir = self.get_resource_path()
+        icon_path = os.path.join(base_dir, "Assets", "SMakeIconOutput.ico")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         
         # 创建中央widget和主布局
         central_widget = QWidget()
@@ -993,20 +1006,48 @@ class MainWindow(QMainWindow):
         # 根据ffmpeg可用性更新UI
         self.update_ui_for_ffmpeg_availability()
 
-        # 连接特定频率音轨的信号，用于更新频率预览 (已禁用)
-        # self.setup_freq_track_preview()
+        # 连接特定频率音轨的信号，用于更新频率预览
+        self.setup_freq_track_preview()
 
         # 所有UI组件创建完成后，刷新项目列表
         # 这必须在所有UI组件（包括output_list）创建完成后调用
         self.project_manager.refresh_project_group_list()
 
     def setup_freq_track_preview(self):
-        """设置特定频率音轨的频率预览更新 (已禁用)"""
-        pass
+        """设置特定频率音轨的频率预览更新"""
+        self.freq_track_freq.valueChanged.connect(self.update_freq_preview)
+        self.freq_track_diff.valueChanged.connect(self.update_freq_preview)
+        self.freq_track_diff_mode.stateChanged.connect(self.update_freq_preview)
+        self.freq_track_swap_channels.stateChanged.connect(self.update_freq_preview)
+        self.freq_track_enabled.stateChanged.connect(self.update_freq_preview)
 
     def update_freq_preview(self):
-        """更新左右声道频率预览 (已禁用)"""
-        pass
+        """更新左右声道频率预览"""
+        if not hasattr(self, 'freq_preview'):
+            return
+
+        if not self.freq_track_enabled.isChecked():
+            self.freq_preview.setText(self.tr("左: -- Hz | 右: -- Hz"))
+            return
+
+        target_freq = self.freq_track_freq.value()
+
+        if self.freq_track_diff_mode.isChecked():
+            freq_diff = self.freq_track_diff.value()
+            freq_offset = freq_diff / 2
+            left_freq = target_freq + freq_offset
+            right_freq = target_freq - freq_offset
+
+            if right_freq < 0:
+                right_freq = 0
+                left_freq = freq_diff
+
+            if self.freq_track_swap_channels.isChecked():
+                left_freq, right_freq = right_freq, left_freq
+
+            self.freq_preview.setText(self.tr(f"左: {left_freq:.1f} Hz | 右: {right_freq:.1f} Hz"))
+        else:
+            self.freq_preview.setText(self.tr(f"左: {target_freq} Hz | 右: {target_freq} Hz"))
 
     def on_generate_audio_toggled(self, checked):
         """生成音频复选框状态变化处理"""

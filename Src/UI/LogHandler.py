@@ -37,7 +37,7 @@ class LogHandler:
 
     def _display_cached_logs(self):
         """显示UI初始化之前缓存的日志"""
-        log_file = os.path.join(os.path.dirname(__file__), "..", "..", "SMake.log")
+        log_file = os.path.join(os.path.dirname(__file__), "..", "..", f"JimSMake.log")
         log_file = os.path.abspath(log_file)
         
         if os.path.exists(log_file) and hasattr(self.main_window, 'log_text_edit'):

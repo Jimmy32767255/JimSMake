@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
     QListWidget, QGroupBox
 )
 from PyQt5.QtCore import Qt, QSize
-from loguru import logger
 
 class UIFactory:
     """UI工厂类 - 负责创建所有UI组件"""
@@ -296,23 +295,29 @@ class UIFactory:
             lambda v: self.main_window.affirmation_volume_spin.setValue(v / 10.0))
         layout.addWidget(self.main_window.affirmation_volume_spin, 5, 2)
 
+        # 启用频率调整复选框
+        self.main_window.freq_adjust_enabled = QCheckBox(self.main_window.tr("启用频率调整"))
+        self.main_window.freq_adjust_enabled.setChecked(False)
+        self.main_window.freq_adjust_enabled.setToolTip(self.main_window.tr("启用后，将对肯定语进行频率调整。"))
+        layout.addWidget(self.main_window.freq_adjust_enabled, 6, 0, 1, 3)
+
         # 频率
         self.main_window.label_freq_mode = QLabel(self.main_window.tr("频率:"))
-        layout.addWidget(self.main_window.label_freq_mode, 6, 0)
+        layout.addWidget(self.main_window.label_freq_mode, 7, 0)
         self.main_window.frequency_mode = QSpinBox()
         self.main_window.frequency_mode.setRange(1, 999999)
         self.main_window.frequency_mode.setValue(17500)
         self.main_window.frequency_mode.setToolTip(self.main_window.tr("设置频率值(Hz)。"))
-        layout.addWidget(self.main_window.frequency_mode, 6, 1, 1, 2)
+        layout.addWidget(self.main_window.frequency_mode, 7, 1, 1, 2)
 
         # 倍速滑条
         self.main_window.label_speed = QLabel(self.main_window.tr("倍速:"))
-        layout.addWidget(self.main_window.label_speed, 7, 0)
+        layout.addWidget(self.main_window.label_speed, 8, 0)
         self.main_window.speed_slider = QSlider(Qt.Horizontal)
         self.main_window.speed_slider.setRange(10, 300)
         self.main_window.speed_slider.setValue(10)
         self.main_window.speed_slider.setToolTip(self.main_window.tr("改变肯定语音轨的倍速。"))
-        layout.addWidget(self.main_window.speed_slider, 7, 1)
+        layout.addWidget(self.main_window.speed_slider, 8, 1)
 
         self.main_window.speed_spin = QDoubleSpinBox()
         self.main_window.speed_spin.setRange(1.0, 30.0)
@@ -322,12 +327,12 @@ class UIFactory:
             lambda v: self.main_window.speed_slider.setValue(int(v * 10)))
         self.main_window.speed_slider.valueChanged.connect(
             lambda v: self.main_window.speed_spin.setValue(v / 10.0))
-        layout.addWidget(self.main_window.speed_spin, 7, 2)
+        layout.addWidget(self.main_window.speed_spin, 8, 2)
 
         # 倒放复选框
         self.main_window.reverse_check = QCheckBox(self.main_window.tr("倒放"))
         self.main_window.reverse_check.setToolTip(self.main_window.tr("肯定语是否倒放。"))
-        layout.addWidget(self.main_window.reverse_check, 8, 1, 1, 2)
+        layout.addWidget(self.main_window.reverse_check, 9, 1, 1, 2)
 
         # 叠加组
         self.main_window.overlay_group = QGroupBox(self.main_window.tr("叠加设置"))
@@ -363,12 +368,12 @@ class UIFactory:
         overlay_layout.addWidget(self.main_window.volume_decrease, 2, 1)
 
         self.main_window.overlay_group.setLayout(overlay_layout)
-        layout.addWidget(self.main_window.overlay_group, 9, 0, 1, 3)
+        layout.addWidget(self.main_window.overlay_group, 10, 0, 1, 3)
 
         # 确保肯定语完整性复选框
         self.main_window.ensure_integrity_check = QCheckBox(self.main_window.tr("确保肯定语完整性"))
         self.main_window.ensure_integrity_check.setToolTip(self.main_window.tr("启用后，肯定语将在背景音乐中完整循环播放，不会被截断。如果肯定语比背景音乐长，将阻止生成。"))
-        layout.addWidget(self.main_window.ensure_integrity_check, 10, 0, 1, 3)
+        layout.addWidget(self.main_window.ensure_integrity_check, 11, 0, 1, 3)
 
         self.main_window.affirmation_group.setLayout(layout)
         return self.main_window.affirmation_group
@@ -732,9 +737,71 @@ class UIFactory:
         self.main_window.about_group = QGroupBox(self.main_window.tr("关于"))
         about_layout = QVBoxLayout()
 
-        self.main_window.about_label = QLabel(self.main_window.tr("SMake"))
-        self.main_window.about_label.setAlignment(Qt.AlignCenter)
-        about_layout.addWidget(self.main_window.about_label)
+        # 项目图标
+        import os
+        from PyQt5.QtGui import QPixmap
+        base_dir = self.main_window.get_resource_path()
+        icon_path = os.path.join(base_dir, "Assets", "SMakeIcon256.png")
+        icon_path = os.path.abspath(icon_path)
+        if os.path.exists(icon_path):
+            icon_label = QLabel()
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                icon_label.setPixmap(pixmap.scaled(96, 96, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            icon_label.setAlignment(Qt.AlignCenter)
+            about_layout.addWidget(icon_label)
+
+        # 应用名称和版本
+        self.main_window.about_title_label = QLabel(self.main_window.tr("JimSMake"))
+        self.main_window.about_title_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        about_layout.addWidget(self.main_window.about_title_label)
+
+        # 版本号
+        self.main_window.about_version_label = QLabel(self.main_window.tr("版本: v1.0"))
+        self.main_window.about_version_label.setAlignment(Qt.AlignCenter)
+        about_layout.addWidget(self.main_window.about_version_label)
+
+        # 副标题
+        self.main_window.about_subtitle_label = QLabel(self.main_window.tr("一站式潜意识音频制作工具"))
+        self.main_window.about_subtitle_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_subtitle_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        about_layout.addWidget(self.main_window.about_subtitle_label)
+
+        # 简介
+        about_text = QLabel(self.main_window.tr(
+            "JimSMake 是一款专业的潜意识音频制作工具，\n"
+            "提供直观的图形界面和命令行界面，\n"
+            "帮助用户轻松创建潜意识音频内容。"
+        ))
+        about_text.setAlignment(Qt.AlignCenter)
+        about_text.setWordWrap(True)
+        about_layout.addWidget(about_text)
+
+        # 自由软件声明
+        license_label = QLabel(self.main_window.tr(
+            "<br>"
+            "<b>自由软件声明</b><br>"
+            "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
+            "您可以自由使用、复制、修改和分发本软件。\n"
+            "软件按“原样”提供，不包含任何场景下的适用性保障。\n"
+            "详细信息请参阅 LICENSE 文件。"
+        ))
+        license_label.setAlignment(Qt.AlignCenter)
+        license_label.setWordWrap(True)
+        about_layout.addWidget(license_label)
+
+        # 联系方式
+        contact_label = QLabel(self.main_window.tr(
+            "<br>"
+            "<b>联系方式:</b><br>"
+            "QQ交流群: 1095279278<br>"
+            "邮箱: Jimmy32767255@outlook.com<br>"
+            "GitHub: github.com/Jimmy32767255/JimSMake"
+        ))
+        contact_label.setAlignment(Qt.AlignCenter)
+        contact_label.setOpenExternalLinks(True)
+        about_layout.addWidget(contact_label)
 
         self.main_window.about_group.setLayout(about_layout)
         layout.addWidget(self.main_window.about_group, 2, 0, 1, 3)

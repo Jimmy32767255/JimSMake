@@ -183,49 +183,87 @@ class AudioCore:
 
         return result
 
-    def _change_speed(self, data, speed):
-        """改变音频速度（简单重采样）"""
-        if speed <= 0:
+    def _change_speed(self, data, speed, sample_rate=None):
+        """改变音频速度（时间拉伸算法，保持音调不变）
+        
+        使用基于重叠相加(Overlap-Add)的简化时间拉伸算法
+        """
+        if speed <= 0 or speed == 1.0:
             return data
+        
+        import math
+        
+        # 算法参数
+        window_size = 1024  # 窗口大小
+        hop_size_in = int(window_size / 4)  # 输入跳跃大小
+        hop_size_out = int(hop_size_in / speed)  # 输出跳跃大小
+        
+        # 创建汉宁窗
+        window = [0.5 * (1 - math.cos(2 * math.pi * i / (window_size - 1))) for i in range(window_size)]
+        
+        # 计算输出长度
+        num_frames = int((len(data) - window_size) / hop_size_in) + 1
+        output_length = int((num_frames - 1) * hop_size_out + window_size)
+        
+        result = [0.0] * output_length
+        window_sum = [0.0] * output_length
+        
+        for i in range(num_frames):
+            # 输入帧的起始位置
+            in_start = i * hop_size_in
+            # 输出帧的起始位置
+            out_start = int(i * hop_size_out)
+            
+            # 提取输入帧并加窗
+            frame = []
+            for j in range(window_size):
+                idx = in_start + j
+                if idx < len(data):
+                    frame.append(data[idx] * window[j])
+                else:
+                    frame.append(0.0)
+            
+            # 叠加到输出
+            for j in range(window_size):
+                out_idx = out_start + j
+                if out_idx < output_length:
+                    result[out_idx] += frame[j]
+                    window_sum[out_idx] += window[j]
+        
+        # 归一化（去除窗函数叠加的影响）
+        for i in range(output_length):
+            if window_sum[i] > 0.001:  # 避免除零
+                result[i] /= window_sum[i]
+        
+        # 去除尾部的零
+        while len(result) > 0 and abs(result[-1]) < 0.0001:
+            result.pop()
+        
+        return result if result else data
 
-        new_length = int(len(data) / speed)
-        result = []
-
-        for i in range(new_length):
-            src_idx = i * speed
-            idx_low = int(src_idx)
-            idx_high = min(idx_low + 1, len(data) - 1)
-            frac = src_idx - idx_low
-            val = data[idx_low] * (1 - frac) + data[idx_high] * frac
-            result.append(val)
-
-        return result
-
-    def _apply_ug_frequency(self, data, sample_rate):
-        """应用UG频率模式（亚超声波：17500-20000Hz）"""
-        carrier_freq = 18750
+    def _apply_frequency_shift(self, data, sample_rate, target_freq):
+        """应用频率调整，将音频调制到目标频率
+        
+        使用简单的载波调制技术将音频信号搬移到目标频率
+        """
+        import math
+        
+        logger.info(f"应用频率调整: 目标频率 {target_freq}Hz")
+        
+        # 使用载波调制方式：将原始音频作为调制信号，与目标频率载波相乘
+        # 这会生成两个边带：载波+调制频率 和 载波-调制频率
+        # 对于潜意识音频，这种简单的调制方式已经足够
+        
         result = []
         for i, sample in enumerate(data):
             t = i / sample_rate
-            carrier = math.sin(2 * math.pi * carrier_freq * t)
+            # 生成目标频率的载波
+            carrier = math.sin(2 * math.pi * target_freq * t)
+            # 调制：原始信号 * 载波
             modulated = sample * carrier
             result.append(modulated)
+        
         return result
-
-    def _apply_traditional_frequency(self, data, sample_rate):
-        """应用传统频率模式（次声波：100-300Hz）"""
-        window_size = int(sample_rate / 300)
-        if window_size < 2:
-            window_size = 2
-
-        filtered = []
-        for i in range(len(data)):
-            start = max(0, i - window_size // 2)
-            end = min(len(data), i + window_size // 2 + 1)
-            window = data[start:end]
-            filtered.append(sum(window) / len(window))
-
-        return filtered
 
     def load_affirmation_audio(self, file_path=None):
         """加载肯定语音频文件"""
@@ -328,7 +366,8 @@ class AudioCore:
         if speed != 1.0:
             logger.info(f"应用倍速: {speed}x")
             data = self._change_speed(data, speed)
-            sample_rate = int(sample_rate * speed)
+            # 注意：这里不修改sample_rate，因为_change_speed已经通过重采样改变了数据长度
+            # 保持原始采样率，这样播放时会以正确的速度播放（同时音调也会改变）
 
         # 2. 应用倒放
         if params.get('reverse', False):
@@ -336,13 +375,13 @@ class AudioCore:
             data = data[::-1]
 
         # 3. 应用频率变换
-        freq_mode = params.get('frequency_mode', 0)
-        if freq_mode == 1:
-            logger.info("应用UG频率模式（亚超声波）")
-            data = self._apply_ug_frequency(data, sample_rate)
-        elif freq_mode == 2:
-            logger.info("应用传统频率模式（次声波）")
-            data = self._apply_traditional_frequency(data, sample_rate)
+        freq_adjust_enabled = params.get('freq_adjust_enabled', False)
+        freq_mode = params.get('frequency_mode', 17500)
+        
+        if freq_adjust_enabled:
+            # 启用频率调整，使用 frequency_mode 作为目标频率值
+            logger.info(f"启用频率调整，目标频率: {freq_mode}Hz")
+            data = self._apply_frequency_shift(data, sample_rate, freq_mode)
 
         # 4. 应用音量调整
         volume_db = params.get('volume', -23.0)

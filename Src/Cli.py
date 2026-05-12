@@ -39,7 +39,7 @@ class SMakeCLI:
             parsed_args = parser.parse_args(args)
 
             if parsed_args.version:
-                print("SMake CLI v1.0")
+                print(f"JimSMake CLI {APP_VERSION}")
                 return 0
 
             if not parsed_args.affirmation:
@@ -59,6 +59,7 @@ class SMakeCLI:
             'background_file': parsed_args.background,
             'volume': parsed_args.volume,
             'background_volume': parsed_args.bg_volume,
+            'freq_adjust_enabled': parsed_args.freq_adjust_enabled,
             'frequency_mode': parsed_args.freq_mode,
             'speed': parsed_args.speed,
             'reverse': parsed_args.reverse,
@@ -184,8 +185,10 @@ class SMakeCLI:
         parser.add_argument('--bg-volume', type=float, default=0.0,
                             help='背景音量调整 (dB, 默认: 0)')
 
+        parser.add_argument('--freq-adjust', action='store_true', dest='freq_adjust_enabled',
+                            help='启用频率调整')
         parser.add_argument('--freq-mode', type=int, default=17500,
-                            help='频率值(Hz) (默认: 440)')
+                            help='频率值(Hz)，需要配合 --freq-adjust 使用 (默认: 17500)')
         parser.add_argument('--freq-track', action='store_true', dest='freq_track_enabled',
                             help='启用特定频率音轨')
         parser.add_argument('--freq-track-freq', default='432',

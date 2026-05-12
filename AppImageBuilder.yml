@@ -93,7 +93,7 @@ AppDir:
     id: com.github.jimmy32767255.jimsmake
     name: JimSMake
     icon: jimsmake
-    version: 1.2.0
+    version: 2.0.1
     exec: usr/bin/jimsmake
     exec_args: "$@"
 

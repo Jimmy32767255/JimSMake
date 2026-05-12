@@ -71,6 +71,7 @@ class OutputManager:
             'affirmation_file': affirmation_file,
             'background_file': self.main_window.background_file.text(),
             'volume': self.main_window.affirmation_volume_spin.value(),
+            'freq_adjust_enabled': self.main_window.freq_adjust_enabled.isChecked(),
             'frequency_mode': self.main_window.frequency_mode.value(),
             'speed': self.main_window.speed_spin.value(),
             'reverse': self.main_window.reverse_check.isChecked(),
