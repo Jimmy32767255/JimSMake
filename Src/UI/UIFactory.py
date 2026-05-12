@@ -295,23 +295,29 @@ class UIFactory:
             lambda v: self.main_window.affirmation_volume_spin.setValue(v / 10.0))
         layout.addWidget(self.main_window.affirmation_volume_spin, 5, 2)
 
+        # 启用频率调整复选框
+        self.main_window.freq_adjust_enabled = QCheckBox(self.main_window.tr("启用频率调整"))
+        self.main_window.freq_adjust_enabled.setChecked(False)
+        self.main_window.freq_adjust_enabled.setToolTip(self.main_window.tr("启用后，将对肯定语进行频率调整。"))
+        layout.addWidget(self.main_window.freq_adjust_enabled, 6, 0, 1, 3)
+
         # 频率
         self.main_window.label_freq_mode = QLabel(self.main_window.tr("频率:"))
-        layout.addWidget(self.main_window.label_freq_mode, 6, 0)
+        layout.addWidget(self.main_window.label_freq_mode, 7, 0)
         self.main_window.frequency_mode = QSpinBox()
         self.main_window.frequency_mode.setRange(1, 999999)
         self.main_window.frequency_mode.setValue(17500)
         self.main_window.frequency_mode.setToolTip(self.main_window.tr("设置频率值(Hz)。"))
-        layout.addWidget(self.main_window.frequency_mode, 6, 1, 1, 2)
+        layout.addWidget(self.main_window.frequency_mode, 7, 1, 1, 2)
 
         # 倍速滑条
         self.main_window.label_speed = QLabel(self.main_window.tr("倍速:"))
-        layout.addWidget(self.main_window.label_speed, 7, 0)
+        layout.addWidget(self.main_window.label_speed, 8, 0)
         self.main_window.speed_slider = QSlider(Qt.Horizontal)
         self.main_window.speed_slider.setRange(10, 300)
         self.main_window.speed_slider.setValue(10)
         self.main_window.speed_slider.setToolTip(self.main_window.tr("改变肯定语音轨的倍速。"))
-        layout.addWidget(self.main_window.speed_slider, 7, 1)
+        layout.addWidget(self.main_window.speed_slider, 8, 1)
 
         self.main_window.speed_spin = QDoubleSpinBox()
         self.main_window.speed_spin.setRange(1.0, 30.0)
@@ -321,12 +327,12 @@ class UIFactory:
             lambda v: self.main_window.speed_slider.setValue(int(v * 10)))
         self.main_window.speed_slider.valueChanged.connect(
             lambda v: self.main_window.speed_spin.setValue(v / 10.0))
-        layout.addWidget(self.main_window.speed_spin, 7, 2)
+        layout.addWidget(self.main_window.speed_spin, 8, 2)
 
         # 倒放复选框
         self.main_window.reverse_check = QCheckBox(self.main_window.tr("倒放"))
         self.main_window.reverse_check.setToolTip(self.main_window.tr("肯定语是否倒放。"))
-        layout.addWidget(self.main_window.reverse_check, 8, 1, 1, 2)
+        layout.addWidget(self.main_window.reverse_check, 9, 1, 1, 2)
 
         # 叠加组
         self.main_window.overlay_group = QGroupBox(self.main_window.tr("叠加设置"))
@@ -362,12 +368,12 @@ class UIFactory:
         overlay_layout.addWidget(self.main_window.volume_decrease, 2, 1)
 
         self.main_window.overlay_group.setLayout(overlay_layout)
-        layout.addWidget(self.main_window.overlay_group, 9, 0, 1, 3)
+        layout.addWidget(self.main_window.overlay_group, 10, 0, 1, 3)
 
         # 确保肯定语完整性复选框
         self.main_window.ensure_integrity_check = QCheckBox(self.main_window.tr("确保肯定语完整性"))
         self.main_window.ensure_integrity_check.setToolTip(self.main_window.tr("启用后，肯定语将在背景音乐中完整循环播放，不会被截断。如果肯定语比背景音乐长，将阻止生成。"))
-        layout.addWidget(self.main_window.ensure_integrity_check, 10, 0, 1, 3)
+        layout.addWidget(self.main_window.ensure_integrity_check, 11, 0, 1, 3)
 
         self.main_window.affirmation_group.setLayout(layout)
         return self.main_window.affirmation_group

@@ -201,31 +201,29 @@ class AudioCore:
 
         return result
 
-    def _apply_ug_frequency(self, data, sample_rate):
-        """应用UG频率模式（亚超声波：17500-20000Hz）"""
-        carrier_freq = 18750
+    def _apply_frequency_shift(self, data, sample_rate, target_freq):
+        """应用频率调整，将音频调制到目标频率
+        
+        使用简单的载波调制技术将音频信号搬移到目标频率
+        """
+        import math
+        
+        logger.info(f"应用频率调整: 目标频率 {target_freq}Hz")
+        
+        # 使用载波调制方式：将原始音频作为调制信号，与目标频率载波相乘
+        # 这会生成两个边带：载波+调制频率 和 载波-调制频率
+        # 对于潜意识音频，这种简单的调制方式已经足够
+        
         result = []
         for i, sample in enumerate(data):
             t = i / sample_rate
-            carrier = math.sin(2 * math.pi * carrier_freq * t)
+            # 生成目标频率的载波
+            carrier = math.sin(2 * math.pi * target_freq * t)
+            # 调制：原始信号 * 载波
             modulated = sample * carrier
             result.append(modulated)
+        
         return result
-
-    def _apply_traditional_frequency(self, data, sample_rate):
-        """应用传统频率模式（次声波：100-300Hz）"""
-        window_size = int(sample_rate / 300)
-        if window_size < 2:
-            window_size = 2
-
-        filtered = []
-        for i in range(len(data)):
-            start = max(0, i - window_size // 2)
-            end = min(len(data), i + window_size // 2 + 1)
-            window = data[start:end]
-            filtered.append(sum(window) / len(window))
-
-        return filtered
 
     def load_affirmation_audio(self, file_path=None):
         """加载肯定语音频文件"""
@@ -336,13 +334,13 @@ class AudioCore:
             data = data[::-1]
 
         # 3. 应用频率变换
-        freq_mode = params.get('frequency_mode', 0)
-        if freq_mode == 1:
-            logger.info("应用UG频率模式（亚超声波）")
-            data = self._apply_ug_frequency(data, sample_rate)
-        elif freq_mode == 2:
-            logger.info("应用传统频率模式（次声波）")
-            data = self._apply_traditional_frequency(data, sample_rate)
+        freq_adjust_enabled = params.get('freq_adjust_enabled', False)
+        freq_mode = params.get('frequency_mode', 17500)
+        
+        if freq_adjust_enabled:
+            # 启用频率调整，使用 frequency_mode 作为目标频率值
+            logger.info(f"启用频率调整，目标频率: {freq_mode}Hz")
+            data = self._apply_frequency_shift(data, sample_rate, freq_mode)
 
         # 4. 应用音量调整
         volume_db = params.get('volume', -23.0)

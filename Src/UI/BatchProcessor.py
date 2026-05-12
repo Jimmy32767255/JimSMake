@@ -252,6 +252,7 @@ class BatchGenerationWorker(QThread):
             'affirmation_file': affirmation_file,
             'background_file': background_file,
             'volume': affirmation.get('volume', -23.0),
+            'freq_adjust_enabled': affirmation.get('freq_adjust_enabled', False),
             'frequency_mode': affirmation.get('frequency_mode', 17500),
             'speed': affirmation.get('speed', 1.0),
             'reverse': affirmation.get('reverse', False),

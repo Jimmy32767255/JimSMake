@@ -270,6 +270,7 @@ class ProjectManager:
             self._load_combo_setting('tts_engine', affirmation.get('tts_engine'))
             self._load_slider_setting('affirmation_volume', affirmation.get('volume'))
             self._load_spin_setting('affirmation_volume_spin', affirmation.get('volume'))
+            self._load_checkbox_setting('freq_adjust_enabled', affirmation.get('freq_adjust_enabled'))
             self._load_spin_setting('frequency_mode', affirmation.get('frequency_mode'))
             self._load_slider_setting('speed_slider', affirmation.get('speed'))
             self._load_spin_setting('speed_spin', affirmation.get('speed'))
@@ -447,6 +448,7 @@ class ProjectManager:
                     "text_file": "",
                     "tts_engine": "",
                     "volume": -23.0,
+                    "freq_adjust_enabled": False,
                     "frequency_mode": 17500,
                     "speed": 1.0,
                     "reverse": False
@@ -571,6 +573,7 @@ class ProjectManager:
                     "text_file": self._get_relative_path('text_file', project_dir),
                     "tts_engine": self._get_combo_value('tts_engine'),
                     "volume": self._get_spin_value('affirmation_volume_spin'),
+                    "freq_adjust_enabled": self._get_checkbox_value('freq_adjust_enabled'),
                     "frequency_mode": self._get_spin_value('frequency_mode'),
                     "speed": self._get_spin_value('speed_spin'),
                     "reverse": self._get_checkbox_value('reverse_check')
