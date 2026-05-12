@@ -337,6 +337,8 @@ class MainWindow(QMainWindow):
             self.speed_slider.setToolTip(self.tr("改变肯定语音轨的倍速。"))
             self.reverse_check.setText(self.tr("倒放"))
             self.reverse_check.setToolTip(self.tr("肯定语是否倒放。"))
+            self.freq_adjust_enabled.setText(self.tr("启用频率调整"))
+            self.freq_adjust_enabled.setToolTip(self.tr("启用后，将对肯定语进行频率调整。"))
             self.overlay_group.setTitle(self.tr("叠加设置"))
             self.label_overlay_times.setText(self.tr("叠加次数:"))
             self.overlay_times.setToolTip(self.tr("肯定语音轨的叠加次数。"))
@@ -427,6 +429,12 @@ class MainWindow(QMainWindow):
             #     self.preview_tracks_label.setText(self.tr('轨道预览（点击"更新预览"查看）'))
             #     self.preview_zoom_label.setText(self.tr("缩放: 100%"))
 
+        # 更新输出文件管理组
+        if hasattr(self, 'release_group'):
+            self.release_group.setTitle(self.tr("输出文件管理"))
+            if hasattr(self, 'release_info_label'):
+                self.release_info_label.setText(self.tr("管理项目的输出文件（音频/视频）。双击文件可用系统播放器打开。"))
+
         # 更新设置组
         if hasattr(self, 'settings_group'):
             self.settings_group.setTitle(self.tr("设置"))
@@ -437,9 +445,32 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'about_title_label'):
                 self.about_title_label.setText(self.tr("JimSMake"))
             if hasattr(self, 'about_version_label'):
-                self.about_version_label.setText(self.tr(f"版本: {APP_VERSION}"))
+                self.about_version_label.setText(self.tr("版本:") + f" {APP_VERSION}")
             if hasattr(self, 'about_subtitle_label'):
                 self.about_subtitle_label.setText(self.tr("一站式潜意识音频制作工具"))
+            if hasattr(self, 'about_text_label'):
+                self.about_text_label.setText(self.tr(
+                    "JimSMake 是一款专业的潜意识音频制作工具，\n"
+                    "提供直观的图形界面和命令行界面，\n"
+                    "帮助用户轻松创建潜意识音频内容。"
+                ))
+            if hasattr(self, 'license_label'):
+                self.license_label.setText(self.tr(
+                    "<br>"
+                    "<b>自由软件声明</b><br>"
+                    "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
+                    "您可以自由使用、复制、修改和分发本软件。\n"
+                    "软件按\"原样\"提供，不包含任何场景下的适用性保障。\n"
+                    "详细信息请参阅 LICENSE 文件。"
+                ))
+            if hasattr(self, 'contact_label'):
+                self.contact_label.setText(self.tr(
+                    "<br>"
+                    "<b>联系方式:</b><br>"
+                    "QQ交流群: 1095279278<br>"
+                    "邮箱: Jimmy32767255@outlook.com<br>"
+                    "GitHub: github.com/Jimmy32767255/JimSMake"
+                ))
 
         # 更新日志组
         if hasattr(self, 'log_group'):
@@ -451,17 +482,30 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'decompile_group'):
             self.decompile_group.setTitle(self.tr("反编译（实验性）"))
             # 警告区域
-            for child in self.decompile_group.findChildren(QGroupBox):
-                if child.title().startswith("⚠️") or "警告" in child.title():
-                    child.setTitle(self.tr("⚠️ 重要警告"))
-                    break
+            if hasattr(self, 'warning_group'):
+                self.warning_group.setTitle(self.tr("⚠️ 重要警告"))
+            if hasattr(self, 'warning_text'):
+                self.warning_text.setText(
+                    self.tr(
+                        "<b>此功能仅用于安全审计</b>（如检查对方的作品中是否包含负面暗示肯定语）。<br><br>"
+                        "<b>请勿用于抄袭</b>（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。<br><br>"
+                        "<b>该功能的可用性不受任何保障</b>，不接受任何'我无法反编译特定音频文件'的报告，"
+                        "但仍然允许对该功能本身提出缺陷和建议报告。<br><br>"
+                        "<b>不提供任何全自动和人工智能相关的功能</b>，您可能需要多次调整参数才能得到理想的结果。<br><br>"
+                        "受限于物理法则，<b>肯定语速度过快/音量过小将无法反编译</b>，也无法反编译任何能量音频。"
+                    )
+                )
             # 文件选择区域
+            if hasattr(self, 'file_group'):
+                self.file_group.setTitle(self.tr("音频文件"))
             if hasattr(self, 'label_decompile_file'):
                 self.label_decompile_file.setText(self.tr("文件路径:"))
                 self.decompile_file.setToolTip(self.tr("选择要反编译的音频文件"))
                 self.btn_browse_decompile.setText(self.tr("浏览..."))
                 self.btn_browse_decompile.setToolTip(self.tr("选择要反编译的音频文件"))
             # 参数调整区域
+            if hasattr(self, 'params_group'):
+                self.params_group.setTitle(self.tr("参数调整"))
             if hasattr(self, 'label_decompile_volume'):
                 self.label_decompile_volume.setText(self.tr("音量 (dB):"))
                 self.decompile_volume.setToolTip(self.tr("反编译时的音量调整"))
@@ -472,10 +516,19 @@ class MainWindow(QMainWindow):
                 self.decompile_reverse.setText(self.tr("倒放"))
                 self.decompile_reverse.setToolTip(self.tr("是否对音频进行倒放处理"))
             # 预览和导出区域
+            if hasattr(self, 'export_group'):
+                self.export_group.setTitle(self.tr("导出"))
             if hasattr(self, 'decompile_export_btn'):
                 self.decompile_export_btn.setText(self.tr("导出"))
                 self.decompile_export_btn.setToolTip(self.tr("导出反编译后的音频文件"))
             # 听写引擎区域
+            if hasattr(self, 'transcription_group'):
+                self.transcription_group.setTitle(self.tr("听写引擎（暂时搁置）"))
+            if hasattr(self, 'transcription_info'):
+                self.transcription_info.setText(self.tr("自动本地语音转文字功能暂时搁置，将在未来版本中实现。"))
+            # 文本对比区域
+            if hasattr(self, 'compare_group'):
+                self.compare_group.setTitle(self.tr("文本对比（安全审计）"))
             if hasattr(self, 'label_public_affirmation'):
                 self.label_public_affirmation.setText(self.tr("对方公开的肯定语:"))
                 self.public_affirmation_text.setToolTip(self.tr("输入对方公开的肯定语内容，用于对比"))
@@ -487,6 +540,8 @@ class MainWindow(QMainWindow):
         # 更新README编辑器组
         if hasattr(self, 'readme_group'):
             self.readme_group.setTitle(self.tr("项目介绍"))
+            if hasattr(self, 'readme_info_label'):
+                self.readme_info_label.setText(self.tr("编辑当前项目的 README.md 文件。"))
             if hasattr(self, 'readme_text_edit'):
                 self.readme_text_edit.setToolTip(self.tr("在此编辑项目介绍"))
                 self.readme_text_edit.setPlaceholderText(self.tr("请输入项目介绍..."))
