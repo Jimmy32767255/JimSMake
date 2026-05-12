@@ -9,17 +9,18 @@ SOURCES = ../Src/Processors/AudioCore.py \
           ../Src/Processors/DecompileProcessor.py \
           ../Src/Processors/VideoCore.py \
           ../Src/Processors/VideoProcessor.py \
-          ../src/UI/AudioManager.py \
-          ../src/UI/AudioRecorder.py \
-          ../src/UI/BatchProcessor.py \
-          ../src/UI/LogHandler.py \
-          ../src/UI/Main_Window.py \
-          ../src/UI/OutputManager.py \
-          ../src/UI/PreviewManager.py \
-          ../src/UI/ProjectManager.py \
-          ../src/UI/RecordingManager.py \
-          ../src/UI/ReleasesManager.py \
-          ../src/UI/TextFileSync.py \
-          ../src/UI/TTSManager.py \
-          ../src/Cli.py
-          ../src/Main.py
+          ../Src/UI/AudioManager.py \
+          ../Src/UI/AudioRecorder.py \
+          ../Src/UI/BatchProcessor.py \
+          ../Src/UI/LogHandler.py \
+          ../Src/UI/Main_Window.py \
+          ../Src/UI/OutputManager.py \
+          ../Src/UI/PreviewManager.py \
+          ../Src/UI/ProjectManager.py \
+          ../Src/UI/RecordingManager.py \
+          ../Src/UI/ReleaseManager.py \
+          ../Src/UI/TextFileSync.py \
+          ../Src/UI/TTSManager.py \
+          ../Src/UI/UIFactory.py \
+          ../Src/Cli.py \
+          ../Src/Main.py
