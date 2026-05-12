@@ -183,23 +183,63 @@ class AudioCore:
 
         return result
 
-    def _change_speed(self, data, speed):
-        """改变音频速度（简单重采样）"""
-        if speed <= 0:
+    def _change_speed(self, data, speed, sample_rate=None):
+        """改变音频速度（时间拉伸算法，保持音调不变）
+        
+        使用基于重叠相加(Overlap-Add)的简化时间拉伸算法
+        """
+        if speed <= 0 or speed == 1.0:
             return data
-
-        new_length = int(len(data) / speed)
-        result = []
-
-        for i in range(new_length):
-            src_idx = i * speed
-            idx_low = int(src_idx)
-            idx_high = min(idx_low + 1, len(data) - 1)
-            frac = src_idx - idx_low
-            val = data[idx_low] * (1 - frac) + data[idx_high] * frac
-            result.append(val)
-
-        return result
+        
+        import math
+        
+        # 算法参数
+        window_size = 1024  # 窗口大小
+        hop_size_in = int(window_size / 4)  # 输入跳跃大小
+        hop_size_out = int(hop_size_in / speed)  # 输出跳跃大小
+        
+        # 创建汉宁窗
+        window = [0.5 * (1 - math.cos(2 * math.pi * i / (window_size - 1))) for i in range(window_size)]
+        
+        # 计算输出长度
+        num_frames = int((len(data) - window_size) / hop_size_in) + 1
+        output_length = int((num_frames - 1) * hop_size_out + window_size)
+        
+        result = [0.0] * output_length
+        window_sum = [0.0] * output_length
+        
+        for i in range(num_frames):
+            # 输入帧的起始位置
+            in_start = i * hop_size_in
+            # 输出帧的起始位置
+            out_start = int(i * hop_size_out)
+            
+            # 提取输入帧并加窗
+            frame = []
+            for j in range(window_size):
+                idx = in_start + j
+                if idx < len(data):
+                    frame.append(data[idx] * window[j])
+                else:
+                    frame.append(0.0)
+            
+            # 叠加到输出
+            for j in range(window_size):
+                out_idx = out_start + j
+                if out_idx < output_length:
+                    result[out_idx] += frame[j]
+                    window_sum[out_idx] += window[j]
+        
+        # 归一化（去除窗函数叠加的影响）
+        for i in range(output_length):
+            if window_sum[i] > 0.001:  # 避免除零
+                result[i] /= window_sum[i]
+        
+        # 去除尾部的零
+        while len(result) > 0 and abs(result[-1]) < 0.0001:
+            result.pop()
+        
+        return result if result else data
 
     def _apply_frequency_shift(self, data, sample_rate, target_freq):
         """应用频率调整，将音频调制到目标频率
@@ -326,7 +366,8 @@ class AudioCore:
         if speed != 1.0:
             logger.info(f"应用倍速: {speed}x")
             data = self._change_speed(data, speed)
-            sample_rate = int(sample_rate * speed)
+            # 注意：这里不修改sample_rate，因为_change_speed已经通过重采样改变了数据长度
+            # 保持原始采样率，这样播放时会以正确的速度播放（同时音调也会改变）
 
         # 2. 应用倒放
         if params.get('reverse', False):
