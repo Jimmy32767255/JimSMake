@@ -196,7 +196,7 @@ class ReleaseManager:
             folder_path = os.path.dirname(file_path)
             system = platform.system()
             if system == "Windows":
-                subprocess.run(["explorer", "/select,", file_path], check=True)
+                subprocess.run(["explorer", folder_path], check=False)
             elif system == "Darwin":  # macOS
                 subprocess.run(["open", "-R", file_path], check=True)
             else:  # Linux
