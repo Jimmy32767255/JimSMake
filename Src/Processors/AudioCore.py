@@ -611,7 +611,7 @@ class AudioCore:
         channels = audio_data.get('channels', 2)
         volume_factor = 10 ** (volume_db / 20.0)
 
-        if diff_mode and channels == 2:
+        if diff_mode:
             # 差值模式：左右声道使用不同频率
             # 使用频率输入框的值作为目标频率
             target_freq = frequency
@@ -633,25 +633,47 @@ class AudioCore:
             logger.info(f"差值模式 - 目标频率: {target_freq}Hz, 差值: {freq_diff}Hz, 左声道: {left_freq}Hz, 右声道: {right_freq}Hz, 音量: {volume_db}dB")
 
             # 生成立体声差值频率音轨
+            # 将输入音频转换为立体声输出（无论输入是单声道还是立体声）
             result = []
-            for i in range(0, len(data), 2):
-                t = i / sample_rate
-                # 左声道
-                left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
-                # 右声道
-                right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
+            if channels == 2:
+                # 输入是立体声：左右声道数据交替存储 [L0, R0, L1, R1, ...]
+                for i in range(0, len(data), 2):
+                    t = i // 2 / sample_rate  # 使用帧索引计算时间
+                    # 左声道
+                    left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
+                    # 右声道
+                    right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
 
-                if i < len(data):
+                    if i < len(data):
+                        left_mixed = data[i] + left_sine
+                        left_mixed = max(-1.0, min(1.0, left_mixed))
+                        result.append(left_mixed)
+
+                    if i + 1 < len(data):
+                        right_mixed = data[i + 1] + right_sine
+                        right_mixed = max(-1.0, min(1.0, right_mixed))
+                        result.append(right_mixed)
+            else:
+                # 输入是单声道：复制到左右声道
+                for i in range(len(data)):
+                    t = i / sample_rate
+                    # 左声道
+                    left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
+                    # 右声道
+                    right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
+
+                    # 将单声道样本复制到左右声道，并叠加频率音轨
                     left_mixed = data[i] + left_sine
                     left_mixed = max(-1.0, min(1.0, left_mixed))
                     result.append(left_mixed)
 
-                if i + 1 < len(data):
-                    right_mixed = data[i + 1] + right_sine
+                    right_mixed = data[i] + right_sine
                     right_mixed = max(-1.0, min(1.0, right_mixed))
                     result.append(right_mixed)
 
             logger.debug(f"差值模式音轨叠加完成，数据长度: {len(result)} samples")
+            # 更新通道数为2（立体声）
+            audio_data['channels'] = 2
         else:
             # 普通模式
             logger.info(f"叠加特定频率音轨: {frequency}Hz, 音量: {volume_db}dB")
