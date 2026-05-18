@@ -691,7 +691,7 @@ class UIFactory:
             preview_layout.addWidget(self.main_window.preview_webview)
         else:
             # 如果WebEngine不可用，显示提示信息
-            preview_placeholder = QLabel(self.main_window.tr("⚠️ Web预览需要安装 PyQtWebEngine\n请运行: pip install PyQtWebEngine"))
+            preview_placeholder = QLabel(self.main_window.tr("⚠️ PyQtWebEngine 不可用"))
             preview_placeholder.setAlignment(Qt.AlignCenter)
             preview_placeholder.setStyleSheet("color: #999; padding: 20px;")
             preview_layout.addWidget(preview_placeholder)

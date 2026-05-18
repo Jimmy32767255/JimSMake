@@ -95,10 +95,6 @@ export PYTHONPATH="$APPDIR/usr/share/jimsmake:$APPDIR/usr/lib/$PYTHON_VERSION/si
 # 检查 FFmpeg
 if ! command -v ffmpeg &> /dev/null; then
     echo "警告: 未检测到 FFmpeg，请确保已安装 FFmpeg"
-    echo "您可以通过包管理器安装:"
-    echo "  sudo apt install ffmpeg (Debian/Ubuntu)"
-    echo "  sudo pacman -S ffmpeg (Arch Linux)"
-    echo "  sudo dnf install ffmpeg (Fedora)"
 fi
 
 exec python3 "$APPDIR/usr/share/jimsmake/Src/Main.py" "$@"
@@ -124,10 +120,6 @@ export PYTHONPATH="$HERE/usr/share/jimsmake:$HERE/usr/lib/$PYTHON_VERSION/site-p
 # 检查 FFmpeg
 if ! command -v ffmpeg &> /dev/null; then
     echo "警告: 未检测到 FFmpeg，请确保已安装 FFmpeg"
-    echo "您可以通过包管理器安装:"
-    echo "  sudo apt install ffmpeg (Debian/Ubuntu)"
-    echo "  sudo pacman -S ffmpeg (Arch Linux)"
-    echo "  sudo dnf install ffmpeg (Fedora)"
 fi
 
 # 启动程序
@@ -153,13 +145,7 @@ if [[ -f "$BUILD_DIR/JimSMake-x86_64.AppImage" ]]; then
     echo ""
     echo "=========================================="
     echo "构建成功!"
-    echo "=========================================="
     echo "输出文件: $SCRIPT_DIR/dist/Linux/GNU-Linux-amd64.AppImage"
-    echo ""
-    echo "注意: 运行前请确保已安装 FFmpeg"
-    echo "  sudo apt install ffmpeg (Debian/Ubuntu)"
-    echo "  sudo pacman -S ffmpeg (Arch Linux)"
-    echo "  sudo dnf install ffmpeg (Fedora)"
     echo "=========================================="
 else
     echo "[错误] 构建失败，未找到输出文件"
