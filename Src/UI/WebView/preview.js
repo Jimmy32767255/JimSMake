@@ -1,6 +1,40 @@
 /**
  * 音频轨道预览控制器
  */
+
+/**
+ * WebView日志工具 - 将日志发送到Python日志系统
+ */
+const WebViewLog = {
+    pyLogger: null,
+
+    init(channel) {
+        if (channel && channel.objects && channel.objects.pyLogger) {
+            this.pyLogger = channel.objects.pyLogger;
+        }
+    },
+
+    debug(message) {
+        if (this.pyLogger) this.pyLogger.log('debug', String(message));
+        console.debug('[WebView]', message);
+    },
+
+    info(message) {
+        if (this.pyLogger) this.pyLogger.log('info', String(message));
+        console.info('[WebView]', message);
+    },
+
+    warn(message) {
+        if (this.pyLogger) this.pyLogger.log('warn', String(message));
+        console.warn('[WebView]', message);
+    },
+
+    error(message) {
+        if (this.pyLogger) this.pyLogger.log('error', String(message));
+        console.error('[WebView]', message);
+    }
+};
+
 class AudioPreview {
     constructor() {
         this.tracksContainer = document.getElementById('tracksContainer');
@@ -27,12 +61,16 @@ class AudioPreview {
             // 使用QWebChannel与Python通信
             new QWebChannel(window.qt.webChannelTransport, (channel) => {
                 window.pyBridge = channel.objects.pyBridge;
+                // 初始化日志桥接器
+                WebViewLog.init(channel);
+                WebViewLog.info('WebView日志系统已初始化');
             });
         }
 
         // 监听来自父窗口的消息
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'updatePreview') {
+                WebViewLog.debug('收到更新预览消息');
                 this.updatePreview(event.data.tracks, event.data.maxDuration);
             }
         });
@@ -42,6 +80,7 @@ class AudioPreview {
      * 显示空状态
      */
     showEmptyState() {
+        WebViewLog.debug('显示空状态');
         this.tracksContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">🎵</div>
@@ -58,6 +97,8 @@ class AudioPreview {
      * @param {number} maxDuration - 最大时长（秒）
      */
     updatePreview(tracks, maxDuration) {
+        WebViewLog.info(`更新预览: ${tracks ? tracks.length : 0} 个轨道片段, 总时长 ${maxDuration}s`);
+
         if (!tracks || tracks.length === 0) {
             this.showEmptyState();
             return;
@@ -376,9 +417,13 @@ const preview = new AudioPreview();
 
 // 暴露给全局，方便外部调用
 window.updateAudioPreview = (tracks, maxDuration) => {
+    WebViewLog.info('外部调用 updateAudioPreview');
     preview.updatePreview(tracks, maxDuration);
 };
 
 window.clearAudioPreview = () => {
+    WebViewLog.info('外部调用 clearAudioPreview');
     preview.showEmptyState();
 };
+
+WebViewLog.info('AudioPreview 模块已加载完成');

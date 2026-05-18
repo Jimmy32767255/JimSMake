@@ -1,7 +1,31 @@
 import os
 import json
 from loguru import logger
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QObject, pyqtSlot
+from PyQt5.QtWebChannel import QWebChannel
+
+class WebViewLogger(QObject):
+    """WebView日志桥接器 - 接收JavaScript日志并转发到Python日志系统"""
+
+    @pyqtSlot(str, str)
+    def log(self, level, message):
+        """接收来自WebView的日志消息
+
+        Args:
+            level: 日志级别 (debug, info, warn, error)
+            message: 日志内容
+        """
+        level = level.lower()
+        if level == 'debug':
+            logger.debug(f"[WebView] {message}")
+        elif level == 'info':
+            logger.info(f"[WebView] {message}")
+        elif level in ('warn', 'warning'):
+            logger.warning(f"[WebView] {message}")
+        elif level == 'error':
+            logger.error(f"[WebView] {message}")
+        else:
+            logger.info(f"[WebView] {message}")
 
 class PreviewManager:
     """预览管理器 - 处理音频预览和时间轴显示（使用WebView实现）"""
@@ -10,10 +34,20 @@ class PreviewManager:
         self.main_window = main_window
         self.web_view = None
         self.preview_page_loaded = False
+        self.web_channel = None
+        self.webview_logger = None
 
     def setup_web_view(self, web_view):
         """设置WebView引用"""
         self.web_view = web_view
+
+        # 设置WebChannel用于与JavaScript通信
+        self.web_channel = QWebChannel()
+        self.webview_logger = WebViewLogger()
+        self.web_channel.registerObject('pyLogger', self.webview_logger)
+        self.web_view.page().setWebChannel(self.web_channel)
+        logger.debug("WebChannel已设置，日志桥接器已注册")
+
         # 加载本地HTML文件
         preview_html_path = os.path.join(
             os.path.dirname(__file__), 'WebView', 'index.html'
@@ -266,28 +300,3 @@ class PreviewManager:
         except Exception as e:
             logger.error(f"获取音频时长失败: {e}")
             return 60.0
-
-    # 保留原有方法以保持兼容性（但不再使用PyQt5渲染）
-    def preview_zoom_in(self):
-        """放大预览视图（已废弃，保留兼容性）"""
-        logger.debug("Web预览不支持缩放操作")
-
-    def preview_zoom_out(self):
-        """缩小预览视图（已废弃，保留兼容性）"""
-        logger.debug("Web预览不支持缩放操作")
-
-    def preview_reset(self):
-        """重置预览视图（已废弃，保留兼容性）"""
-        logger.debug("Web预览不支持重置操作")
-
-    def _apply_preview_zoom(self):
-        """应用预览缩放（已废弃，保留兼容性）"""
-        pass
-
-    def _render_tracks(self, tracks, max_duration):
-        """渲染音轨到预览区域（已废弃，保留兼容性）"""
-        pass
-
-    def _create_track_widget(self, track, max_duration, pixels_per_second, track_height):
-        """创建单个音轨控件（已废弃，保留兼容性）"""
-        pass
