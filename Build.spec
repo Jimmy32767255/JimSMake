@@ -10,13 +10,13 @@ root_dir = Path(SPECPATH)
 src_dir = root_dir / "Src"
 translation_dir = root_dir / "Translation"
 assets_dir = root_dir / "Assets"
-webpreview_dir = root_dir / "Src" / "UI" / "WebPreview"
+webview_dir = root_dir / "Src" / "UI" / "WebView"
 
 # 数据文件
 added_files = [
     (str(translation_dir), "Translation"),
     (str(assets_dir), "Assets"),
-    (str(webpreview_dir), "Src/UI/WebPreview"),
+    (str(webview_dir), "Src/UI/WebView"),
 ]
 
 # 隐藏导入
