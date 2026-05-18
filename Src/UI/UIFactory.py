@@ -2,9 +2,15 @@ from PyQt5.QtWidgets import (
     QGroupBox, QGridLayout, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QSpinBox,
     QDoubleSpinBox, QCheckBox, QTextEdit, QSlider,
-    QListWidget, QGroupBox
+    QListWidget, QGroupBox, QWidget
 )
 from PyQt5.QtCore import Qt, QSize
+
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineView
+    WEBENGINE_AVAILABLE = True
+except ImportError:
+    WEBENGINE_AVAILABLE = False
 
 class UIFactory:
     """UI工厂类 - 负责创建所有UI组件"""
@@ -671,24 +677,30 @@ class UIFactory:
         # self.main_window.preview_layout.setSpacing(10)
         # self.main_window.preview_layout.setContentsMargins(10, 10, 10, 10)
         #
-        # # 轨道标签
-        # self.main_window.preview_tracks_label = QLabel(self.main_window.tr('轨道预览（点击"更新预览"查看）'))
-        # self.main_window.preview_tracks_label.setAlignment(Qt.AlignCenter)
-        # self.main_window.preview_tracks_label.setStyleSheet("color: #666; font-size: 12px;")
-        # self.main_window.preview_layout.addWidget(self.main_window.preview_tracks_label)
-        #
-        # self.main_window.preview_scroll.setWidget(self.main_window.preview_widget)
-        # preview_layout.addWidget(self.main_window.preview_scroll)
-        #
-        # # 缩放比例显示
-        # self.main_window.preview_zoom_label = QLabel(self.main_window.tr("缩放: 100%"))
-        # self.main_window.preview_zoom_label.setAlignment(Qt.AlignRight)
-        # preview_layout.addWidget(self.main_window.preview_zoom_label)
-        #
-        # self.main_window.preview_group.setLayout(preview_layout)
-        # layout.addWidget(self.main_window.preview_group, row, 0, 1, 3)
-        #
-        # row += 1
+        # Web预览组
+        self.main_window.preview_group = QGroupBox(self.main_window.tr("输出预览"))
+        preview_layout = QVBoxLayout()
+        preview_layout.setSpacing(5)
+        preview_layout.setContentsMargins(5, 5, 5, 5)
+
+        if WEBENGINE_AVAILABLE:
+            # 使用QWebEngineView显示Web预览
+            self.main_window.preview_webview = QWebEngineView()
+            self.main_window.preview_webview.setMinimumHeight(200)
+            self.main_window.preview_webview.setMaximumHeight(300)
+            preview_layout.addWidget(self.main_window.preview_webview)
+        else:
+            # 如果WebEngine不可用，显示提示信息
+            preview_placeholder = QLabel(self.main_window.tr("⚠️ Web预览需要安装 PyQtWebEngine\n请运行: pip install PyQtWebEngine"))
+            preview_placeholder.setAlignment(Qt.AlignCenter)
+            preview_placeholder.setStyleSheet("color: #999; padding: 20px;")
+            preview_layout.addWidget(preview_placeholder)
+            self.main_window.preview_webview = None
+
+        self.main_window.preview_group.setLayout(preview_layout)
+        layout.addWidget(self.main_window.preview_group, row, 0, 1, 3)
+
+        row += 1
 
         # 生成按钮
         self.main_window.generate_btn = QPushButton(self.main_window.tr("生成项目"))

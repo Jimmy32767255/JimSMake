@@ -1,67 +1,53 @@
 import os
+import json
 from loguru import logger
+from PyQt5.QtCore import QUrl
 
 class PreviewManager:
-    """预览管理器 - 处理音频预览和时间轴显示"""
-    
+    """预览管理器 - 处理音频预览和时间轴显示（使用WebView实现）"""
+
     def __init__(self, main_window):
         self.main_window = main_window
-        self.preview_zoom_level = 1.0
-        
-    def preview_zoom_in(self):
-        """放大预览视图"""
-        self.preview_zoom_level = min(self.preview_zoom_level * 1.2, 3.0)
-        self._apply_preview_zoom()
-        logger.debug(f"预览放大到: {self.preview_zoom_level:.0%}")
+        self.web_view = None
+        self.preview_page_loaded = False
 
-    def preview_zoom_out(self):
-        """缩小预览视图"""
-        self.preview_zoom_level = max(self.preview_zoom_level / 1.2, 0.3)
-        self._apply_preview_zoom()
-        logger.debug(f"预览缩小到: {self.preview_zoom_level:.0%}")
+    def setup_web_view(self, web_view):
+        """设置WebView引用"""
+        self.web_view = web_view
+        # 加载本地HTML文件
+        preview_html_path = os.path.join(
+            os.path.dirname(__file__), 'WebPreview', 'index.html'
+        )
+        if os.path.exists(preview_html_path):
+            self.web_view.loadFinished.connect(self._on_page_loaded)
+            self.web_view.setUrl(QUrl.fromLocalFile(preview_html_path))
+            logger.debug(f"加载预览页面: {preview_html_path}")
+        else:
+            logger.error(f"预览页面不存在: {preview_html_path}")
 
-    def preview_reset(self):
-        """重置预览视图"""
-        self.preview_zoom_level = 1.0
-        self._apply_preview_zoom()
-
-        if hasattr(self.main_window, 'preview_scroll'):
-            self.main_window.preview_scroll.horizontalScrollBar().setValue(0)
-            self.main_window.preview_scroll.verticalScrollBar().setValue(0)
-
-        logger.debug("预览视图已重置")
-
-    def _apply_preview_zoom(self):
-        """应用预览缩放"""
-        if hasattr(self.main_window, 'preview_widget'):
-            if hasattr(self.main_window, 'preview_zoom_label'):
-                self.main_window.preview_zoom_label.setText(self.main_window.tr(f"缩放: {self.preview_zoom_level:.0%}"))
-
+    def _on_page_loaded(self, ok):
+        """页面加载完成回调"""
+        self.preview_page_loaded = ok
+        if ok:
+            logger.debug("预览页面加载完成")
+            # 页面加载完成后立即更新一次预览
             self.update_preview()
-
-            base_width = 800
-            base_height = 300
-            new_width = max(int(base_width * self.preview_zoom_level), 400)
-            new_height = max(int(base_height * self.preview_zoom_level), 200)
-            
-            self.main_window.preview_widget.adjustSize()
+        else:
+            logger.error("预览页面加载失败")
 
     def update_preview(self):
         """更新预览视图"""
         logger.debug("开始更新预览")
 
-        if hasattr(self.main_window, 'preview_layout'):
-            while self.main_window.preview_layout.count() > 1:
-                item = self.main_window.preview_layout.takeAt(1)
-                if item.widget():
-                    item.widget().deleteLater()
+        if not self.web_view or not self.preview_page_loaded:
+            logger.debug("WebView未就绪，跳过预览更新")
+            return
 
         affirmation_file = self.main_window.affirmation_file.text() if hasattr(self.main_window, 'affirmation_file') else ""
         background_file = self.main_window.background_file.text() if hasattr(self.main_window, 'background_file') else ""
 
         if not affirmation_file and not background_file:
-            if hasattr(self.main_window, 'preview_tracks_label'):
-                self.main_window.preview_tracks_label.setText(self.main_window.tr("请先选择音频文件"))
+            self._clear_preview()
             return
 
         try:
@@ -77,7 +63,8 @@ class PreviewManager:
                     'color': "#4CAF50",
                     'volume': self.main_window.background_volume.value() if hasattr(self.main_window, 'background_volume') else 0,
                     'duration': duration,
-                    'overlay_index': 0
+                    'overlayIndex': 0,
+                    'overlayInterval': 0
                 })
 
             if affirmation_file and os.path.exists(affirmation_file):
@@ -88,7 +75,8 @@ class PreviewManager:
                     'color': "#2196F3",
                     'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
                     'duration': duration,
-                    'overlay_index': 0
+                    'overlayIndex': 0,
+                    'overlayInterval': 0
                 })
 
             if hasattr(self.main_window, 'freq_track_enabled') and self.main_window.freq_track_enabled.isChecked():
@@ -97,9 +85,10 @@ class PreviewManager:
                     'name': self.main_window.tr("特定频率"),
                     'file': None,
                     'color': "#FF9800",
-                    'volume': 0,
+                    'volume': self.main_window.freq_track_volume.value() if hasattr(self.main_window, 'freq_track_volume') else 0,
                     'duration': freq_track_duration,
-                    'overlay_index': 0
+                    'overlayIndex': 0,
+                    'overlayInterval': 0
                 })
 
             if max_duration == 0:
@@ -120,15 +109,42 @@ class PreviewManager:
                             'color': "#9C27B0",
                             'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
                             'duration': min(affirmation_duration, adjusted_duration),
-                            'overlay_index': i
+                            'overlayIndex': i,
+                            'overlayInterval': overlay_interval
                         })
 
-            self._render_tracks(tracks, max_duration)
+            self._send_preview_data(tracks, max_duration)
 
         except Exception as e:
             logger.error(f"更新预览失败: {e}")
-            if hasattr(self.main_window, 'preview_tracks_label'):
-                self.main_window.preview_tracks_label.setText(self.main_window.tr(f"预览更新失败: {str(e)}"))
+
+    def _clear_preview(self):
+        """清空预览"""
+        if self.web_view and self.preview_page_loaded:
+            js_code = "if (window.clearAudioPreview) { window.clearAudioPreview(); }"
+            self.web_view.page().runJavaScript(js_code)
+
+    def _send_preview_data(self, tracks, max_duration):
+        """发送预览数据到WebView"""
+        if not self.web_view or not self.preview_page_loaded:
+            return
+
+        # 构建预览数据
+        preview_data = {
+            'tracks': tracks,
+            'maxDuration': max_duration
+        }
+
+        # 将数据转换为JSON并传递给JavaScript
+        json_data = json.dumps(preview_data, ensure_ascii=False)
+        js_code = f"""
+            if (window.updateAudioPreview) {{
+                const data = {json_data};
+                window.updateAudioPreview(data.tracks, data.maxDuration);
+            }}
+        """
+        self.web_view.page().runJavaScript(js_code)
+        logger.debug(f"预览数据已发送: {len(tracks)} 个轨道, 总时长 {max_duration:.1f}s")
 
     def _get_audio_duration(self, file_path):
         """获取音频文件时长"""
@@ -154,54 +170,27 @@ class PreviewManager:
             logger.error(f"获取音频时长失败: {e}")
             return 60.0
 
+    # 保留原有方法以保持兼容性（但不再使用PyQt5渲染）
+    def preview_zoom_in(self):
+        """放大预览视图（已废弃，保留兼容性）"""
+        logger.debug("Web预览不支持缩放操作")
+
+    def preview_zoom_out(self):
+        """缩小预览视图（已废弃，保留兼容性）"""
+        logger.debug("Web预览不支持缩放操作")
+
+    def preview_reset(self):
+        """重置预览视图（已废弃，保留兼容性）"""
+        logger.debug("Web预览不支持重置操作")
+
+    def _apply_preview_zoom(self):
+        """应用预览缩放（已废弃，保留兼容性）"""
+        pass
+
     def _render_tracks(self, tracks, max_duration):
-        """渲染音轨到预览区域"""
-        if not hasattr(self.main_window, 'preview_layout') or not tracks:
-            return
-
-        track_height = 40
-        max_track_width = 600
-        pixels_per_second = max_track_width / max_duration
-
-        for track in tracks:
-            track_widget = self._create_track_widget(track, max_duration, pixels_per_second, track_height)
-            self.main_window.preview_layout.addWidget(track_widget)
-
-        if hasattr(self.main_window, 'preview_tracks_label'):
-            self.main_window.preview_tracks_label.setText(self.main_window.tr("轨道预览"))
+        """渲染音轨到预览区域（已废弃，保留兼容性）"""
+        pass
 
     def _create_track_widget(self, track, max_duration, pixels_per_second, track_height):
-        """创建单个音轨控件"""
-        from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
-        from PyQt5.QtCore import Qt
-
-        widget = QWidget()
-        widget.setFixedHeight(track_height)
-        
-        layout = QHBoxLayout(widget)
-        layout.setContentsMargins(2, 2, 2, 2)
-        layout.setSpacing(5)
-
-        label = QLabel(track['name'])
-        label.setFixedWidth(60)
-        label.setStyleSheet("color: #666; font-size: 12px;")
-        layout.addWidget(label)
-
-        track_area = QWidget()
-        track_area.setStyleSheet(f"background-color: #f0f0f0; border-radius: 4px;")
-        
-        clip_width = int(track['duration'] * pixels_per_second)
-        clip_width = min(clip_width, int(max_duration * pixels_per_second))
-        
-        clip = QWidget()
-        clip.setFixedWidth(max(clip_width, 5))
-        clip.setFixedHeight(track_height - 12)
-        clip.setStyleSheet(f"background-color: {track['color']}; border-radius: 3px;")
-        
-        clip_layout = QHBoxLayout(track_area)
-        clip_layout.setContentsMargins(2, 2, 2, 2)
-        clip_layout.addWidget(clip)
-        
-        layout.addWidget(track_area)
-
-        return widget
+        """创建单个音轨控件（已废弃，保留兼容性）"""
+        pass
