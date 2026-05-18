@@ -1080,6 +1080,8 @@ class MainWindow(QMainWindow):
                 self.overlay_interval.valueChanged.connect(self.on_preview_source_changed)
             if hasattr(self, 'freq_track_enabled'):
                 self.freq_track_enabled.stateChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'ensure_integrity_check'):
+                self.ensure_integrity_check.stateChanged.connect(self.on_preview_source_changed)
 
     def on_preview_source_changed(self):
         """预览源数据变化时更新预览"""

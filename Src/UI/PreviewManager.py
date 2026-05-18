@@ -54,31 +54,146 @@ class PreviewManager:
             tracks = []
             max_duration = 0
 
+            # 获取背景音频时长
             if background_file and os.path.exists(background_file):
-                duration = self._get_audio_duration(background_file)
-                max_duration = max(max_duration, duration)
+                bg_duration = self._get_audio_duration(background_file)
+                max_duration = bg_duration
                 tracks.append({
                     'name': self.main_window.tr("背景音乐"),
                     'file': background_file,
                     'color': "#4CAF50",
                     'volume': self.main_window.background_volume.value() if hasattr(self.main_window, 'background_volume') else 0,
-                    'duration': duration,
+                    'duration': bg_duration,
                     'overlayIndex': 0,
-                    'overlayInterval': 0
+                    'overlayInterval': 0,
+                    'isLoop': False
                 })
 
+            # 获取肯定语音频时长
+            affirmation_duration = 0
             if affirmation_file and os.path.exists(affirmation_file):
-                duration = self._get_audio_duration(affirmation_file)
-                tracks.append({
-                    'name': self.main_window.tr("肯定语"),
-                    'file': affirmation_file,
-                    'color': "#2196F3",
-                    'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
-                    'duration': duration,
-                    'overlayIndex': 0,
-                    'overlayInterval': 0
-                })
+                affirmation_duration = self._get_audio_duration(affirmation_file)
 
+            # 检查是否启用"确保完整性"模式
+            ensure_integrity = False
+            if hasattr(self.main_window, 'ensure_integrity_check'):
+                ensure_integrity = self.main_window.ensure_integrity_check.isChecked()
+
+            # 获取叠加设置
+            overlay_times = self.main_window.overlay_times.value() if hasattr(self.main_window, 'overlay_times') else 1
+            overlay_interval = self.main_window.overlay_interval.value() if hasattr(self.main_window, 'overlay_interval') else 0.0
+
+            # 计算肯定语的实际播放方式
+            if affirmation_file and os.path.exists(affirmation_file):
+                if max_duration == 0:
+                    # 没有背景音乐，只显示肯定语本身
+                    max_duration = affirmation_duration
+                    tracks.append({
+                        'name': self.main_window.tr("肯定语"),
+                        'file': affirmation_file,
+                        'color': "#2196F3",
+                        'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
+                        'duration': affirmation_duration,
+                        'overlayIndex': 0,
+                        'overlayInterval': 0,
+                        'isLoop': False
+                    })
+                else:
+                    # 有背景音乐
+                    if ensure_integrity:
+                        # 确保完整性模式：肯定语完整循环播放，填满背景音频
+                        # 计算完整循环次数
+                        full_cycles = int(max_duration // affirmation_duration)
+                        remaining = max_duration % affirmation_duration
+
+                        # 添加完整循环的片段
+                        for i in range(full_cycles):
+                            tracks.append({
+                                'name': self.main_window.tr("肯定语") if i == 0 else self.main_window.tr("肯定语") + f" (循环{i+1})",
+                                'file': affirmation_file,
+                                'color': "#2196F3" if i == 0 else "#64B5F6",
+                                'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
+                                'duration': affirmation_duration,
+                                'overlayIndex': i,
+                                'overlayInterval': affirmation_duration,
+                                'isLoop': True
+                            })
+
+                        # 确保完整性模式下，不完整的剩余部分不会添加肯定语
+                        # 只添加完整循环的片段，不添加部分片段
+                    else:
+                        # 普通模式：肯定语循环重复填满背景音频
+                        # 计算需要多少个循环才能填满背景音频
+                        loop_count = int(max_duration / affirmation_duration) + (1 if max_duration % affirmation_duration > 0 else 0)
+
+                        for i in range(loop_count):
+                            start_time = i * affirmation_duration
+                            remaining_duration = max_duration - start_time
+                            actual_duration = min(affirmation_duration, remaining_duration)
+
+                            if actual_duration > 0.1:
+                                tracks.append({
+                                    'name': self.main_window.tr("肯定语") if i == 0 else self.main_window.tr("肯定语") + f" (循环{i+1})",
+                                    'file': affirmation_file,
+                                    'color': "#2196F3" if i == 0 else "#64B5F6",
+                                    'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
+                                    'duration': actual_duration,
+                                    'overlayIndex': i,
+                                    'overlayInterval': affirmation_duration,
+                                    'isLoop': True
+                                })
+
+            # 添加叠加的肯定语音轨
+            if overlay_times > 1 and affirmation_file and os.path.exists(affirmation_file):
+                for i in range(1, overlay_times):
+                    overlay_start = i * overlay_interval
+
+                    if overlay_start < max_duration:
+                        # 计算这个叠加轨道的实际播放时长
+                        if ensure_integrity:
+                            # 确保完整性模式
+                            available_duration = max_duration - overlay_start
+                            full_cycles = int(available_duration // affirmation_duration)
+                            remaining = available_duration % affirmation_duration
+
+                            for j in range(full_cycles):
+                                tracks.append({
+                                    'name': self.main_window.tr("肯定语") + f" (叠加{i+1}循环{j+1})",
+                                    'file': affirmation_file,
+                                    'color': "#9C27B0",
+                                    'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
+                                    'duration': affirmation_duration,
+                                    'overlayIndex': i,
+                                    'overlayInterval': overlay_interval,
+                                    'loopOffset': j * affirmation_duration,
+                                    'isLoop': True
+                                })
+
+                            # 确保完整性模式下，不完整的剩余部分不会添加肯定语
+                        else:
+                            # 普通模式：循环填满
+                            available_duration = max_duration - overlay_start
+                            loop_count = int(available_duration / affirmation_duration) + (1 if available_duration % affirmation_duration > 0 else 0)
+
+                            for j in range(loop_count):
+                                loop_start = overlay_start + j * affirmation_duration
+                                remaining = max_duration - loop_start
+                                actual_duration = min(affirmation_duration, remaining)
+
+                                if actual_duration > 0.1:
+                                    tracks.append({
+                                        'name': self.main_window.tr("肯定语") + f" (叠加{i+1}循环{j+1})",
+                                        'file': affirmation_file,
+                                        'color': "#9C27B0" if j == 0 else "#AB47BC",
+                                        'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
+                                        'duration': actual_duration,
+                                        'overlayIndex': i,
+                                        'overlayInterval': overlay_interval,
+                                        'loopOffset': j * affirmation_duration,
+                                        'isLoop': True
+                                    })
+
+            # 添加特定频率音轨
             if hasattr(self.main_window, 'freq_track_enabled') and self.main_window.freq_track_enabled.isChecked():
                 freq_track_duration = max_duration if max_duration > 0 else 60
                 tracks.append({
@@ -88,30 +203,12 @@ class PreviewManager:
                     'volume': self.main_window.freq_track_volume.value() if hasattr(self.main_window, 'freq_track_volume') else 0,
                     'duration': freq_track_duration,
                     'overlayIndex': 0,
-                    'overlayInterval': 0
+                    'overlayInterval': 0,
+                    'isLoop': False
                 })
 
             if max_duration == 0:
                 max_duration = 60
-
-            overlay_times = self.main_window.overlay_times.value() if hasattr(self.main_window, 'overlay_times') else 1
-            overlay_interval = self.main_window.overlay_interval.value() if hasattr(self.main_window, 'overlay_interval') else 1.0
-
-            if overlay_times > 1 and affirmation_file and os.path.exists(affirmation_file):
-                affirmation_duration = self._get_audio_duration(affirmation_file)
-                for i in range(1, overlay_times):
-                    overlay_start = i * overlay_interval
-                    adjusted_duration = max_duration - overlay_start
-                    if adjusted_duration > 0:
-                        tracks.append({
-                            'name': self.main_window.tr("肯定语") + f" ({i+1})",
-                            'file': affirmation_file,
-                            'color': "#9C27B0",
-                            'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
-                            'duration': min(affirmation_duration, adjusted_duration),
-                            'overlayIndex': i,
-                            'overlayInterval': overlay_interval
-                        })
 
             self._send_preview_data(tracks, max_duration)
 

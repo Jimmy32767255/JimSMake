@@ -142,8 +142,16 @@ body {
     background-color: #2196F3;
 }
 
+.track-clip.affirmation:nth-child(even) {
+    background-color: #42A5F5;
+}
+
 .track-clip.affirmation-overlay {
     background-color: #9C27B0;
+}
+
+.track-clip.affirmation-overlay:nth-child(even) {
+    background-color: #AB47BC;
 }
 
 .track-clip.frequency {
