@@ -745,6 +745,12 @@ class UIFactory:
         self.main_window.reset_settings_btn.clicked.connect(self.main_window.reset_settings)
         layout.addWidget(self.main_window.reset_settings_btn, 1, 0, 1, 3)
 
+        # 检查更新按钮
+        self.main_window.check_update_btn = QPushButton(self.main_window.tr("检查更新"))
+        self.main_window.check_update_btn.setToolTip(self.main_window.tr("检查是否有新版本可用"))
+        self.main_window.check_update_btn.clicked.connect(self.main_window.check_for_updates)
+        layout.addWidget(self.main_window.check_update_btn, 2, 0, 1, 3)
+
         # 关于信息
         self.main_window.about_group = QGroupBox(self.main_window.tr("关于"))
         about_layout = QVBoxLayout()
@@ -817,7 +823,7 @@ class UIFactory:
         about_layout.addWidget(self.main_window.contact_label)
 
         self.main_window.about_group.setLayout(about_layout)
-        layout.addWidget(self.main_window.about_group, 2, 0, 1, 3)
+        layout.addWidget(self.main_window.about_group, 3, 0, 1, 3)
 
         self.main_window.settings_group.setLayout(layout)
         return self.main_window.settings_group

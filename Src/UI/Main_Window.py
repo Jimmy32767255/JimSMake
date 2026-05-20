@@ -23,6 +23,7 @@ from .ReleaseManager import ReleaseManager
 from .UIFactory import UIFactory
 from .BatchProcessor import BatchProcessorDialog
 from .PreviewManager import PreviewManager
+from .UpdateChecker import UpdateChecker
 from Processors.DecompileProcessor import DecompileProcessor
 
 class MainWindow(QMainWindow):
@@ -77,6 +78,9 @@ class MainWindow(QMainWindow):
 
         # 初始化日志处理器（需要在ui_factory之前）
         self.log_handler = LogHandler(self)
+
+        # 初始化更新检查器
+        self.update_checker = UpdateChecker(self)
 
         self.ui_factory = UIFactory(self)
         
@@ -1627,28 +1631,38 @@ class MainWindow(QMainWindow):
     
     def reset_settings(self):
         """重置所有设置"""
-        reply = QMessageBox.question(self, self.tr("确认重置"), 
+        reply = QMessageBox.question(self, self.tr("确认重置"),
                                     self.tr("确定要重置所有设置吗？这将恢复所有设置为默认值。"),
                                     QMessageBox.Yes | QMessageBox.No)
-        
+
         if reply == QMessageBox.Yes:
             logger.info("开始重置设置")
             self.settings.clear()
             logger.debug("设置已清空")
-            
+
             self.current_language = "zh_CN"
             self.settings.setValue("language", self.current_language)
             logger.info(f"语言重置为默认: {self.current_language}")
-            
+
             self.setupTranslations()
-            
+
             current_index = self.language_combo.findData(self.current_language)
             if current_index >= 0:
                 self.language_combo.setCurrentIndex(current_index)
-            
+
             logger.info("设置重置完成")
             QMessageBox.information(self, self.tr("成功"),
                                    self.tr("所有设置已重置为默认值。"))
+
+    def check_for_updates(self):
+        """检查更新"""
+        logger.info("用户触发检查更新")
+        if hasattr(self, 'update_checker') and self.update_checker:
+            self.update_checker.check_for_updates(silent=False)
+        else:
+            logger.error("更新检查器未初始化")
+            QMessageBox.warning(self, self.tr("错误"),
+                               self.tr("更新检查器未初始化，请重启程序后重试。"))
 
     def clear_log_display(self):
         """清空日志显示区域"""
