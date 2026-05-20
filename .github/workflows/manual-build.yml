@@ -91,10 +91,9 @@ jobs:
           retention-days: 7
 
   release:
-    if: ${{ inputs.upload_artifact }}
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
-    if: always() && (needs.build-windows.result == 'success' || needs.build-linux.result == 'success')
+    if: ${{ inputs.upload_artifact && always() && (needs.build-windows.result == 'success' || needs.build-linux.result == 'success') }}
     steps:
       - name: 下载所有构建产物
         uses: actions/download-artifact@v4
