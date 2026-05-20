@@ -4,6 +4,8 @@
 
 ## Introduction
 
+![SMake](../../Assets/SMakeIcon256.png)
+
 JimSMake is a professional subliminal audio production tool that provides an intuitive graphical interface and command-line interface, helping users easily create subliminal audio content.
 
 [Directory Info](../../DirInfo.txt)
