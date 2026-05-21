@@ -1170,7 +1170,66 @@ class MainWindow(QMainWindow):
             if line_edit == self.text_file:
                 self.text_sync.load_text_from_file(file_path)
 
-    
+    def open_affirmation_editor(self):
+        """打开肯定语编辑器对话框"""
+        from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(self.tr("编辑肯定语"))
+        dialog.setMinimumSize(500, 300)
+
+        layout = QVBoxLayout(dialog)
+
+        # 多行文本编辑框
+        text_edit = QTextEdit(dialog)
+        text_edit.setPlainText(self.affirmation_text.text())
+        text_edit.setPlaceholderText(self.tr("在此输入肯定语..."))
+        layout.addWidget(text_edit)
+
+        # 按钮布局
+        btn_layout = QHBoxLayout()
+
+        save_btn = QPushButton(self.tr("保存"), dialog)
+        save_btn.clicked.connect(dialog.accept)
+        btn_layout.addStretch()
+        btn_layout.addWidget(save_btn)
+
+        cancel_btn = QPushButton(self.tr("取消"), dialog)
+        cancel_btn.clicked.connect(dialog.reject)
+        btn_layout.addWidget(cancel_btn)
+
+        layout.addLayout(btn_layout)
+
+        # 显示对话框
+        if dialog.exec_() == QDialog.Accepted:
+            self.affirmation_text.setText(text_edit.toPlainText())
+            logger.debug("肯定语已更新")
+
+    def open_text_file_with_default_app(self):
+        """用系统默认程序打开文本文件"""
+        file_path = self.text_file.text().strip()
+        if not file_path:
+            QMessageBox.warning(self, self.tr("提示"), self.tr("请先选择文本文件！"))
+            return
+
+        if not os.path.exists(file_path):
+            QMessageBox.warning(self, self.tr("错误"), self.tr(f"文件不存在: {file_path}"))
+            return
+
+        try:
+            import platform
+            system = platform.system()
+            if system == "Windows":
+                os.startfile(file_path)
+            elif system == "Darwin":  # macOS
+                subprocess.run(["open", file_path], check=True)
+            else:  # Linux
+                subprocess.run(["xdg-open", file_path], check=True)
+            logger.info(f"用默认程序打开文件: {file_path}")
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"无法打开文件: {str(e)}"))
+            logger.error(f"打开文件失败: {e}")
+
     def search_visualization_image(self):
         """联机搜索视觉化图片"""
         keyword = self.search_keyword.text().strip()

@@ -239,7 +239,11 @@ class UIFactory:
         layout.addWidget(self.main_window.label_affirmation_text, 1, 0)
         self.main_window.affirmation_text = QLineEdit()
         self.main_window.affirmation_text.setToolTip(self.main_window.tr("输入肯定语。"))
-        layout.addWidget(self.main_window.affirmation_text, 1, 1, 1, 2)
+        layout.addWidget(self.main_window.affirmation_text, 1, 1)
+        self.main_window.btn_edit_affirmation = QPushButton(self.main_window.tr("编辑..."))
+        self.main_window.btn_edit_affirmation.setToolTip(self.main_window.tr("打开更大的编辑框编辑肯定语"))
+        self.main_window.btn_edit_affirmation.clicked.connect(self.main_window.open_affirmation_editor)
+        layout.addWidget(self.main_window.btn_edit_affirmation, 1, 2)
 
         # 文本文件选择
         self.main_window.label_text_file = QLabel(self.main_window.tr("文本文件:"))
@@ -248,12 +252,21 @@ class UIFactory:
         self.main_window.text_file.setToolTip(self.main_window.tr("选择一个文本文件作为肯定语。"))
         layout.addWidget(self.main_window.text_file, 2, 1)
 
+        # 文本文件按钮组（浏览 + 打开）
+        text_file_btn_layout = QHBoxLayout()
+        text_file_btn_layout.setSpacing(5)
         self.main_window.btn_browse_text = QPushButton(self.main_window.tr("浏览..."))
         self.main_window.btn_browse_text.clicked.connect(
             lambda: self.main_window.browse_file(self.main_window.text_file,
                                                self.main_window.tr("文本文件 (*.txt)")))
         self.main_window.btn_browse_text.setToolTip(self.main_window.tr("选择文本文件"))
-        layout.addWidget(self.main_window.btn_browse_text, 2, 2)
+        text_file_btn_layout.addWidget(self.main_window.btn_browse_text)
+
+        self.main_window.btn_open_text = QPushButton(self.main_window.tr("打开"))
+        self.main_window.btn_open_text.setToolTip(self.main_window.tr("用系统默认程序打开文本文件"))
+        self.main_window.btn_open_text.clicked.connect(self.main_window.open_text_file_with_default_app)
+        text_file_btn_layout.addWidget(self.main_window.btn_open_text)
+        layout.addLayout(text_file_btn_layout, 2, 2)
 
         # TTS引擎选择
         self.main_window.label_tts_engine = QLabel(self.main_window.tr("TTS引擎:"))
