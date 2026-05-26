@@ -281,6 +281,7 @@ class ProjectManager:
             self._load_spin_setting('overlay_times', overlay.get('times'))
             self._load_spin_setting('overlay_interval', overlay.get('interval'))
             self._load_spin_setting('volume_decrease', overlay.get('volume_decrease'))
+            self._load_checkbox_setting('overlay_stagger_mode', overlay.get('stagger_mode'))
 
             # 加载背景音设置
             background = config.get('background', {})
@@ -364,6 +365,8 @@ class ProjectManager:
             self.main_window.overlay_interval.setValue(1.0)
         if hasattr(self.main_window, 'volume_decrease') and self.main_window.volume_decrease is not None:
             self.main_window.volume_decrease.setValue(0.0)
+        if hasattr(self.main_window, 'overlay_stagger_mode') and self.main_window.overlay_stagger_mode is not None:
+            self.main_window.overlay_stagger_mode.setChecked(False)
 
         # 背景音设置
         if hasattr(self.main_window, 'background_file') and self.main_window.background_file is not None:
@@ -456,7 +459,8 @@ class ProjectManager:
                 "overlay": {
                     "times": 1,
                     "interval": 1.0,
-                    "volume_decrease": 0.0
+                    "volume_decrease": 0.0,
+                    "stagger_mode": False
                 },
                 "background": {
                     "file": "",
@@ -581,7 +585,8 @@ class ProjectManager:
                 "overlay": {
                     "times": self._get_spin_value('overlay_times'),
                     "interval": self._get_spin_value('overlay_interval'),
-                    "volume_decrease": self._get_spin_value('volume_decrease')
+                    "volume_decrease": self._get_spin_value('volume_decrease'),
+                    "stagger_mode": self._get_checkbox_value('overlay_stagger_mode')
                 },
                 "background": {
                     "file": self._get_relative_path('background_file', project_dir),

@@ -386,6 +386,12 @@ class UIFactory:
         self.main_window.volume_decrease.setToolTip(self.main_window.tr("每次叠加后，下一个叠加音轨应比上一个音量降低多少？"))
         overlay_layout.addWidget(self.main_window.volume_decrease, 2, 1)
 
+        # 交错模式复选框
+        self.main_window.overlay_stagger_mode = QCheckBox(self.main_window.tr("交错模式"))
+        self.main_window.overlay_stagger_mode.setChecked(False)
+        self.main_window.overlay_stagger_mode.setToolTip(self.main_window.tr("启用后，叠加的音轨将交替正放和倒放。第一个音轨正放，第二个倒放，第三个正放，以此类推。"))
+        overlay_layout.addWidget(self.main_window.overlay_stagger_mode, 3, 0, 1, 2)
+
         self.main_window.overlay_group.setLayout(overlay_layout)
         layout.addWidget(self.main_window.overlay_group, 10, 0, 1, 3)
 

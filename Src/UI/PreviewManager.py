@@ -116,6 +116,7 @@ class PreviewManager:
             # 获取叠加设置
             overlay_times = self.main_window.overlay_times.value() if hasattr(self.main_window, 'overlay_times') else 1
             overlay_interval = self.main_window.overlay_interval.value() if hasattr(self.main_window, 'overlay_interval') else 0.0
+            stagger_mode = self.main_window.overlay_stagger_mode.isChecked() if hasattr(self.main_window, 'overlay_stagger_mode') else False
 
             # 计算肯定语的实际播放方式
             if affirmation_file and os.path.exists(affirmation_file):
@@ -182,6 +183,9 @@ class PreviewManager:
                 for i in range(1, overlay_times):
                     overlay_start = i * overlay_interval
 
+                    # 交错模式：判断当前叠加音轨是正放还是倒放
+                    is_reversed = stagger_mode and (i % 2 == 1)
+
                     if overlay_start < max_duration:
                         # 计算这个叠加轨道的实际播放时长
                         if ensure_integrity:
@@ -191,16 +195,24 @@ class PreviewManager:
                             remaining = available_duration % affirmation_duration
 
                             for j in range(full_cycles):
+                                # 交错模式下，根据叠加索引决定正放/倒放
+                                cycle_is_reversed = stagger_mode and (i % 2 == 1)
+                                track_name = self.main_window.tr("肯定语") + f" (叠加{i+1}"
+                                if cycle_is_reversed:
+                                    track_name += self.main_window.tr("[倒]")
+                                track_name += f"循环{j+1})"
+
                                 tracks.append({
-                                    'name': self.main_window.tr("肯定语") + f" (叠加{i+1}循环{j+1})",
+                                    'name': track_name,
                                     'file': affirmation_file,
-                                    'color': "#9C27B0",
+                                    'color': "#9C27B0" if not cycle_is_reversed else "#E91E63",
                                     'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
                                     'duration': affirmation_duration,
                                     'overlayIndex': i,
                                     'overlayInterval': overlay_interval,
                                     'loopOffset': j * affirmation_duration,
-                                    'isLoop': True
+                                    'isLoop': True,
+                                    'isReversed': cycle_is_reversed
                                 })
 
                             # 确保完整性模式下，不完整的剩余部分不会添加肯定语
@@ -215,16 +227,24 @@ class PreviewManager:
                                 actual_duration = min(affirmation_duration, remaining)
 
                                 if actual_duration > 0.1:
+                                    # 交错模式下，根据叠加索引决定正放/倒放
+                                    cycle_is_reversed = stagger_mode and (i % 2 == 1)
+                                    track_name = self.main_window.tr("肯定语") + f" (叠加{i+1}"
+                                    if cycle_is_reversed:
+                                        track_name += self.main_window.tr("[倒]")
+                                    track_name += f"循环{j+1})"
+
                                     tracks.append({
-                                        'name': self.main_window.tr("肯定语") + f" (叠加{i+1}循环{j+1})",
+                                        'name': track_name,
                                         'file': affirmation_file,
-                                        'color': "#9C27B0" if j == 0 else "#AB47BC",
+                                        'color': "#9C27B0" if j == 0 and not cycle_is_reversed else "#AB47BC" if not cycle_is_reversed else "#E91E63",
                                         'volume': self.main_window.affirmation_volume.value() if hasattr(self.main_window, 'affirmation_volume') else 0,
                                         'duration': actual_duration,
                                         'overlayIndex': i,
                                         'overlayInterval': overlay_interval,
                                         'loopOffset': j * affirmation_duration,
-                                        'isLoop': True
+                                        'isLoop': True,
+                                        'isReversed': cycle_is_reversed
                                     })
 
             # 添加特定频率音轨

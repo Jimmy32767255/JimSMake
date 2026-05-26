@@ -78,6 +78,7 @@ class OutputManager:
             'overlay_times': self.main_window.overlay_times.value(),
             'overlay_interval': self.main_window.overlay_interval.value(),
             'volume_decrease': self.main_window.volume_decrease.value(),
+            'overlay_stagger_mode': self.main_window.overlay_stagger_mode.isChecked(),
             'background_volume': self.main_window.background_volume_spin.value(),
             'freq_track_enabled': self.main_window.freq_track_enabled.isChecked(),
             'freq_track_freq': self.main_window.freq_track_freq.text(),

@@ -66,6 +66,7 @@ class SMakeCLI:
             'overlay_times': parsed_args.overlay_times,
             'overlay_interval': parsed_args.overlay_interval,
             'volume_decrease': parsed_args.volume_decrease,
+            'overlay_stagger_mode': parsed_args.overlay_stagger_mode,
             'ensure_integrity': parsed_args.ensure_integrity,
             'freq_track_enabled': parsed_args.freq_track_enabled,
             'freq_track_freq': parsed_args.freq_track_freq,
@@ -212,6 +213,8 @@ class SMakeCLI:
                             help='叠加间隔 (秒, 默认: 1.0)')
         parser.add_argument('--volume-decrease', type=float, default=0.0,
                             help='每次叠加音量递减 (dB, 默认: 0)')
+        parser.add_argument('--overlay-stagger-mode', action='store_true',
+                            help='交错模式：叠加音轨交替正放和倒放')
 
         parser.add_argument('--ensure-integrity', action='store_true',
                             help='确保肯定语完整性')

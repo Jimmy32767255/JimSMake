@@ -402,11 +402,12 @@ class AudioCore:
         overlay_times = params.get('overlay_times', 1)
         overlay_interval = params.get('overlay_interval', 1.0)
         volume_decrease = params.get('volume_decrease', 0.0)
+        stagger_mode = params.get('overlay_stagger_mode', False)
 
         if overlay_times <= 1:
             return audio_data
 
-        logger.info(f"应用叠加效果: {overlay_times}次, 间隔{overlay_interval}s")
+        logger.info(f"应用叠加效果: {overlay_times}次, 间隔{overlay_interval}s, 交错模式: {stagger_mode}")
 
         data = audio_data['data']
         sample_rate = audio_data['sample_rate']
@@ -418,9 +419,19 @@ class AudioCore:
             current_volume_db = -i * volume_decrease
             volume_factor = 10 ** (current_volume_db / 20.0)
             offset = i * interval_samples
-            for j, sample in enumerate(data):
-                if offset + j < final_length:
-                    result[offset + j] += sample * volume_factor
+
+            # 交错模式：偶数索引（0, 2, 4...）正放，奇数索引（1, 3, 5...）倒放
+            if stagger_mode and i % 2 == 1:
+                # 倒放：反转数据
+                reversed_data = data[::-1]
+                for j, sample in enumerate(reversed_data):
+                    if offset + j < final_length:
+                        result[offset + j] += sample * volume_factor
+            else:
+                # 正放
+                for j, sample in enumerate(data):
+                    if offset + j < final_length:
+                        result[offset + j] += sample * volume_factor
 
         max_val = max(abs(s) for s in result) if result else 1.0
         if max_val > 1.0:

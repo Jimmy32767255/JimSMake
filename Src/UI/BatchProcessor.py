@@ -259,6 +259,7 @@ class BatchGenerationWorker(QThread):
             'overlay_times': overlay.get('times', 1),
             'overlay_interval': overlay.get('interval', 1.0),
             'volume_decrease': overlay.get('volume_decrease', 0.0),
+            'overlay_stagger_mode': overlay.get('stagger_mode', False),
             'background_volume': background.get('volume', 0.0),
             'freq_track_enabled': freq_track.get('enabled', False),
             'freq_track_freq': freq_track.get('frequency', '432'),
