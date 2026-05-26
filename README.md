@@ -237,6 +237,8 @@ CLI 模式适用于批量处理、自动化脚本或无图形界面环境。
    lrelease ./Translation/SMake.pro
    ```
 
+注意：对于zh_cn，由于它是程序原生语言，不需要翻译，你可以使用`./Translation/auto_translate_zh_cn.py`来快速完成它
+
 ## 联系方式
 
 如有问题或建议，请通过以下方式联系我们：
