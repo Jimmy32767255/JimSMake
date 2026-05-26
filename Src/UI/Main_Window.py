@@ -1082,6 +1082,8 @@ class MainWindow(QMainWindow):
                 self.overlay_times.valueChanged.connect(self.on_preview_source_changed)
             if hasattr(self, 'overlay_interval'):
                 self.overlay_interval.valueChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'overlay_stagger_mode'):
+                self.overlay_stagger_mode.stateChanged.connect(self.on_preview_source_changed)
             if hasattr(self, 'freq_track_enabled'):
                 self.freq_track_enabled.stateChanged.connect(self.on_preview_source_changed)
             if hasattr(self, 'ensure_integrity_check'):

@@ -203,8 +203,14 @@ class AudioPreview {
             if (isOverlay) {
                 // 叠加轨道：按叠加层级分组（叠加1、叠加2等）
                 const overlayMatch = track.name.match(/叠加\d+/);
+                // 检查是否有倒放标记
+                const isReversed = track.name.includes('[倒]') || track.name.includes('[Rev]');
                 if (overlayMatch) {
-                    baseName = `肯定语(${overlayMatch[0]})`;
+                    baseName = `肯定语(${overlayMatch[0]}`;
+                    if (isReversed) {
+                        baseName += '[倒]';
+                    }
+                    baseName += ')';
                 }
             } else {
                 // 普通轨道：去除括号内的内容
@@ -261,8 +267,14 @@ class AudioPreview {
         // 对于叠加轨道，显示"肯定语(叠加X)"格式
         if (labelName.includes('叠加')) {
             const overlayMatch = labelName.match(/叠加\d+/);
+            // 检查是否有倒放标记
+            const isReversed = labelName.includes('[倒]') || labelName.includes('[Rev]');
             if (overlayMatch) {
-                labelName = `肯定语(${overlayMatch[0]})`;
+                labelName = `肯定语(${overlayMatch[0]}`;
+                if (isReversed) {
+                    labelName += '[倒]';
+                }
+                labelName += ')';
             } else {
                 // 去除括号内的内容
                 if (labelName.includes('(')) {
@@ -340,6 +352,10 @@ class AudioPreview {
             if (match) {
                 shortName = match[1]; // 只显示括号内的内容
             }
+        }
+        // 如果轨道是倒放的且简短名称中还没有倒放标记，则添加标记
+        if (track.isReversed && !shortName.includes('[倒]')) {
+            shortName = '[倒]' + shortName;
         }
         clipName.textContent = shortName;
         clip.appendChild(clipName);

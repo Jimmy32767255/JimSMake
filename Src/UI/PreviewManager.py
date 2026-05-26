@@ -200,7 +200,7 @@ class PreviewManager:
                                 track_name = self.main_window.tr("肯定语") + f" (叠加{i+1}"
                                 if cycle_is_reversed:
                                     track_name += self.main_window.tr("[倒]")
-                                track_name += f"循环{j+1})"
+                                track_name += f" 循环{j+1})"
 
                                 tracks.append({
                                     'name': track_name,
@@ -232,7 +232,7 @@ class PreviewManager:
                                     track_name = self.main_window.tr("肯定语") + f" (叠加{i+1}"
                                     if cycle_is_reversed:
                                         track_name += self.main_window.tr("[倒]")
-                                    track_name += f"循环{j+1})"
+                                    track_name += f" 循环{j+1})"
 
                                     tracks.append({
                                         'name': track_name,
