@@ -33,7 +33,7 @@ QQ Group: 1095279278
 - **Batch Processing** - Support multi-project batch generation to improve work efficiency
 - **Affirmation Processing** - Supports audio file import, text-to-speech (TTS), microphone recording, and more
 - **Audio Effects** - Volume adjustment (dB), frequency shifting (e.g. 17500Hz), speed control, reverse playback
-- **Overlay Effects** - Multi-track overlay with adjustable count, interval, and volume decrease
+- **Overlay Effects** - Multi-track overlay with adjustable count, interval, volume decrease, and stagger mode (normal/reverse alternation)
 - **Background Music** - Add background tracks with independent volume control
 - **Specific Frequency Overlay** - Support 432/639/1111Hz and other specific frequency track overlay, with difference mode and channel inversion
 - **Video Generation** - Combine audio with visualization images to create MP4 and other video formats
@@ -181,6 +181,7 @@ If you want to participate in development or debug/modify the code, you need the
    - **Overlay Count**: 1-10 times
    - **Interval**: 0-10 seconds
    - **Volume Decrease**: 0-10dB reduction per overlay
+   - **Stagger Mode**: When enabled, overlay tracks will alternate between normal and reversed playback. The first track plays normally, the second reversed, the third normally, and so on
 
 #### Background Music Settings
 
