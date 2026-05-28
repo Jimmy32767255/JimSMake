@@ -182,17 +182,17 @@ Note: This operation will load each project's configuration and execute generati
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="970"/>
+        <location filename="../Src/UI/Main_Window.py" line="977"/>
         <source>SMake</source>
         <translation>SMake</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1039"/>
+        <location filename="../Src/UI/Main_Window.py" line="1046"/>
         <source>肯定语</source>
         <translation>Affirmation</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1040"/>
+        <location filename="../Src/UI/Main_Window.py" line="1047"/>
         <source>背景音</source>
         <translation>Background Music</translation>
     </message>
@@ -202,7 +202,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Brainwave Audio</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1042"/>
+        <location filename="../Src/UI/Main_Window.py" line="1049"/>
         <source>输出</source>
         <translation>Output</translation>
     </message>
@@ -227,7 +227,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation>Select an audio file as affirmation.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="500"/>
+        <location filename="../Src/UI/Main_Window.py" line="507"/>
         <source>浏览...</source>
         <translation>Browse...</translation>
     </message>
@@ -347,7 +347,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Change the frequency of the affirmation track. UG mode is recommended.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="510"/>
+        <location filename="../Src/UI/Main_Window.py" line="517"/>
         <source>倍速:</source>
         <translation>Speed:</translation>
     </message>
@@ -357,7 +357,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation>Change the speed of the affirmation track.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="512"/>
+        <location filename="../Src/UI/Main_Window.py" line="519"/>
         <source>倒放</source>
         <translation>Reverse</translation>
     </message>
@@ -567,12 +567,12 @@ Note: This operation will load each project's configuration and execute generati
         <translation>Start generating project!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1163"/>
+        <location filename="../Src/UI/Main_Window.py" line="1170"/>
         <source>选择文件</source>
         <translation>Select File</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1847"/>
+        <location filename="../Src/UI/Main_Window.py" line="1854"/>
         <source>警告</source>
         <translation>Warning</translation>
     </message>
@@ -587,17 +587,17 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">System Default</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1820"/>
+        <location filename="../Src/UI/Main_Window.py" line="1827"/>
         <source>成功</source>
         <translation>Success</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1830"/>
+        <location filename="../Src/UI/Main_Window.py" line="1837"/>
         <source>错误</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1158"/>
+        <location filename="../Src/UI/Main_Window.py" line="1165"/>
         <source>必须至少选择生成音频或生成视频一项！</source>
         <translation>Must select at least one of Generate Audio or Generate Video!</translation>
     </message>
@@ -617,7 +617,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Microphone (Realtek)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1046"/>
+        <location filename="../Src/UI/Main_Window.py" line="1053"/>
         <source>设置</source>
         <translation>Settings</translation>
     </message>
@@ -642,12 +642,12 @@ Note: This operation will load each project's configuration and execute generati
         <translation>About</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1695"/>
+        <location filename="../Src/UI/Main_Window.py" line="1702"/>
         <source>确认重置</source>
         <translation>Confirm Reset</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1695"/>
+        <location filename="../Src/UI/Main_Window.py" line="1702"/>
         <source>确定要重置所有设置吗？这将恢复所有设置为默认值。</source>
         <translation>Are you sure you want to reset all settings? This will restore all settings to default values.</translation>
     </message>
@@ -657,17 +657,17 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Language settings applied. Some interfaces may require restarting the program to take full effect.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1715"/>
+        <location filename="../Src/UI/Main_Window.py" line="1722"/>
         <source>所有设置已重置为默认值。</source>
         <translation>All settings have been reset to default values.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1038"/>
+        <location filename="../Src/UI/Main_Window.py" line="1045"/>
         <source>项目</source>
         <translation>Project</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="553"/>
+        <location filename="../Src/UI/Main_Window.py" line="560"/>
         <source>项目管理</source>
         <translation>Project Management</translation>
     </message>
@@ -677,7 +677,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Current Project:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="575"/>
+        <location filename="../Src/UI/Main_Window.py" line="582"/>
         <source>未选择项目</source>
         <translation>No Project Selected</translation>
     </message>
@@ -687,7 +687,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Project List:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="577"/>
+        <location filename="../Src/UI/Main_Window.py" line="584"/>
         <source>选择或切换当前项目</source>
         <translation>Select or switch current project</translation>
     </message>
@@ -697,12 +697,12 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">-- Select Project --</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="578"/>
+        <location filename="../Src/UI/Main_Window.py" line="585"/>
         <source>刷新</source>
         <translation>Refresh</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="579"/>
+        <location filename="../Src/UI/Main_Window.py" line="586"/>
         <source>刷新项目列表</source>
         <translation>Refresh project list</translation>
     </message>
@@ -712,7 +712,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">New Project:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="582"/>
+        <location filename="../Src/UI/Main_Window.py" line="589"/>
         <source>输入新项目名称</source>
         <translation>Enter new project name</translation>
     </message>
@@ -727,7 +727,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Create Project</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="585"/>
+        <location filename="../Src/UI/Main_Window.py" line="592"/>
         <source>创建新项目</source>
         <translation>Create new project</translation>
     </message>
@@ -737,7 +737,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Delete Project</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="594"/>
+        <location filename="../Src/UI/Main_Window.py" line="601"/>
         <source>删除选中的项目</source>
         <translation>Delete selected project</translation>
     </message>
@@ -747,12 +747,12 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Project Path:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="611"/>
+        <location filename="../Src/UI/Main_Window.py" line="618"/>
         <source>项目结构</source>
         <translation>Project Structure</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1520"/>
+        <location filename="../Src/UI/Main_Window.py" line="1527"/>
         <source>请先选择一个项目！</source>
         <translation>Please select a project first!</translation>
     </message>
@@ -832,7 +832,7 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Cannot get project directory!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1239"/>
+        <location filename="../Src/UI/Main_Window.py" line="1246"/>
         <source>请输入搜索关键词！</source>
         <translation>Please enter a search keyword!</translation>
     </message>
@@ -927,22 +927,22 @@ Note: This operation will load each project's configuration and execute generati
         <translation type="obsolete">Recording error: {error_msg}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1304"/>
+        <location filename="../Src/UI/Main_Window.py" line="1311"/>
         <source>肯定语音频文件不存在！</source>
         <translation>Affirmation audio file does not exist!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1317"/>
+        <location filename="../Src/UI/Main_Window.py" line="1324"/>
         <source>无法读取肯定语音频文件！</source>
         <translation>Cannot read affirmation audio file!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1322"/>
+        <location filename="../Src/UI/Main_Window.py" line="1329"/>
         <source>无法读取背景音频文件！</source>
         <translation>Cannot read background audio file!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1339"/>
+        <location filename="../Src/UI/Main_Window.py" line="1346"/>
         <source>启用'确保肯定语完整性'时，肯定语（含叠加效果）不能比背景音乐长。
 
 肯定语时长: {total_aff_duration:.2f}秒
@@ -957,7 +957,7 @@ Background music duration: {bg_duration:.2f}s
 Please shorten the affirmation, reduce overlay times, decrease overlay interval, or choose longer background music.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1344"/>
+        <location filename="../Src/UI/Main_Window.py" line="1351"/>
         <source>无法生成</source>
         <translation>Cannot Generate</translation>
     </message>
@@ -967,7 +967,7 @@ Please shorten the affirmation, reduce overlay times, decrease overlay interval,
         <translation type="obsolete">Generating Project...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1617"/>
+        <location filename="../Src/UI/Main_Window.py" line="1624"/>
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
@@ -1010,10 +1010,8 @@ Save path: {video_path}</translation>
     </message>
     <message>
         <location filename="../Src/UI/Main_Window.py" line="1664"/>
-        <source>视频生成失败。
-错误: {error_msg}</source>
-        <translation type="obsolete">Video generation failed.
-Error: {error_msg}</translation>
+        <source>压缩文件 (*.zip *.tar.xz)</source>
+        <translation>Compressed Files (*.zip *.tar.xz)</translation>
     </message>
     <message>
         <location filename="../Src/UI/Main_Window.py" line="1679"/>
@@ -1021,7 +1019,7 @@ Error: {error_msg}</translation>
         <translation type="obsolete">Generation failed: {error_msg}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1690"/>
+        <location filename="../Src/UI/Main_Window.py" line="1697"/>
         <source>请先选择语言！</source>
         <translation>Please select a language first!</translation>
     </message>
@@ -1095,12 +1093,12 @@ Error: {error_msg}</translation>
         <translation type="obsolete">Failed to delete project: {str(e)}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1041"/>
+        <location filename="../Src/UI/Main_Window.py" line="1048"/>
         <source>特定频率音轨</source>
         <translation>Solfeggio Frequency Track</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1047"/>
+        <location filename="../Src/UI/Main_Window.py" line="1054"/>
         <source>日志</source>
         <translation>Log</translation>
     </message>
@@ -1125,7 +1123,7 @@ Error: {error_msg}</translation>
         <translation type="obsolete">Select or enter the specific frequency (Hz) to overlay.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="506"/>
+        <location filename="../Src/UI/Main_Window.py" line="513"/>
         <source>音量 (dB):</source>
         <translation>Volume (dB):</translation>
     </message>
@@ -1135,22 +1133,22 @@ Error: {error_msg}</translation>
         <translation>Volume of the Solfeggio frequency track (dB).</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="473"/>
+        <location filename="../Src/UI/Main_Window.py" line="480"/>
         <source>日志输出</source>
         <translation>Log Output</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="474"/>
+        <location filename="../Src/UI/Main_Window.py" line="481"/>
         <source>清空日志</source>
         <translation>Clear Log</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="475"/>
+        <location filename="../Src/UI/Main_Window.py" line="482"/>
         <source>清空日志显示区域</source>
         <translation>Clear the log display area</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1214"/>
+        <location filename="../Src/UI/Main_Window.py" line="1221"/>
         <source>提示</source>
         <translation>Prompt</translation>
     </message>
@@ -1205,22 +1203,22 @@ Error: {error_msg}</translation>
         <translation>FFmpeg is required to use metadata features</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1043"/>
+        <location filename="../Src/UI/Main_Window.py" line="1050"/>
         <source>输出管理</source>
         <translation>Output Management</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1044"/>
+        <location filename="../Src/UI/Main_Window.py" line="1051"/>
         <source>反编译</source>
         <translation>Decompile</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1045"/>
+        <location filename="../Src/UI/Main_Window.py" line="1052"/>
         <source>项目介绍</source>
         <translation>Project Introduction</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="508"/>
+        <location filename="../Src/UI/Main_Window.py" line="515"/>
         <source>频率:</source>
         <translation>Frequency:</translation>
     </message>
@@ -1280,262 +1278,262 @@ Error: {error_msg}</translation>
         <translation type="obsolete">Version: {APP_VERSION}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="446"/>
+        <location filename="../Src/UI/Main_Window.py" line="453"/>
         <source>一站式潜意识音频制作工具</source>
         <translation>One-stop subliminal audio production tool</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="479"/>
+        <location filename="../Src/UI/Main_Window.py" line="486"/>
         <source>反编译（实验性）</source>
         <translation>Decompile (Experimental)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="482"/>
+        <location filename="../Src/UI/Main_Window.py" line="489"/>
         <source>⚠️ 重要警告</source>
         <translation>⚠️ Important Warning</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="498"/>
+        <location filename="../Src/UI/Main_Window.py" line="505"/>
         <source>文件路径:</source>
         <translation>File Path:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="501"/>
+        <location filename="../Src/UI/Main_Window.py" line="508"/>
         <source>选择要反编译的音频文件</source>
         <translation>Select audio file to decompile</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="507"/>
+        <location filename="../Src/UI/Main_Window.py" line="514"/>
         <source>反编译时的音量调整</source>
         <translation>Volume adjustment during decompilation</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="509"/>
+        <location filename="../Src/UI/Main_Window.py" line="516"/>
         <source>设置频率值(Hz)</source>
         <translation>Set frequency value (Hz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="511"/>
+        <location filename="../Src/UI/Main_Window.py" line="518"/>
         <source>反编译时的倍速调整</source>
         <translation>Speed adjustment during decompilation</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="513"/>
+        <location filename="../Src/UI/Main_Window.py" line="520"/>
         <source>是否对音频进行倒放处理</source>
         <translation>Whether to reverse the audio</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1829"/>
+        <location filename="../Src/UI/Main_Window.py" line="1836"/>
         <source>导出</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="519"/>
+        <location filename="../Src/UI/Main_Window.py" line="526"/>
         <source>导出反编译后的音频文件</source>
         <translation>Export decompiled audio file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="529"/>
+        <location filename="../Src/UI/Main_Window.py" line="536"/>
         <source>对方公开的肯定语:</source>
         <translation>Public Affirmation from Other Party:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="530"/>
+        <location filename="../Src/UI/Main_Window.py" line="537"/>
         <source>输入对方公开的肯定语内容，用于对比</source>
         <translation>Enter the public affirmation content from the other party for comparison</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="531"/>
+        <location filename="../Src/UI/Main_Window.py" line="538"/>
         <source>反编译识别结果:</source>
         <translation>Decompilation Recognition Result:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="532"/>
+        <location filename="../Src/UI/Main_Window.py" line="539"/>
         <source>输入反编译后的识别结果，用于对比</source>
         <translation>Enter the recognition result after decompilation for comparison</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="533"/>
+        <location filename="../Src/UI/Main_Window.py" line="540"/>
         <source>对比</source>
         <translation>Compare</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="534"/>
+        <location filename="../Src/UI/Main_Window.py" line="541"/>
         <source>对比两段文本的差异</source>
         <translation>Compare differences between two text segments</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="542"/>
+        <location filename="../Src/UI/Main_Window.py" line="549"/>
         <source>在此编辑项目介绍</source>
         <translation>Edit project introduction here</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="543"/>
+        <location filename="../Src/UI/Main_Window.py" line="550"/>
         <source>请输入项目介绍...</source>
         <translation>Please enter project introduction...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1194"/>
+        <location filename="../Src/UI/Main_Window.py" line="1201"/>
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="546"/>
+        <location filename="../Src/UI/Main_Window.py" line="553"/>
         <source>保存README.md文件</source>
         <translation>Save README.md file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="549"/>
+        <location filename="../Src/UI/Main_Window.py" line="556"/>
         <source>重新加载README.md文件</source>
         <translation>Reload README.md file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="556"/>
+        <location filename="../Src/UI/Main_Window.py" line="563"/>
         <source>项目组</source>
         <translation>Project Group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="573"/>
+        <location filename="../Src/UI/Main_Window.py" line="580"/>
         <source>当前:</source>
         <translation>Current:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="559"/>
+        <location filename="../Src/UI/Main_Window.py" line="566"/>
         <source>未选择项目组</source>
         <translation>No project group selected</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="576"/>
+        <location filename="../Src/UI/Main_Window.py" line="583"/>
         <source>切换:</source>
         <translation>Switch:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="561"/>
+        <location filename="../Src/UI/Main_Window.py" line="568"/>
         <source>选择或切换当前项目组</source>
         <translation>Select or switch current project group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="580"/>
+        <location filename="../Src/UI/Main_Window.py" line="587"/>
         <source>新建:</source>
         <translation>New:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="564"/>
+        <location filename="../Src/UI/Main_Window.py" line="571"/>
         <source>输入新项目组名称</source>
         <translation>Enter new project group name</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="565"/>
+        <location filename="../Src/UI/Main_Window.py" line="572"/>
         <source>项目组名称</source>
         <translation>Project Group Name</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="584"/>
+        <location filename="../Src/UI/Main_Window.py" line="591"/>
         <source>创建</source>
         <translation>Create</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="567"/>
+        <location filename="../Src/UI/Main_Window.py" line="574"/>
         <source>创建新项目组</source>
         <translation>Create new project group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="568"/>
+        <location filename="../Src/UI/Main_Window.py" line="575"/>
         <source>删除项目组</source>
         <translation>Delete Project Group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="569"/>
+        <location filename="../Src/UI/Main_Window.py" line="576"/>
         <source>删除选中的项目组</source>
         <translation>Delete selected project group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="583"/>
+        <location filename="../Src/UI/Main_Window.py" line="590"/>
         <source>项目名称</source>
         <translation>Project Name</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="588"/>
+        <location filename="../Src/UI/Main_Window.py" line="595"/>
         <source>复制</source>
         <translation>Copy</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="589"/>
+        <location filename="../Src/UI/Main_Window.py" line="596"/>
         <source>复制项目到当前项目组</source>
         <translation>Copy project to current project group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="591"/>
+        <location filename="../Src/UI/Main_Window.py" line="598"/>
         <source>剪切</source>
         <translation>Cut</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="592"/>
+        <location filename="../Src/UI/Main_Window.py" line="599"/>
         <source>剪切项目到其他项目组</source>
         <translation>Cut project to another project group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="593"/>
+        <location filename="../Src/UI/Main_Window.py" line="600"/>
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="595"/>
+        <location filename="../Src/UI/Main_Window.py" line="602"/>
         <source>路径:</source>
         <translation>Path:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="598"/>
+        <location filename="../Src/UI/Main_Window.py" line="605"/>
         <source>导入/导出</source>
         <translation>Import/Export</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1530"/>
+        <location filename="../Src/UI/Main_Window.py" line="1537"/>
         <source>导出项目</source>
         <translation>Export Project</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="600"/>
+        <location filename="../Src/UI/Main_Window.py" line="607"/>
         <source>将当前项目导出为压缩文件</source>
         <translation>Export current project as compressed file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1599"/>
+        <location filename="../Src/UI/Main_Window.py" line="1606"/>
         <source>导出项目组</source>
         <translation>Export Project Group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="602"/>
+        <location filename="../Src/UI/Main_Window.py" line="609"/>
         <source>将当前项目组导出为压缩文件</source>
         <translation>Export current project group as compressed file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="603"/>
+        <location filename="../Src/UI/Main_Window.py" line="610"/>
         <source>导入</source>
         <translation>Import</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="604"/>
+        <location filename="../Src/UI/Main_Window.py" line="611"/>
         <source>从压缩文件导入项目或项目组</source>
         <translation>Import project or project group from compressed file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="607"/>
+        <location filename="../Src/UI/Main_Window.py" line="614"/>
         <source>批量处理</source>
         <translation>Batch Processing</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="608"/>
+        <location filename="../Src/UI/Main_Window.py" line="615"/>
         <source>批量生成</source>
         <translation>Batch Generate</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="609"/>
+        <location filename="../Src/UI/Main_Window.py" line="616"/>
         <source>批量生成选中的项目/项目组</source>
         <translation>Batch generate selected projects/project groups</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="612"/>
+        <location filename="../Src/UI/Main_Window.py" line="619"/>
         <source>项目组名称/
   └── 项目名称/
       ├── README.md (项目描述)
@@ -1564,173 +1562,168 @@ Error: {error_msg}</translation>
           └── Video/ (Video Output)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="647"/>
+        <location filename="../Src/UI/Main_Window.py" line="654"/>
         <source>特定频率 ({freq}Hz)</source>
         <translation>Specific Frequency ({freq}Hz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1118"/>
+        <location filename="../Src/UI/Main_Window.py" line="1125"/>
         <source>左: -- Hz | 右: -- Hz</source>
         <translation>L: -- Hz | R: -- Hz</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1136"/>
+        <location filename="../Src/UI/Main_Window.py" line="1143"/>
         <source>左: {left_freq:.1f} Hz | 右: {right_freq:.1f} Hz</source>
         <translation>L: {left_freq:.1f} Hz | R: {right_freq:.1f} Hz</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1138"/>
+        <location filename="../Src/UI/Main_Window.py" line="1145"/>
         <source>左: {target_freq} Hz | 右: {target_freq} Hz</source>
         <translation>L: {target_freq} Hz | R: {target_freq} Hz</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1442"/>
+        <location filename="../Src/UI/Main_Window.py" line="1449"/>
         <source>项目配置文件格式错误，将使用默认配置。</source>
         <translation>Project configuration file format error, default configuration will be used.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1526"/>
+        <location filename="../Src/UI/Main_Window.py" line="1533"/>
         <source>项目目录不存在！</source>
         <translation>Project directory does not exist!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1599"/>
+        <location filename="../Src/UI/Main_Window.py" line="1606"/>
         <source>ZIP 文件 (*.zip);;TAR.XZ 文件 (*.tar.xz)</source>
         <translation>ZIP Files (*.zip);;TAR.XZ Files (*.tar.xz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1548"/>
+        <location filename="../Src/UI/Main_Window.py" line="1555"/>
         <source>正在导出项目...</source>
         <translation>Exporting project...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1622"/>
+        <location filename="../Src/UI/Main_Window.py" line="1629"/>
         <source>导出进度</source>
         <translation>Export Progress</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1633"/>
+        <location filename="../Src/UI/Main_Window.py" line="1640"/>
         <source>正在导出: {f}</source>
         <translation>Exporting: {f}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1572"/>
+        <location filename="../Src/UI/Main_Window.py" line="1579"/>
         <source>项目 '{self.current_project_name}' 导出成功！
 保存位置: {message}</source>
         <translation>Project '{self.current_project_name}' exported successfully!
 Save location: {message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1577"/>
+        <location filename="../Src/UI/Main_Window.py" line="1584"/>
         <source>导出项目失败: {message}</source>
         <translation>Export project failed: {message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1589"/>
+        <location filename="../Src/UI/Main_Window.py" line="1596"/>
         <source>请先选择一个项目组！</source>
         <translation>Please select a project group first!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1595"/>
+        <location filename="../Src/UI/Main_Window.py" line="1602"/>
         <source>项目组目录不存在！</source>
         <translation>Project group directory does not exist!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1617"/>
+        <location filename="../Src/UI/Main_Window.py" line="1624"/>
         <source>正在导出项目组...</source>
         <translation>Exporting project group...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1641"/>
+        <location filename="../Src/UI/Main_Window.py" line="1648"/>
         <source>项目组 '{self.current_project_group}' 导出成功！
 保存位置: {message}</source>
         <translation>Project group '{self.current_project_group}' exported successfully!
 Save location: {message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1646"/>
+        <location filename="../Src/UI/Main_Window.py" line="1653"/>
         <source>导出项目组失败: {message}</source>
         <translation>Export project group failed: {message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1657"/>
+        <location filename="../Src/UI/Main_Window.py" line="1664"/>
         <source>导入项目/项目组</source>
         <translation>Import Project/Project Group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1657"/>
-        <source>压缩文件 (*.zip *.tar.xz)</source>
-        <translation>Compressed Files (*.zip *.tar.xz)</translation>
-    </message>
-    <message>
-        <location filename="../Src/UI/Main_Window.py" line="1743"/>
+        <location filename="../Src/UI/Main_Window.py" line="1750"/>
         <source>音频文件 (*.wav *.mp3)</source>
         <translation>Audio Files (*.wav *.mp3)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1772"/>
+        <location filename="../Src/UI/Main_Window.py" line="1779"/>
         <source>请先选择要反编译的音频文件！</source>
         <translation>Please select an audio file to decompile first!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1777"/>
+        <location filename="../Src/UI/Main_Window.py" line="1784"/>
         <source>音频文件不存在！</source>
         <translation>Audio file does not exist!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1782"/>
+        <location filename="../Src/UI/Main_Window.py" line="1789"/>
         <source>导出反编译音频</source>
         <translation>Export Decompiled Audio</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1782"/>
+        <location filename="../Src/UI/Main_Window.py" line="1789"/>
         <source>WAV 文件 (*.wav)</source>
         <translation>WAV Files (*.wav)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1811"/>
+        <location filename="../Src/UI/Main_Window.py" line="1818"/>
         <source>导出中...</source>
         <translation>Exporting...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1820"/>
+        <location filename="../Src/UI/Main_Window.py" line="1827"/>
         <source>反编译音频已导出到:
 {output_path}</source>
         <translation>Decompiled audio exported to:
 {output_path}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1823"/>
+        <location filename="../Src/UI/Main_Window.py" line="1830"/>
         <source>导出失败！</source>
         <translation>Export failed!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1834"/>
+        <location filename="../Src/UI/Main_Window.py" line="1841"/>
         <source>导出中... {progress}%</source>
         <translation>Exporting... {progress}%</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1842"/>
+        <location filename="../Src/UI/Main_Window.py" line="1849"/>
         <source>请输入对方公开的肯定语！</source>
         <translation>Please enter the public affirmation from the other party!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1847"/>
+        <location filename="../Src/UI/Main_Window.py" line="1854"/>
         <source>请输入反编译识别结果！</source>
         <translation>Please enter the decompilation recognition result!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1872"/>
+        <location filename="../Src/UI/Main_Window.py" line="1879"/>
         <source>对比结果</source>
         <translation>Comparison Result</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1855"/>
+        <location filename="../Src/UI/Main_Window.py" line="1862"/>
         <source>✓ 两段文本完全一致！</source>
         <translation>✓ Both texts are completely identical!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1863"/>
+        <location filename="../Src/UI/Main_Window.py" line="1870"/>
         <source>相似度: {similarity_percent}%
 
 </source>
@@ -1739,17 +1732,17 @@ Save location: {message}</translation>
 </translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1866"/>
+        <location filename="../Src/UI/Main_Window.py" line="1873"/>
         <source>✓ 两段文本高度相似，基本一致。</source>
         <translation>✓ Both texts are highly similar and basically consistent.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1868"/>
+        <location filename="../Src/UI/Main_Window.py" line="1875"/>
         <source>△ 两段文本有一定差异，建议进一步核实。</source>
         <translation>△ There are some differences between the two texts, further verification is recommended.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1870"/>
+        <location filename="../Src/UI/Main_Window.py" line="1877"/>
         <source>✗ 两段文本差异较大，可能存在隐藏内容！</source>
         <translation>✗ The two texts have significant differences, hidden content may exist!</translation>
     </message>
@@ -1779,7 +1772,7 @@ Save location: {message}</translation>
         <translation>Version:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="448"/>
+        <location filename="../Src/UI/Main_Window.py" line="455"/>
         <source>JimSMake 是一款专业的潜意识音频制作工具，
 提供直观的图形界面和命令行界面，
 帮助用户轻松创建潜意识音频内容。</source>
@@ -1793,48 +1786,48 @@ helping users easily create subliminal audio content.</translation>
 您可以自由使用、复制、修改和分发本软件。
 软件按&quot;原样&quot;提供，不包含任何场景下的适用性保障。
 详细信息请参阅 LICENSE 文件。</source>
-        <translation>&lt;br&gt;&lt;b&gt;Free Software Declaration&lt;/b&gt;&lt;br&gt;This software is free software, released under the GNU General Public License v3.0.
+        <translation type="obsolete">&lt;br&gt;&lt;b&gt;Free Software Declaration&lt;/b&gt;&lt;br&gt;This software is free software, released under the GNU General Public License v3.0.
 You are free to use, copy, modify, and distribute this software.
 The software is provided &quot;as is&quot;, without any warranty of fitness for any purpose.
 Please refer to the LICENSE file for details.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="463"/>
+        <location filename="../Src/UI/Main_Window.py" line="470"/>
         <source>&lt;br&gt;&lt;b&gt;联系方式:&lt;/b&gt;&lt;br&gt;QQ交流群: 1095279278&lt;br&gt;邮箱: Jimmy32767255@outlook.com&lt;br&gt;GitHub: github.com/Jimmy32767255/JimSMake</source>
         <translation>&lt;br&gt;&lt;b&gt;Contact:&lt;/b&gt;&lt;br&gt;QQ Group: 1095279278&lt;br&gt;Email: Jimmy32767255@outlook.com&lt;br&gt;GitHub: github.com/Jimmy32767255/JimSMake</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="540"/>
+        <location filename="../Src/UI/Main_Window.py" line="547"/>
         <source>编辑当前项目的 README.md 文件。</source>
         <translation>Edit the README.md file of the current project.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="484"/>
+        <location filename="../Src/UI/Main_Window.py" line="491"/>
         <source>&lt;b&gt;此功能仅用于安全审计&lt;/b&gt;（如检查对方的作品中是否包含负面暗示肯定语）。&lt;br&gt;&lt;br&gt;&lt;b&gt;请勿用于抄袭&lt;/b&gt;（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。&lt;br&gt;&lt;br&gt;&lt;b&gt;该功能的可用性不受任何保障&lt;/b&gt;，不接受任何'我无法反编译特定音频文件'的报告，但仍然允许对该功能本身提出缺陷和建议报告。&lt;br&gt;&lt;br&gt;&lt;b&gt;不提供任何全自动和人工智能相关的功能&lt;/b&gt;，您可能需要多次调整参数才能得到理想的结果。&lt;br&gt;&lt;br&gt;受限于物理法则，&lt;b&gt;肯定语速度过快/音量过小将无法反编译&lt;/b&gt;，也无法反编译任何能量音频。</source>
         <translation>&lt;b&gt;This feature is for security audit only&lt;/b&gt; (e.g., checking if the other party's work contains negative subliminal affirmations).&lt;br&gt;&lt;br&gt;&lt;b&gt;Do not use for plagiarism&lt;/b&gt; (e.g., obtaining affirmations and modifying them) or other illegal activities. Please respect the other party's copyright.&lt;br&gt;&lt;br&gt;&lt;b&gt;The availability of this feature is not guaranteed&lt;/b&gt;. Reports of &quot;I cannot decompile a specific audio file&quot; will not be accepted, but bug reports and suggestions for the feature itself are still welcome.&lt;br&gt;&lt;br&gt;&lt;b&gt;No fully automatic or AI-related features are provided&lt;/b&gt;. You may need to adjust parameters multiple times to get ideal results.&lt;br&gt;&lt;br&gt;Due to physical limitations, &lt;b&gt;affirmations that are too fast or too quiet cannot be decompiled&lt;/b&gt;, nor can any energy audio be decompiled.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="496"/>
+        <location filename="../Src/UI/Main_Window.py" line="503"/>
         <source>音频文件</source>
         <translation>Audio File</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="504"/>
+        <location filename="../Src/UI/Main_Window.py" line="511"/>
         <source>参数调整</source>
         <translation>Parameter Adjustment</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="522"/>
+        <location filename="../Src/UI/Main_Window.py" line="529"/>
         <source>听写引擎（暂时搁置）</source>
         <translation>Dictation Engine (Temporarily Postponed)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="524"/>
+        <location filename="../Src/UI/Main_Window.py" line="531"/>
         <source>自动本地语音转文字功能暂时搁置，将在未来版本中实现。</source>
         <translation>Automatic local speech-to-text feature is temporarily postponed and will be implemented in a future version.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="527"/>
+        <location filename="../Src/UI/Main_Window.py" line="534"/>
         <source>文本对比（安全审计）</source>
         <translation>Text Comparison (Security Audit)</translation>
     </message>
@@ -1844,34 +1837,55 @@ Please refer to the LICENSE file for details.</translation>
         <translation>Output Preview</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1725"/>
+        <location filename="../Src/UI/Main_Window.py" line="1732"/>
         <source>更新检查器未初始化，请重启程序后重试。</source>
         <translation>Update checker not initialized, please restart the program and try again.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1180"/>
+        <location filename="../Src/UI/Main_Window.py" line="1187"/>
         <source>编辑肯定语</source>
         <translation>Edit Affirmation</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1188"/>
+        <location filename="../Src/UI/Main_Window.py" line="1195"/>
         <source>在此输入肯定语...</source>
         <translation>Enter affirmation here...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1214"/>
+        <location filename="../Src/UI/Main_Window.py" line="1221"/>
         <source>请先选择文本文件！</source>
         <translation>Please select a text file first!</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1218"/>
+        <location filename="../Src/UI/Main_Window.py" line="1225"/>
         <source>文件不存在: {file_path}</source>
         <translation>File does not exist: {file_path}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1232"/>
+        <location filename="../Src/UI/Main_Window.py" line="1239"/>
         <source>无法打开文件: {str(e)}</source>
         <translation>Cannot open file: {str(e)}</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/Main_Window.py" line="448"/>
+        <source>操作系统:</source>
+        <translation>Operating System:</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/Main_Window.py" line="448"/>
+        <source>运行模式:</source>
+        <translation>Run Mode:</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/Main_Window.py" line="461"/>
+        <source>&lt;br&gt;&lt;b&gt;自由软件声明&lt;/b&gt;&lt;br&gt;本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。
+您可以自由使用、复制、修改和分发本软件。
+软件按&quot;原样&quot;提供，不提供任何担保。
+详细信息请参阅 LICENSE 文件。</source>
+        <translation>&lt;br&gt;&lt;b&gt;Free Software Statement&lt;/b&gt;&lt;br&gt;This software is free software, released under the GNU General Public License v3.0.
+You are free to use, copy, modify, and distribute this software.
+The software is provided &quot;as is&quot; without any warranty.
+Please refer to the LICENSE file for details.</translation>
     </message>
 </context>
 <context>
@@ -2996,7 +3010,7 @@ Save location: {output_path}</translation>
         <translation>Select or switch current project group</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1101"/>
+        <location filename="../Src/UI/UIFactory.py" line="1112"/>
         <source>刷新</source>
         <translation>Refresh</translation>
     </message>
@@ -3190,7 +3204,7 @@ Save location: {output_path}</translation>
         <translation>Select an audio file as affirmation.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="966"/>
+        <location filename="../Src/UI/UIFactory.py" line="977"/>
         <source>浏览...</source>
         <translation>Browse...</translation>
     </message>
@@ -3290,7 +3304,7 @@ Save location: {output_path}</translation>
         <translation>When enabled, the affirmation will be frequency adjusted.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="988"/>
+        <location filename="../Src/UI/UIFactory.py" line="999"/>
         <source>频率:</source>
         <translation>Frequency:</translation>
     </message>
@@ -3300,7 +3314,7 @@ Save location: {output_path}</translation>
         <translation>Set frequency value (Hz).</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="997"/>
+        <location filename="../Src/UI/UIFactory.py" line="1008"/>
         <source>倍速:</source>
         <translation>Speed:</translation>
     </message>
@@ -3310,7 +3324,7 @@ Save location: {output_path}</translation>
         <translation>Change the speed of the affirmation track.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1007"/>
+        <location filename="../Src/UI/UIFactory.py" line="1018"/>
         <source>倒放</source>
         <translation>Reverse</translation>
     </message>
@@ -3460,7 +3474,7 @@ Save location: {output_path}</translation>
         <translation>Swap frequency settings of left and right channels.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="978"/>
+        <location filename="../Src/UI/UIFactory.py" line="989"/>
         <source>音量 (dB):</source>
         <translation>Volume (dB):</translation>
     </message>
@@ -3665,12 +3679,12 @@ Save location: {output_path}</translation>
         <translation type="obsolete">Version: v1.0</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="804"/>
+        <location filename="../Src/UI/UIFactory.py" line="815"/>
         <source>一站式潜意识音频制作工具</source>
         <translation>One-stop subliminal audio production tool</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="810"/>
+        <location filename="../Src/UI/UIFactory.py" line="821"/>
         <source>JimSMake 是一款专业的潜意识音频制作工具，
 提供直观的图形界面和命令行界面，
 帮助用户轻松创建潜意识音频内容。</source>
@@ -3684,183 +3698,183 @@ helping users easily create subliminal audio content.</translation>
 您可以自由使用、复制、修改和分发本软件。
 软件按&quot;原样&quot;提供，不包含任何场景下的适用性保障。
 详细信息请参阅 LICENSE 文件。</source>
-        <translation>&lt;br&gt;&lt;b&gt;Free Software Declaration&lt;/b&gt;&lt;br&gt;This software is free software, released under the GNU General Public License v3.0.
+        <translation type="obsolete">&lt;br&gt;&lt;b&gt;Free Software Declaration&lt;/b&gt;&lt;br&gt;This software is free software, released under the GNU General Public License v3.0.
 You are free to use, copy, modify, and distribute this software.
 The software is provided &quot;as is&quot; without warranty of any kind.
 For details, please refer to the LICENSE file.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="833"/>
+        <location filename="../Src/UI/UIFactory.py" line="844"/>
         <source>&lt;br&gt;&lt;b&gt;联系方式:&lt;/b&gt;&lt;br&gt;QQ交流群: 1095279278&lt;br&gt;邮箱: Jimmy32767255@outlook.com&lt;br&gt;GitHub: github.com/Jimmy32767255/JimSMake</source>
         <translation>&lt;br&gt;&lt;b&gt;Contact:&lt;/b&gt;&lt;br&gt;QQ Group: 1095279278&lt;br&gt;Email: Jimmy32767255@outlook.com&lt;br&gt;GitHub: github.com/Jimmy32767255/JimSMake</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="852"/>
+        <location filename="../Src/UI/UIFactory.py" line="863"/>
         <source>日志输出</source>
         <translation>Log Output</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="874"/>
+        <location filename="../Src/UI/UIFactory.py" line="885"/>
         <source>清空日志</source>
         <translation>Clear Log</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="875"/>
+        <location filename="../Src/UI/UIFactory.py" line="886"/>
         <source>清空日志显示区域</source>
         <translation>Clear the log display area</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="888"/>
+        <location filename="../Src/UI/UIFactory.py" line="899"/>
         <source>输出文件管理</source>
         <translation>Output File Management</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="892"/>
+        <location filename="../Src/UI/UIFactory.py" line="903"/>
         <source>管理项目的输出文件（音频/视频）。双击文件可用系统播放器打开。</source>
         <translation>Manage project output files (audio/video). Double-click to open with system player.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="931"/>
+        <location filename="../Src/UI/UIFactory.py" line="942"/>
         <source>反编译（实验性）</source>
         <translation>Decompile (Experimental)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="936"/>
+        <location filename="../Src/UI/UIFactory.py" line="947"/>
         <source>⚠️ 重要警告</source>
         <translation>⚠️ Important Warning</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="939"/>
+        <location filename="../Src/UI/UIFactory.py" line="950"/>
         <source>&lt;b&gt;此功能仅用于安全审计&lt;/b&gt;（如检查对方的作品中是否包含负面暗示肯定语）。&lt;br&gt;&lt;br&gt;&lt;b&gt;请勿用于抄袭&lt;/b&gt;（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。&lt;br&gt;&lt;br&gt;&lt;b&gt;该功能的可用性不受任何保障&lt;/b&gt;，不接受任何'我无法反编译特定音频文件'的报告，但仍然允许对该功能本身提出缺陷和建议报告。&lt;br&gt;&lt;br&gt;&lt;b&gt;不提供任何全自动和人工智能相关的功能&lt;/b&gt;，您可能需要多次调整参数才能得到理想的结果。&lt;br&gt;&lt;br&gt;受限于物理法则，&lt;b&gt;肯定语速度过快/音量过小将无法反编译&lt;/b&gt;，也无法反编译任何能量音频。</source>
         <translation>&lt;b&gt;This feature is for security audit only&lt;/b&gt; (e.g., checking if the other party's work contains negative subliminal affirmations).&lt;br&gt;&lt;br&gt;&lt;b&gt;Do not use for plagiarism&lt;/b&gt; (e.g., obtaining affirmations and modifying them) or other illegal activities. Please respect the other party's copyright.&lt;br&gt;&lt;br&gt;&lt;b&gt;The availability of this feature is not guaranteed&lt;/b&gt;. Reports of &quot;I cannot decompile a specific audio file&quot; will not be accepted, but bug reports and suggestions for the feature itself are still welcome.&lt;br&gt;&lt;br&gt;&lt;b&gt;No fully automatic or AI-related features are provided&lt;/b&gt;. You may need to adjust parameters multiple times to get ideal results.&lt;br&gt;&lt;br&gt;Due to physical limitations, &lt;b&gt;affirmations that are too fast or too quiet cannot be decompiled&lt;/b&gt;, nor can any energy audio be decompiled.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="956"/>
+        <location filename="../Src/UI/UIFactory.py" line="967"/>
         <source>音频文件</source>
         <translation>Audio File</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="959"/>
+        <location filename="../Src/UI/UIFactory.py" line="970"/>
         <source>文件路径:</source>
         <translation>File Path:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="967"/>
+        <location filename="../Src/UI/UIFactory.py" line="978"/>
         <source>选择要反编译的音频文件</source>
         <translation>Select audio file to decompile</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="974"/>
+        <location filename="../Src/UI/UIFactory.py" line="985"/>
         <source>参数调整</source>
         <translation>Parameter Adjustment</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="984"/>
+        <location filename="../Src/UI/UIFactory.py" line="995"/>
         <source>反编译时的音量调整</source>
         <translation>Volume adjustment during decompilation</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="993"/>
+        <location filename="../Src/UI/UIFactory.py" line="1004"/>
         <source>设置频率值(Hz)</source>
         <translation>Set frequency value (Hz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1003"/>
+        <location filename="../Src/UI/UIFactory.py" line="1014"/>
         <source>反编译时的倍速调整</source>
         <translation>Speed adjustment during decompilation</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1009"/>
+        <location filename="../Src/UI/UIFactory.py" line="1020"/>
         <source>是否对音频进行倒放处理</source>
         <translation>Whether to reverse the audio</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1021"/>
+        <location filename="../Src/UI/UIFactory.py" line="1032"/>
         <source>导出</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1022"/>
+        <location filename="../Src/UI/UIFactory.py" line="1033"/>
         <source>导出反编译后的音频文件</source>
         <translation>Export decompiled audio file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1029"/>
+        <location filename="../Src/UI/UIFactory.py" line="1040"/>
         <source>听写引擎（暂时搁置）</source>
         <translation>Dictation Engine (Temporarily Postponed)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1032"/>
+        <location filename="../Src/UI/UIFactory.py" line="1043"/>
         <source>自动本地语音转文字功能暂时搁置，将在未来版本中实现。</source>
         <translation>Automatic local speech-to-text feature is temporarily postponed and will be implemented in a future version.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1040"/>
+        <location filename="../Src/UI/UIFactory.py" line="1051"/>
         <source>文本对比（安全审计）</source>
         <translation>Text Comparison (Security Audit)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1044"/>
+        <location filename="../Src/UI/UIFactory.py" line="1055"/>
         <source>对方公开的肯定语:</source>
         <translation>Public Affirmation from Other Party:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1048"/>
+        <location filename="../Src/UI/UIFactory.py" line="1059"/>
         <source>输入对方公开的肯定语内容，用于对比</source>
         <translation>Enter the public affirmation content from the other party for comparison</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1053"/>
+        <location filename="../Src/UI/UIFactory.py" line="1064"/>
         <source>反编译识别结果:</source>
         <translation>Decompilation Recognition Result:</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1057"/>
+        <location filename="../Src/UI/UIFactory.py" line="1068"/>
         <source>输入反编译后的识别结果，用于对比</source>
         <translation>Enter the recognition result after decompilation for comparison</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1062"/>
+        <location filename="../Src/UI/UIFactory.py" line="1073"/>
         <source>对比</source>
         <translation>Compare</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1063"/>
+        <location filename="../Src/UI/UIFactory.py" line="1074"/>
         <source>对比两段文本的差异</source>
         <translation>Compare differences between two text segments</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1077"/>
+        <location filename="../Src/UI/UIFactory.py" line="1088"/>
         <source>项目介绍</source>
         <translation>Project Introduction</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1081"/>
+        <location filename="../Src/UI/UIFactory.py" line="1092"/>
         <source>编辑当前项目的 README.md 文件。</source>
         <translation>Edit the README.md file of the current project.</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1087"/>
+        <location filename="../Src/UI/UIFactory.py" line="1098"/>
         <source>在此编辑项目介绍</source>
         <translation>Edit project introduction here</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1088"/>
+        <location filename="../Src/UI/UIFactory.py" line="1099"/>
         <source>请输入项目介绍...</source>
         <translation>Please enter project introduction...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1095"/>
+        <location filename="../Src/UI/UIFactory.py" line="1106"/>
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1096"/>
+        <location filename="../Src/UI/UIFactory.py" line="1107"/>
         <source>保存README.md文件</source>
         <translation>Save README.md file</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1102"/>
+        <location filename="../Src/UI/UIFactory.py" line="1113"/>
         <source>重新加载README.md文件</source>
         <translation>Reload README.md file</translation>
     </message>
@@ -3959,6 +3973,27 @@ Please refer to the LICENSE file for details.</translation>
         <location filename="../Src/UI/UIFactory.py" line="392"/>
         <source>启用后，叠加的音轨将交替正放和倒放。第一个音轨正放，第二个倒放，第三个正放，以此类推。</source>
         <translation>When enabled, overlay tracks will alternate between normal and reversed playback. The first track plays normally, the second reversed, the third normally, and so on.</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/UIFactory.py" line="806"/>
+        <source>系统:</source>
+        <translation>System:</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/UIFactory.py" line="806"/>
+        <source>模式:</source>
+        <translation>Mode:</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/UIFactory.py" line="831"/>
+        <source>&lt;br&gt;&lt;b&gt;自由软件声明&lt;/b&gt;&lt;br&gt;本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。
+您可以自由使用、复制、修改和分发本软件。
+软件按&quot;原样&quot;提供，不提供任何担保。
+详细信息请参阅 LICENSE 文件。</source>
+        <translation>&lt;br&gt;&lt;b&gt;Free Software Statement&lt;/b&gt;&lt;br&gt;This software is free software, released under the GNU General Public License v3.0.
+You are free to use, copy, modify, and distribute this software.
+The software is provided &quot;as is&quot; without any warranty.
+Please refer to the LICENSE file for details.</translation>
     </message>
 </context>
 </TS>

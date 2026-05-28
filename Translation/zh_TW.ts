@@ -182,12 +182,12 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1039"/>
+        <location filename="../Src/UI/Main_Window.py" line="1046"/>
         <source>肯定语</source>
         <translation>肯定語</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1040"/>
+        <location filename="../Src/UI/Main_Window.py" line="1047"/>
         <source>背景音</source>
         <translation>背景音</translation>
     </message>
@@ -197,17 +197,17 @@
         <translation type="obsolete">腦波音訊</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1042"/>
+        <location filename="../Src/UI/Main_Window.py" line="1049"/>
         <source>输出</source>
         <translation>輸出</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1046"/>
+        <location filename="../Src/UI/Main_Window.py" line="1053"/>
         <source>设置</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="970"/>
+        <location filename="../Src/UI/Main_Window.py" line="977"/>
         <source>SMake</source>
         <translation>SMake</translation>
     </message>
@@ -222,7 +222,7 @@
         <translation type="obsolete">麥克風（Realtek）</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1847"/>
+        <location filename="../Src/UI/Main_Window.py" line="1854"/>
         <source>警告</source>
         <translation>警告</translation>
     </message>
@@ -232,7 +232,7 @@
         <translation type="obsolete">請輸入肯定語文字！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1820"/>
+        <location filename="../Src/UI/Main_Window.py" line="1827"/>
         <source>成功</source>
         <translation>成功</translation>
     </message>
@@ -242,7 +242,7 @@
         <translation type="obsolete">TTS音訊生成成功！檔案已儲存到：{output_file}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1830"/>
+        <location filename="../Src/UI/Main_Window.py" line="1837"/>
         <source>错误</source>
         <translation>錯誤</translation>
     </message>
@@ -262,7 +262,7 @@
         <translation>選擇一個音訊檔案作為肯定語。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="500"/>
+        <location filename="../Src/UI/Main_Window.py" line="507"/>
         <source>浏览...</source>
         <translation>瀏覽...</translation>
     </message>
@@ -382,7 +382,7 @@
         <translation type="obsolete">改變肯定語音軌的頻率，推薦使用地下（UG）模式。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="510"/>
+        <location filename="../Src/UI/Main_Window.py" line="517"/>
         <source>倍速:</source>
         <translation>倍速：</translation>
     </message>
@@ -392,7 +392,7 @@
         <translation>改變肯定語音軌的倍速。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="512"/>
+        <location filename="../Src/UI/Main_Window.py" line="519"/>
         <source>倒放</source>
         <translation>倒放</translation>
     </message>
@@ -607,12 +607,12 @@
         <translation>開始生成項目！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1163"/>
+        <location filename="../Src/UI/Main_Window.py" line="1170"/>
         <source>选择文件</source>
         <translation>選擇檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1158"/>
+        <location filename="../Src/UI/Main_Window.py" line="1165"/>
         <source>必须至少选择生成音频或生成视频一项！</source>
         <translation>必須至少選擇生成音訊或生成視頻一項！</translation>
     </message>
@@ -652,27 +652,27 @@
         <translation type="obsolete">語言設定已應用，部分介面可能需要重啓程式才能完全生效。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1695"/>
+        <location filename="../Src/UI/Main_Window.py" line="1702"/>
         <source>确认重置</source>
         <translation>確認重置</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1695"/>
+        <location filename="../Src/UI/Main_Window.py" line="1702"/>
         <source>确定要重置所有设置吗？这将恢复所有设置为默认值。</source>
         <translation>確定要重置所有設定嗎？ 這將恢復所有設定為預設值。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1715"/>
+        <location filename="../Src/UI/Main_Window.py" line="1722"/>
         <source>所有设置已重置为默认值。</source>
         <translation>所有設定已重置為預設值。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1038"/>
+        <location filename="../Src/UI/Main_Window.py" line="1045"/>
         <source>项目</source>
         <translation>專案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="553"/>
+        <location filename="../Src/UI/Main_Window.py" line="560"/>
         <source>项目管理</source>
         <translation>專案管理</translation>
     </message>
@@ -682,7 +682,7 @@
         <translation type="obsolete">目前專案：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="575"/>
+        <location filename="../Src/UI/Main_Window.py" line="582"/>
         <source>未选择项目</source>
         <translation>未選擇專案</translation>
     </message>
@@ -692,17 +692,17 @@
         <translation type="obsolete">專案列表：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="577"/>
+        <location filename="../Src/UI/Main_Window.py" line="584"/>
         <source>选择或切换当前项目</source>
         <translation>選擇或切換目前專案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="578"/>
+        <location filename="../Src/UI/Main_Window.py" line="585"/>
         <source>刷新</source>
         <translation>重新整理</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="579"/>
+        <location filename="../Src/UI/Main_Window.py" line="586"/>
         <source>刷新项目列表</source>
         <translation>重新整理專案列表</translation>
     </message>
@@ -712,7 +712,7 @@
         <translation type="obsolete">新增專案：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="582"/>
+        <location filename="../Src/UI/Main_Window.py" line="589"/>
         <source>输入新项目名称</source>
         <translation>輸入新專案名稱</translation>
     </message>
@@ -727,7 +727,7 @@
         <translation type="obsolete">建立專案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="585"/>
+        <location filename="../Src/UI/Main_Window.py" line="592"/>
         <source>创建新项目</source>
         <translation>建立新專案</translation>
     </message>
@@ -737,7 +737,7 @@
         <translation type="obsolete">刪除專案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="594"/>
+        <location filename="../Src/UI/Main_Window.py" line="601"/>
         <source>删除选中的项目</source>
         <translation>刪除選取的專案</translation>
     </message>
@@ -747,7 +747,7 @@
         <translation type="obsolete">專案路徑：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="611"/>
+        <location filename="../Src/UI/Main_Window.py" line="618"/>
         <source>项目结构</source>
         <translation>專案結構</translation>
     </message>
@@ -777,7 +777,7 @@
       └── Video/ (視頻輸出)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1520"/>
+        <location filename="../Src/UI/Main_Window.py" line="1527"/>
         <source>请先选择一个项目！</source>
         <translation>請先選擇一個專案！</translation>
     </message>
@@ -847,27 +847,27 @@
         <translation type="obsolete">錄音出錯：{error_msg}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1239"/>
+        <location filename="../Src/UI/Main_Window.py" line="1246"/>
         <source>请输入搜索关键词！</source>
         <translation>請輸入搜尋關鍵字！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1304"/>
+        <location filename="../Src/UI/Main_Window.py" line="1311"/>
         <source>肯定语音频文件不存在！</source>
         <translation>肯定語音訊檔案不存在！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1317"/>
+        <location filename="../Src/UI/Main_Window.py" line="1324"/>
         <source>无法读取肯定语音频文件！</source>
         <translation>無法讀取肯定語音訊檔案！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1322"/>
+        <location filename="../Src/UI/Main_Window.py" line="1329"/>
         <source>无法读取背景音频文件！</source>
         <translation>無法讀取背景音訊檔案！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1339"/>
+        <location filename="../Src/UI/Main_Window.py" line="1346"/>
         <source>启用'确保肯定语完整性'时，肯定语（含叠加效果）不能比背景音乐长。
 
 肯定语时长: {total_aff_duration:.2f}秒
@@ -882,7 +882,7 @@
 請縮短肯定語、減少疊加次數、減小疊加間隔，或選擇更長的背景音樂。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1344"/>
+        <location filename="../Src/UI/Main_Window.py" line="1351"/>
         <source>无法生成</source>
         <translation>無法生成</translation>
     </message>
@@ -892,7 +892,7 @@
         <translation type="obsolete">正在生成專案...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1617"/>
+        <location filename="../Src/UI/Main_Window.py" line="1624"/>
         <source>取消</source>
         <translation>取消</translation>
     </message>
@@ -935,10 +935,8 @@
     </message>
     <message>
         <location filename="../Src/UI/Main_Window.py" line="1664"/>
-        <source>视频生成失败。
-错误: {error_msg}</source>
-        <translation type="obsolete">視頻生成失敗。
-錯誤：{error_msg}</translation>
+        <source>压缩文件 (*.zip *.tar.xz)</source>
+        <translation>壓縮檔案 (*.zip *.tar.xz)</translation>
     </message>
     <message>
         <location filename="../Src/UI/Main_Window.py" line="1679"/>
@@ -946,7 +944,7 @@
         <translation type="obsolete">生成失敗：{error_msg}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1690"/>
+        <location filename="../Src/UI/Main_Window.py" line="1697"/>
         <source>请先选择语言！</source>
         <translation>請先選擇語言！</translation>
     </message>
@@ -1060,12 +1058,12 @@
         <translation type="obsolete">刪除專案失敗：{str(e)}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1041"/>
+        <location filename="../Src/UI/Main_Window.py" line="1048"/>
         <source>特定频率音轨</source>
         <translation>特定頻率音軌</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1047"/>
+        <location filename="../Src/UI/Main_Window.py" line="1054"/>
         <source>日志</source>
         <translation>日誌</translation>
     </message>
@@ -1090,7 +1088,7 @@
         <translation type="obsolete">選擇或輸入要疊加的特定頻率(Hz)。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="506"/>
+        <location filename="../Src/UI/Main_Window.py" line="513"/>
         <source>音量 (dB):</source>
         <translation>音量 (dB):</translation>
     </message>
@@ -1100,22 +1098,22 @@
         <translation>特定頻率音軌的音量（分貝）。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="473"/>
+        <location filename="../Src/UI/Main_Window.py" line="480"/>
         <source>日志输出</source>
         <translation>日誌輸出</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="474"/>
+        <location filename="../Src/UI/Main_Window.py" line="481"/>
         <source>清空日志</source>
         <translation>清空日誌</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="475"/>
+        <location filename="../Src/UI/Main_Window.py" line="482"/>
         <source>清空日志显示区域</source>
         <translation>清空日誌顯示區域</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1214"/>
+        <location filename="../Src/UI/Main_Window.py" line="1221"/>
         <source>提示</source>
         <translation>提示</translation>
     </message>
@@ -1160,22 +1158,22 @@
         <translation>需要安裝ffmpeg才能使用中繼資料功能</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1043"/>
+        <location filename="../Src/UI/Main_Window.py" line="1050"/>
         <source>输出管理</source>
         <translation>輸出管理</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1044"/>
+        <location filename="../Src/UI/Main_Window.py" line="1051"/>
         <source>反编译</source>
         <translation>反編譯</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1045"/>
+        <location filename="../Src/UI/Main_Window.py" line="1052"/>
         <source>项目介绍</source>
         <translation>項目介紹</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="508"/>
+        <location filename="../Src/UI/Main_Window.py" line="515"/>
         <source>频率:</source>
         <translation>頻率：</translation>
     </message>
@@ -1235,262 +1233,262 @@
         <translation type="obsolete">版本：{APP_VERSION}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="446"/>
+        <location filename="../Src/UI/Main_Window.py" line="453"/>
         <source>一站式潜意识音频制作工具</source>
         <translation>一站式潛意識音訊製作工具</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="479"/>
+        <location filename="../Src/UI/Main_Window.py" line="486"/>
         <source>反编译（实验性）</source>
         <translation>反編譯（實驗性）</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="482"/>
+        <location filename="../Src/UI/Main_Window.py" line="489"/>
         <source>⚠️ 重要警告</source>
         <translation>⚠️ 重要警告</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="498"/>
+        <location filename="../Src/UI/Main_Window.py" line="505"/>
         <source>文件路径:</source>
         <translation>檔案路徑：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="501"/>
+        <location filename="../Src/UI/Main_Window.py" line="508"/>
         <source>选择要反编译的音频文件</source>
         <translation>選擇要反編譯的音訊檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="507"/>
+        <location filename="../Src/UI/Main_Window.py" line="514"/>
         <source>反编译时的音量调整</source>
         <translation>反編譯時的音量調整</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="509"/>
+        <location filename="../Src/UI/Main_Window.py" line="516"/>
         <source>设置频率值(Hz)</source>
         <translation>設定頻率值(Hz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="511"/>
+        <location filename="../Src/UI/Main_Window.py" line="518"/>
         <source>反编译时的倍速调整</source>
         <translation>反編譯時的倍速調整</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="513"/>
+        <location filename="../Src/UI/Main_Window.py" line="520"/>
         <source>是否对音频进行倒放处理</source>
         <translation>是否對音訊進行倒放處理</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1829"/>
+        <location filename="../Src/UI/Main_Window.py" line="1836"/>
         <source>导出</source>
         <translation>匯出</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="519"/>
+        <location filename="../Src/UI/Main_Window.py" line="526"/>
         <source>导出反编译后的音频文件</source>
         <translation>匯出反編譯後的音訊檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="529"/>
+        <location filename="../Src/UI/Main_Window.py" line="536"/>
         <source>对方公开的肯定语:</source>
         <translation>對方公開的肯定語：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="530"/>
+        <location filename="../Src/UI/Main_Window.py" line="537"/>
         <source>输入对方公开的肯定语内容，用于对比</source>
         <translation>輸入對方公開的肯定語內容，用於對比</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="531"/>
+        <location filename="../Src/UI/Main_Window.py" line="538"/>
         <source>反编译识别结果:</source>
         <translation>反編譯識別結果：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="532"/>
+        <location filename="../Src/UI/Main_Window.py" line="539"/>
         <source>输入反编译后的识别结果，用于对比</source>
         <translation>輸入反編譯後的識別結果，用於對比</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="533"/>
+        <location filename="../Src/UI/Main_Window.py" line="540"/>
         <source>对比</source>
         <translation>對比</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="534"/>
+        <location filename="../Src/UI/Main_Window.py" line="541"/>
         <source>对比两段文本的差异</source>
         <translation>對比兩段文本的差異</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="542"/>
+        <location filename="../Src/UI/Main_Window.py" line="549"/>
         <source>在此编辑项目介绍</source>
         <translation>在此編輯項目介紹</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="543"/>
+        <location filename="../Src/UI/Main_Window.py" line="550"/>
         <source>请输入项目介绍...</source>
         <translation>請輸入項目介紹...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1194"/>
+        <location filename="../Src/UI/Main_Window.py" line="1201"/>
         <source>保存</source>
         <translation>儲存</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="546"/>
+        <location filename="../Src/UI/Main_Window.py" line="553"/>
         <source>保存README.md文件</source>
         <translation>儲存README.md檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="549"/>
+        <location filename="../Src/UI/Main_Window.py" line="556"/>
         <source>重新加载README.md文件</source>
         <translation>重新載入README.md檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="556"/>
+        <location filename="../Src/UI/Main_Window.py" line="563"/>
         <source>项目组</source>
         <translation>項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="573"/>
+        <location filename="../Src/UI/Main_Window.py" line="580"/>
         <source>当前:</source>
         <translation>目前：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="559"/>
+        <location filename="../Src/UI/Main_Window.py" line="566"/>
         <source>未选择项目组</source>
         <translation>未選擇項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="576"/>
+        <location filename="../Src/UI/Main_Window.py" line="583"/>
         <source>切换:</source>
         <translation>切換：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="561"/>
+        <location filename="../Src/UI/Main_Window.py" line="568"/>
         <source>选择或切换当前项目组</source>
         <translation>選擇或切換目前項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="580"/>
+        <location filename="../Src/UI/Main_Window.py" line="587"/>
         <source>新建:</source>
         <translation>新增：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="564"/>
+        <location filename="../Src/UI/Main_Window.py" line="571"/>
         <source>输入新项目组名称</source>
         <translation>輸入新項目組名稱</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="565"/>
+        <location filename="../Src/UI/Main_Window.py" line="572"/>
         <source>项目组名称</source>
         <translation>項目組名稱</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="584"/>
+        <location filename="../Src/UI/Main_Window.py" line="591"/>
         <source>创建</source>
         <translation>建立</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="567"/>
+        <location filename="../Src/UI/Main_Window.py" line="574"/>
         <source>创建新项目组</source>
         <translation>建立新項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="568"/>
+        <location filename="../Src/UI/Main_Window.py" line="575"/>
         <source>删除项目组</source>
         <translation>刪除項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="569"/>
+        <location filename="../Src/UI/Main_Window.py" line="576"/>
         <source>删除选中的项目组</source>
         <translation>刪除選中的項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="583"/>
+        <location filename="../Src/UI/Main_Window.py" line="590"/>
         <source>项目名称</source>
         <translation>項目名稱</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="588"/>
+        <location filename="../Src/UI/Main_Window.py" line="595"/>
         <source>复制</source>
         <translation>複製</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="589"/>
+        <location filename="../Src/UI/Main_Window.py" line="596"/>
         <source>复制项目到当前项目组</source>
         <translation>複製項目到目前項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="591"/>
+        <location filename="../Src/UI/Main_Window.py" line="598"/>
         <source>剪切</source>
         <translation>剪下</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="592"/>
+        <location filename="../Src/UI/Main_Window.py" line="599"/>
         <source>剪切项目到其他项目组</source>
         <translation>剪下項目到其他項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="593"/>
+        <location filename="../Src/UI/Main_Window.py" line="600"/>
         <source>删除</source>
         <translation>刪除</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="595"/>
+        <location filename="../Src/UI/Main_Window.py" line="602"/>
         <source>路径:</source>
         <translation>路徑：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="598"/>
+        <location filename="../Src/UI/Main_Window.py" line="605"/>
         <source>导入/导出</source>
         <translation>匯入/匯出</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1530"/>
+        <location filename="../Src/UI/Main_Window.py" line="1537"/>
         <source>导出项目</source>
         <translation>匯出項目</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="600"/>
+        <location filename="../Src/UI/Main_Window.py" line="607"/>
         <source>将当前项目导出为压缩文件</source>
         <translation>將目前項目匯出為壓縮檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1599"/>
+        <location filename="../Src/UI/Main_Window.py" line="1606"/>
         <source>导出项目组</source>
         <translation>匯出項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="602"/>
+        <location filename="../Src/UI/Main_Window.py" line="609"/>
         <source>将当前项目组导出为压缩文件</source>
         <translation>將目前項目組匯出為壓縮檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="603"/>
+        <location filename="../Src/UI/Main_Window.py" line="610"/>
         <source>导入</source>
         <translation>匯入</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="604"/>
+        <location filename="../Src/UI/Main_Window.py" line="611"/>
         <source>从压缩文件导入项目或项目组</source>
         <translation>從壓縮檔案匯入項目或項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="607"/>
+        <location filename="../Src/UI/Main_Window.py" line="614"/>
         <source>批量处理</source>
         <translation>批次處理</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="608"/>
+        <location filename="../Src/UI/Main_Window.py" line="615"/>
         <source>批量生成</source>
         <translation>批次生成</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="609"/>
+        <location filename="../Src/UI/Main_Window.py" line="616"/>
         <source>批量生成选中的项目/项目组</source>
         <translation>批次生成選中的項目/項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="612"/>
+        <location filename="../Src/UI/Main_Window.py" line="619"/>
         <source>项目组名称/
   └── 项目名称/
       ├── README.md (项目描述)
@@ -1519,173 +1517,168 @@
           └── Video/ (視訊輸出)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="647"/>
+        <location filename="../Src/UI/Main_Window.py" line="654"/>
         <source>特定频率 ({freq}Hz)</source>
         <translation>特定頻率 ({freq}Hz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1118"/>
+        <location filename="../Src/UI/Main_Window.py" line="1125"/>
         <source>左: -- Hz | 右: -- Hz</source>
         <translation>左：-- Hz | 右：-- Hz</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1136"/>
+        <location filename="../Src/UI/Main_Window.py" line="1143"/>
         <source>左: {left_freq:.1f} Hz | 右: {right_freq:.1f} Hz</source>
         <translation>左：{left_freq:.1f} Hz | 右：{right_freq:.1f} Hz</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1138"/>
+        <location filename="../Src/UI/Main_Window.py" line="1145"/>
         <source>左: {target_freq} Hz | 右: {target_freq} Hz</source>
         <translation>左：{target_freq} Hz | 右：{target_freq} Hz</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1442"/>
+        <location filename="../Src/UI/Main_Window.py" line="1449"/>
         <source>项目配置文件格式错误，将使用默认配置。</source>
         <translation>項目設定檔案格式錯誤，將使用預設設定。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1526"/>
+        <location filename="../Src/UI/Main_Window.py" line="1533"/>
         <source>项目目录不存在！</source>
         <translation>項目目錄不存在！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1599"/>
+        <location filename="../Src/UI/Main_Window.py" line="1606"/>
         <source>ZIP 文件 (*.zip);;TAR.XZ 文件 (*.tar.xz)</source>
         <translation>ZIP 檔案 (*.zip);;TAR.XZ 檔案 (*.tar.xz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1548"/>
+        <location filename="../Src/UI/Main_Window.py" line="1555"/>
         <source>正在导出项目...</source>
         <translation>正在匯出項目...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1622"/>
+        <location filename="../Src/UI/Main_Window.py" line="1629"/>
         <source>导出进度</source>
         <translation>匯出進度</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1633"/>
+        <location filename="../Src/UI/Main_Window.py" line="1640"/>
         <source>正在导出: {f}</source>
         <translation>正在匯出：{f}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1572"/>
+        <location filename="../Src/UI/Main_Window.py" line="1579"/>
         <source>项目 '{self.current_project_name}' 导出成功！
 保存位置: {message}</source>
         <translation>項目 '{self.current_project_name}' 匯出成功！
 儲存位置：{message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1577"/>
+        <location filename="../Src/UI/Main_Window.py" line="1584"/>
         <source>导出项目失败: {message}</source>
         <translation>匯出項目失敗：{message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1589"/>
+        <location filename="../Src/UI/Main_Window.py" line="1596"/>
         <source>请先选择一个项目组！</source>
         <translation>請先選擇一個項目組！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1595"/>
+        <location filename="../Src/UI/Main_Window.py" line="1602"/>
         <source>项目组目录不存在！</source>
         <translation>項目組目錄不存在！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1617"/>
+        <location filename="../Src/UI/Main_Window.py" line="1624"/>
         <source>正在导出项目组...</source>
         <translation>正在匯出項目組...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1641"/>
+        <location filename="../Src/UI/Main_Window.py" line="1648"/>
         <source>项目组 '{self.current_project_group}' 导出成功！
 保存位置: {message}</source>
         <translation>項目組 '{self.current_project_group}' 匯出成功！
 儲存位置：{message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1646"/>
+        <location filename="../Src/UI/Main_Window.py" line="1653"/>
         <source>导出项目组失败: {message}</source>
         <translation>匯出項目組失敗：{message}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1657"/>
+        <location filename="../Src/UI/Main_Window.py" line="1664"/>
         <source>导入项目/项目组</source>
         <translation>匯入項目/項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1657"/>
-        <source>压缩文件 (*.zip *.tar.xz)</source>
-        <translation>壓縮檔案 (*.zip *.tar.xz)</translation>
-    </message>
-    <message>
-        <location filename="../Src/UI/Main_Window.py" line="1743"/>
+        <location filename="../Src/UI/Main_Window.py" line="1750"/>
         <source>音频文件 (*.wav *.mp3)</source>
         <translation>音訊檔案 (*.wav *.mp3)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1772"/>
+        <location filename="../Src/UI/Main_Window.py" line="1779"/>
         <source>请先选择要反编译的音频文件！</source>
         <translation>請先選擇要反編譯的音訊檔案！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1777"/>
+        <location filename="../Src/UI/Main_Window.py" line="1784"/>
         <source>音频文件不存在！</source>
         <translation>音訊檔案不存在！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1782"/>
+        <location filename="../Src/UI/Main_Window.py" line="1789"/>
         <source>导出反编译音频</source>
         <translation>匯出反編譯音訊</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1782"/>
+        <location filename="../Src/UI/Main_Window.py" line="1789"/>
         <source>WAV 文件 (*.wav)</source>
         <translation>WAV 檔案 (*.wav)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1811"/>
+        <location filename="../Src/UI/Main_Window.py" line="1818"/>
         <source>导出中...</source>
         <translation>匯出中...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1820"/>
+        <location filename="../Src/UI/Main_Window.py" line="1827"/>
         <source>反编译音频已导出到:
 {output_path}</source>
         <translation>反編譯音訊已匯出到：
 {output_path}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1823"/>
+        <location filename="../Src/UI/Main_Window.py" line="1830"/>
         <source>导出失败！</source>
         <translation>匯出失敗！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1834"/>
+        <location filename="../Src/UI/Main_Window.py" line="1841"/>
         <source>导出中... {progress}%</source>
         <translation>匯出中... {progress}%</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1842"/>
+        <location filename="../Src/UI/Main_Window.py" line="1849"/>
         <source>请输入对方公开的肯定语！</source>
         <translation>請輸入對方公開的肯定語！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1847"/>
+        <location filename="../Src/UI/Main_Window.py" line="1854"/>
         <source>请输入反编译识别结果！</source>
         <translation>請輸入反編譯識別結果！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1872"/>
+        <location filename="../Src/UI/Main_Window.py" line="1879"/>
         <source>对比结果</source>
         <translation>對比結果</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1855"/>
+        <location filename="../Src/UI/Main_Window.py" line="1862"/>
         <source>✓ 两段文本完全一致！</source>
         <translation>✓ 兩段文本完全一致！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1863"/>
+        <location filename="../Src/UI/Main_Window.py" line="1870"/>
         <source>相似度: {similarity_percent}%
 
 </source>
@@ -1694,17 +1687,17 @@
 </translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1866"/>
+        <location filename="../Src/UI/Main_Window.py" line="1873"/>
         <source>✓ 两段文本高度相似，基本一致。</source>
         <translation>✓ 兩段文本高度相似，基本一致。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1868"/>
+        <location filename="../Src/UI/Main_Window.py" line="1875"/>
         <source>△ 两段文本有一定差异，建议进一步核实。</source>
         <translation>△ 兩段文本有一定差異，建議進一步核實。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1870"/>
+        <location filename="../Src/UI/Main_Window.py" line="1877"/>
         <source>✗ 两段文本差异较大，可能存在隐藏内容！</source>
         <translation>✗ 兩段文本差異較大，可能存在隱藏內容！</translation>
     </message>
@@ -1734,7 +1727,7 @@
         <translation>版本：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="448"/>
+        <location filename="../Src/UI/Main_Window.py" line="455"/>
         <source>JimSMake 是一款专业的潜意识音频制作工具，
 提供直观的图形界面和命令行界面，
 帮助用户轻松创建潜意识音频内容。</source>
@@ -1748,48 +1741,48 @@
 您可以自由使用、复制、修改和分发本软件。
 软件按&quot;原样&quot;提供，不包含任何场景下的适用性保障。
 详细信息请参阅 LICENSE 文件。</source>
-        <translation>&lt;br&gt;&lt;b&gt;自由軟體聲明&lt;/b&gt;&lt;br&gt;本軟體是自由軟體，採用 GNU General Public License v3.0 授權條款發布。
+        <translation type="obsolete">&lt;br&gt;&lt;b&gt;自由軟體聲明&lt;/b&gt;&lt;br&gt;本軟體是自由軟體，採用 GNU General Public License v3.0 授權條款發布。
 您可以自由使用、複製、修改和分發本軟體。
 軟體按「原樣」提供，不包含任何場景下的適用性保障。
 詳細資訊請參閱 LICENSE 檔案。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="463"/>
+        <location filename="../Src/UI/Main_Window.py" line="470"/>
         <source>&lt;br&gt;&lt;b&gt;联系方式:&lt;/b&gt;&lt;br&gt;QQ交流群: 1095279278&lt;br&gt;邮箱: Jimmy32767255@outlook.com&lt;br&gt;GitHub: github.com/Jimmy32767255/JimSMake</source>
         <translation>&lt;br&gt;&lt;b&gt;聯絡方式：&lt;/b&gt;&lt;br&gt;QQ交流群：1095279278&lt;br&gt;郵箱：Jimmy32767255@outlook.com&lt;br&gt;GitHub：github.com/Jimmy32767255/JimSMake</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="540"/>
+        <location filename="../Src/UI/Main_Window.py" line="547"/>
         <source>编辑当前项目的 README.md 文件。</source>
         <translation>編輯目前專案的 README.md 檔案。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="484"/>
+        <location filename="../Src/UI/Main_Window.py" line="491"/>
         <source>&lt;b&gt;此功能仅用于安全审计&lt;/b&gt;（如检查对方的作品中是否包含负面暗示肯定语）。&lt;br&gt;&lt;br&gt;&lt;b&gt;请勿用于抄袭&lt;/b&gt;（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。&lt;br&gt;&lt;br&gt;&lt;b&gt;该功能的可用性不受任何保障&lt;/b&gt;，不接受任何'我无法反编译特定音频文件'的报告，但仍然允许对该功能本身提出缺陷和建议报告。&lt;br&gt;&lt;br&gt;&lt;b&gt;不提供任何全自动和人工智能相关的功能&lt;/b&gt;，您可能需要多次调整参数才能得到理想的结果。&lt;br&gt;&lt;br&gt;受限于物理法则，&lt;b&gt;肯定语速度过快/音量过小将无法反编译&lt;/b&gt;，也无法反编译任何能量音频。</source>
         <translation>&lt;b&gt;此功能僅用於安全審計&lt;/b&gt;（如檢查對方的作品中是否包含負面暗示肯定語）。&lt;br&gt;&lt;br&gt;&lt;b&gt;請勿用於抄襲&lt;/b&gt;（如獲取肯定語後二次更改）等違法行為，請尊重對方的版權。&lt;br&gt;&lt;br&gt;&lt;b&gt;該功能的可用性不受任何保障&lt;/b&gt;，不接受任何「我無法反編譯特定音訊檔案」的報告，但仍然允許對該功能本身提出缺陷和建議報告。&lt;br&gt;&lt;br&gt;&lt;b&gt;不提供任何全自動和人工智慧相關的功能&lt;/b&gt;，您可能需要多次調整參數才能得到理想的結果。&lt;br&gt;&lt;br&gt;受限於物理法則，&lt;b&gt;肯定語速度過快/音量過小將無法反編譯&lt;/b&gt;，也無法反編譯任何能量音訊。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="496"/>
+        <location filename="../Src/UI/Main_Window.py" line="503"/>
         <source>音频文件</source>
         <translation>音訊檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="504"/>
+        <location filename="../Src/UI/Main_Window.py" line="511"/>
         <source>参数调整</source>
         <translation>參數調整</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="522"/>
+        <location filename="../Src/UI/Main_Window.py" line="529"/>
         <source>听写引擎（暂时搁置）</source>
         <translation>聽寫引擎（暫時擱置）</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="524"/>
+        <location filename="../Src/UI/Main_Window.py" line="531"/>
         <source>自动本地语音转文字功能暂时搁置，将在未来版本中实现。</source>
         <translation>自動本地語音轉文字功能暫時擱置，將在未來版本中實現。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="527"/>
+        <location filename="../Src/UI/Main_Window.py" line="534"/>
         <source>文本对比（安全审计）</source>
         <translation>文本對比（安全審計）</translation>
     </message>
@@ -1799,34 +1792,55 @@
         <translation>輸出預覽</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1725"/>
+        <location filename="../Src/UI/Main_Window.py" line="1732"/>
         <source>更新检查器未初始化，请重启程序后重试。</source>
         <translation>更新檢查器未初始化，請重新啟動程式後重試。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1180"/>
+        <location filename="../Src/UI/Main_Window.py" line="1187"/>
         <source>编辑肯定语</source>
         <translation>編輯肯定語</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1188"/>
+        <location filename="../Src/UI/Main_Window.py" line="1195"/>
         <source>在此输入肯定语...</source>
         <translation>在此輸入肯定語...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1214"/>
+        <location filename="../Src/UI/Main_Window.py" line="1221"/>
         <source>请先选择文本文件！</source>
         <translation>請先選擇文本文件！</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1218"/>
+        <location filename="../Src/UI/Main_Window.py" line="1225"/>
         <source>文件不存在: {file_path}</source>
         <translation>文件不存在: {file_path}</translation>
     </message>
     <message>
-        <location filename="../Src/UI/Main_Window.py" line="1232"/>
+        <location filename="../Src/UI/Main_Window.py" line="1239"/>
         <source>无法打开文件: {str(e)}</source>
         <translation>無法打開文件: {str(e)}</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/Main_Window.py" line="448"/>
+        <source>操作系统:</source>
+        <translation>作業系統：</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/Main_Window.py" line="448"/>
+        <source>运行模式:</source>
+        <translation>執行模式：</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/Main_Window.py" line="461"/>
+        <source>&lt;br&gt;&lt;b&gt;自由软件声明&lt;/b&gt;&lt;br&gt;本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。
+您可以自由使用、复制、修改和分发本软件。
+软件按&quot;原样&quot;提供，不提供任何担保。
+详细信息请参阅 LICENSE 文件。</source>
+        <translation>&lt;br&gt;&lt;b&gt;自由軟體聲明&lt;/b&gt;&lt;br&gt;本軟體是自由軟體，採用 GNU General Public License v3.0 授權條款發布。
+您可以自由使用、複製、修改和散布本軟體。
+軟體按「原樣」提供，不提供任何擔保。
+詳細資訊請參閱 LICENSE 檔案。</translation>
     </message>
 </context>
 <context>
@@ -2951,7 +2965,7 @@
         <translation>選擇或切換目前項目組</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1101"/>
+        <location filename="../Src/UI/UIFactory.py" line="1112"/>
         <source>刷新</source>
         <translation>重新整理</translation>
     </message>
@@ -3145,7 +3159,7 @@
         <translation>選擇一個音訊檔案作為肯定語。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="966"/>
+        <location filename="../Src/UI/UIFactory.py" line="977"/>
         <source>浏览...</source>
         <translation>瀏覽...</translation>
     </message>
@@ -3245,7 +3259,7 @@
         <translation>啟用後，將對肯定語進行頻率調整。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="988"/>
+        <location filename="../Src/UI/UIFactory.py" line="999"/>
         <source>频率:</source>
         <translation>頻率：</translation>
     </message>
@@ -3255,7 +3269,7 @@
         <translation>設定頻率值(Hz)。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="997"/>
+        <location filename="../Src/UI/UIFactory.py" line="1008"/>
         <source>倍速:</source>
         <translation>倍速：</translation>
     </message>
@@ -3265,7 +3279,7 @@
         <translation>改變肯定語音軌的倍速。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1007"/>
+        <location filename="../Src/UI/UIFactory.py" line="1018"/>
         <source>倒放</source>
         <translation>倒放</translation>
     </message>
@@ -3415,7 +3429,7 @@
         <translation>交換左右聲道的頻率設定。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="978"/>
+        <location filename="../Src/UI/UIFactory.py" line="989"/>
         <source>音量 (dB):</source>
         <translation>音量 (dB):</translation>
     </message>
@@ -3620,12 +3634,12 @@
         <translation type="obsolete">版本：v1.0</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="804"/>
+        <location filename="../Src/UI/UIFactory.py" line="815"/>
         <source>一站式潜意识音频制作工具</source>
         <translation>一站式潛意識音訊製作工具</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="810"/>
+        <location filename="../Src/UI/UIFactory.py" line="821"/>
         <source>JimSMake 是一款专业的潜意识音频制作工具，
 提供直观的图形界面和命令行界面，
 帮助用户轻松创建潜意识音频内容。</source>
@@ -3639,183 +3653,183 @@
 您可以自由使用、复制、修改和分发本软件。
 软件按&quot;原样&quot;提供，不包含任何场景下的适用性保障。
 详细信息请参阅 LICENSE 文件。</source>
-        <translation>&lt;br&gt;&lt;b&gt;自由軟體聲明&lt;/b&gt;&lt;br&gt;本軟體是自由軟體，採用 GNU General Public License v3.0 授權條款發布。
+        <translation type="obsolete">&lt;br&gt;&lt;b&gt;自由軟體聲明&lt;/b&gt;&lt;br&gt;本軟體是自由軟體，採用 GNU General Public License v3.0 授權條款發布。
 您可以自由使用、複製、修改和分發本軟體。
 軟體按「原樣」提供，不包含任何場景下的適用性保障。
 詳細資訊請參閱 LICENSE 檔案。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="833"/>
+        <location filename="../Src/UI/UIFactory.py" line="844"/>
         <source>&lt;br&gt;&lt;b&gt;联系方式:&lt;/b&gt;&lt;br&gt;QQ交流群: 1095279278&lt;br&gt;邮箱: Jimmy32767255@outlook.com&lt;br&gt;GitHub: github.com/Jimmy32767255/JimSMake</source>
         <translation>&lt;br&gt;&lt;b&gt;聯絡方式：&lt;/b&gt;&lt;br&gt;QQ交流群：1095279278&lt;br&gt;郵箱：Jimmy32767255@outlook.com&lt;br&gt;GitHub：github.com/Jimmy32767255/JimSMake</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="852"/>
+        <location filename="../Src/UI/UIFactory.py" line="863"/>
         <source>日志输出</source>
         <translation>日誌輸出</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="874"/>
+        <location filename="../Src/UI/UIFactory.py" line="885"/>
         <source>清空日志</source>
         <translation>清空日誌</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="875"/>
+        <location filename="../Src/UI/UIFactory.py" line="886"/>
         <source>清空日志显示区域</source>
         <translation>清空日誌顯示區域</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="888"/>
+        <location filename="../Src/UI/UIFactory.py" line="899"/>
         <source>输出文件管理</source>
         <translation>輸出檔案管理</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="892"/>
+        <location filename="../Src/UI/UIFactory.py" line="903"/>
         <source>管理项目的输出文件（音频/视频）。双击文件可用系统播放器打开。</source>
         <translation>管理專案的輸出檔案（音訊/視頻）。雙擊檔案可用系統播放器開啟。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="931"/>
+        <location filename="../Src/UI/UIFactory.py" line="942"/>
         <source>反编译（实验性）</source>
         <translation>反編譯（實驗性）</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="936"/>
+        <location filename="../Src/UI/UIFactory.py" line="947"/>
         <source>⚠️ 重要警告</source>
         <translation>⚠️ 重要警告</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="939"/>
+        <location filename="../Src/UI/UIFactory.py" line="950"/>
         <source>&lt;b&gt;此功能仅用于安全审计&lt;/b&gt;（如检查对方的作品中是否包含负面暗示肯定语）。&lt;br&gt;&lt;br&gt;&lt;b&gt;请勿用于抄袭&lt;/b&gt;（如获取肯定语后二次更改）等违法行为，请尊重对方的版权。&lt;br&gt;&lt;br&gt;&lt;b&gt;该功能的可用性不受任何保障&lt;/b&gt;，不接受任何'我无法反编译特定音频文件'的报告，但仍然允许对该功能本身提出缺陷和建议报告。&lt;br&gt;&lt;br&gt;&lt;b&gt;不提供任何全自动和人工智能相关的功能&lt;/b&gt;，您可能需要多次调整参数才能得到理想的结果。&lt;br&gt;&lt;br&gt;受限于物理法则，&lt;b&gt;肯定语速度过快/音量过小将无法反编译&lt;/b&gt;，也无法反编译任何能量音频。</source>
         <translation>&lt;b&gt;此功能僅用於安全審計&lt;/b&gt;（如檢查對方的作品中是否包含負面暗示肯定語）。&lt;br&gt;&lt;br&gt;&lt;b&gt;請勿用於抄襲&lt;/b&gt;（如獲取肯定語後二次更改）等違法行為，請尊重對方的版權。&lt;br&gt;&lt;br&gt;&lt;b&gt;該功能的可用性不受任何保障&lt;/b&gt;，不接受任何「我無法反編譯特定音訊檔案」的報告，但仍然允許對該功能本身提出缺陷和建議報告。&lt;br&gt;&lt;br&gt;&lt;b&gt;不提供任何全自動和人工智慧相關的功能&lt;/b&gt;，您可能需要多次調整參數才能得到理想的結果。&lt;br&gt;&lt;br&gt;受限於物理法則，&lt;b&gt;肯定語速度過快/音量過小將無法反編譯&lt;/b&gt;，也無法反編譯任何能量音訊。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="956"/>
+        <location filename="../Src/UI/UIFactory.py" line="967"/>
         <source>音频文件</source>
         <translation>音訊檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="959"/>
+        <location filename="../Src/UI/UIFactory.py" line="970"/>
         <source>文件路径:</source>
         <translation>檔案路徑：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="967"/>
+        <location filename="../Src/UI/UIFactory.py" line="978"/>
         <source>选择要反编译的音频文件</source>
         <translation>選擇要反編譯的音訊檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="974"/>
+        <location filename="../Src/UI/UIFactory.py" line="985"/>
         <source>参数调整</source>
         <translation>參數調整</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="984"/>
+        <location filename="../Src/UI/UIFactory.py" line="995"/>
         <source>反编译时的音量调整</source>
         <translation>反編譯時的音量調整</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="993"/>
+        <location filename="../Src/UI/UIFactory.py" line="1004"/>
         <source>设置频率值(Hz)</source>
         <translation>設定頻率值(Hz)</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1003"/>
+        <location filename="../Src/UI/UIFactory.py" line="1014"/>
         <source>反编译时的倍速调整</source>
         <translation>反編譯時的倍速調整</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1009"/>
+        <location filename="../Src/UI/UIFactory.py" line="1020"/>
         <source>是否对音频进行倒放处理</source>
         <translation>是否對音訊進行倒放處理</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1021"/>
+        <location filename="../Src/UI/UIFactory.py" line="1032"/>
         <source>导出</source>
         <translation>匯出</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1022"/>
+        <location filename="../Src/UI/UIFactory.py" line="1033"/>
         <source>导出反编译后的音频文件</source>
         <translation>匯出反編譯後的音訊檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1029"/>
+        <location filename="../Src/UI/UIFactory.py" line="1040"/>
         <source>听写引擎（暂时搁置）</source>
         <translation>聽寫引擎（暫時擱置）</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1032"/>
+        <location filename="../Src/UI/UIFactory.py" line="1043"/>
         <source>自动本地语音转文字功能暂时搁置，将在未来版本中实现。</source>
         <translation>自動本地語音轉文字功能暫時擱置，將在未來版本中實現。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1040"/>
+        <location filename="../Src/UI/UIFactory.py" line="1051"/>
         <source>文本对比（安全审计）</source>
         <translation>文本對比（安全審計）</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1044"/>
+        <location filename="../Src/UI/UIFactory.py" line="1055"/>
         <source>对方公开的肯定语:</source>
         <translation>對方公開的肯定語：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1048"/>
+        <location filename="../Src/UI/UIFactory.py" line="1059"/>
         <source>输入对方公开的肯定语内容，用于对比</source>
         <translation>輸入對方公開的肯定語內容，用於對比</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1053"/>
+        <location filename="../Src/UI/UIFactory.py" line="1064"/>
         <source>反编译识别结果:</source>
         <translation>反編譯識別結果：</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1057"/>
+        <location filename="../Src/UI/UIFactory.py" line="1068"/>
         <source>输入反编译后的识别结果，用于对比</source>
         <translation>輸入反編譯後的識別結果，用於對比</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1062"/>
+        <location filename="../Src/UI/UIFactory.py" line="1073"/>
         <source>对比</source>
         <translation>對比</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1063"/>
+        <location filename="../Src/UI/UIFactory.py" line="1074"/>
         <source>对比两段文本的差异</source>
         <translation>對比兩段文本的差異</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1077"/>
+        <location filename="../Src/UI/UIFactory.py" line="1088"/>
         <source>项目介绍</source>
         <translation>項目介紹</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1081"/>
+        <location filename="../Src/UI/UIFactory.py" line="1092"/>
         <source>编辑当前项目的 README.md 文件。</source>
         <translation>編輯目前專案的 README.md 檔案。</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1087"/>
+        <location filename="../Src/UI/UIFactory.py" line="1098"/>
         <source>在此编辑项目介绍</source>
         <translation>在此編輯項目介紹</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1088"/>
+        <location filename="../Src/UI/UIFactory.py" line="1099"/>
         <source>请输入项目介绍...</source>
         <translation>請輸入項目介紹...</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1095"/>
+        <location filename="../Src/UI/UIFactory.py" line="1106"/>
         <source>保存</source>
         <translation>儲存</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1096"/>
+        <location filename="../Src/UI/UIFactory.py" line="1107"/>
         <source>保存README.md文件</source>
         <translation>儲存README.md檔案</translation>
     </message>
     <message>
-        <location filename="../Src/UI/UIFactory.py" line="1102"/>
+        <location filename="../Src/UI/UIFactory.py" line="1113"/>
         <source>重新加载README.md文件</source>
         <translation>重新載入README.md檔案</translation>
     </message>
@@ -3914,6 +3928,27 @@
         <location filename="../Src/UI/UIFactory.py" line="392"/>
         <source>启用后，叠加的音轨将交替正放和倒放。第一个音轨正放，第二个倒放，第三个正放，以此类推。</source>
         <translation>啟用後，疊加的音軌將交替正放和倒放。第一個音軌正放，第二個倒放，第三個正放，以此類推。</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/UIFactory.py" line="806"/>
+        <source>系统:</source>
+        <translation>系統：</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/UIFactory.py" line="806"/>
+        <source>模式:</source>
+        <translation>模式：</translation>
+    </message>
+    <message>
+        <location filename="../Src/UI/UIFactory.py" line="831"/>
+        <source>&lt;br&gt;&lt;b&gt;自由软件声明&lt;/b&gt;&lt;br&gt;本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。
+您可以自由使用、复制、修改和分发本软件。
+软件按&quot;原样&quot;提供，不提供任何担保。
+详细信息请参阅 LICENSE 文件。</source>
+        <translation>&lt;br&gt;&lt;b&gt;自由軟體聲明&lt;/b&gt;&lt;br&gt;本軟體是自由軟體，採用 GNU General Public License v3.0 授權條款發布。
+您可以自由使用、複製、修改和散布本軟體。
+軟體按「原樣」提供，不提供任何擔保。
+詳細資訊請參閱 LICENSE 檔案。</translation>
     </message>
 </context>
 </TS>
