@@ -222,21 +222,7 @@ For detailed documentation, please refer to the [Build Guide](../Build/en-US.md)
 
 ### Internationalization
 
-The program includes a translation framework. To add a new language translation:
-
-1. Generate translation files:
-
-   ```bash
-   pylupdate5 ./Translation/SMake.pro
-   ```
-
-2. Use Qt Linguist or manually edit the translation files
-
-3. Compile to generate .qm files:
-
-   ```bash
-   lrelease ./Translation/SMake.pro
-   ```
+For detailed documentation, please refer to the [Translation Guide](../Translation/en-US.md).
 
 ## Contact
 

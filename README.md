@@ -222,23 +222,7 @@ CLI 模式适用于批量处理、自动化脚本或无图形界面环境。
 
 ### 国际化支持
 
-程序内置了翻译支持框架。要添加新语言的翻译：
-
-1. 生成翻译文件：
-   
-   ```bash
-   pylupdate5 ./Translation/SMake.pro
-   ```
-
-2. 使用 Qt Linguist 或手动编辑翻译文件
-
-3. 编译生成 .qm 文件：
-   
-   ```bash
-   lrelease ./Translation/SMake.pro
-   ```
-
-注意：对于zh_cn，由于它是程序原生语言，不需要翻译，你可以使用`./Translation/auto_translate_zh_cn.py`来快速完成它
+详细说明请参阅 [翻译指南](Docs/Translation/zh-CN.md)。
 
 ## 联系方式
 
