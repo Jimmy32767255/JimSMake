@@ -463,7 +463,7 @@ class MainWindow(QMainWindow):
                     "<b>自由软件声明</b><br>"
                     "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
                     "您可以自由使用、复制、修改和分发本软件。\n"
-                    "软件按\"原样\"提供，不包含任何场景下的适用性保障。\n"
+                    "软件按\"原样\"提供，不提供任何担保。\n"
                     "详细信息请参阅 LICENSE 文件。"
                 ))
             if hasattr(self, 'contact_label'):

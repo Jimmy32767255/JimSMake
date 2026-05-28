@@ -795,10 +795,21 @@ class UIFactory:
         about_layout.addWidget(self.main_window.about_title_label)
 
         # 版本号
-        from Main import APP_VERSION
+        from Main import APP_VERSION, get_system_type, get_run_mode
         self.main_window.about_version_label = QLabel(self.main_window.tr("版本:") + f" {APP_VERSION}")
         self.main_window.about_version_label.setAlignment(Qt.AlignCenter)
         about_layout.addWidget(self.main_window.about_version_label)
+
+        # 系统类型和运行模式
+        system_type = get_system_type()
+        run_mode = get_run_mode()
+        self.main_window.about_system_label = QLabel(
+            self.main_window.tr("系统:") + f" {system_type}  |  " +
+            self.main_window.tr("模式:") + f" {run_mode}"
+        )
+        self.main_window.about_system_label.setAlignment(Qt.AlignCenter)
+        self.main_window.about_system_label.setStyleSheet("color: #888; font-size: 12px;")
+        about_layout.addWidget(self.main_window.about_system_label)
 
         # 副标题
         self.main_window.about_subtitle_label = QLabel(self.main_window.tr("一站式潜意识音频制作工具"))
@@ -822,7 +833,7 @@ class UIFactory:
             "<b>自由软件声明</b><br>"
             "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
             "您可以自由使用、复制、修改和分发本软件。\n"
-            "软件按\"原样\"提供，不包含任何场景下的适用性保障。\n"
+            "软件按\"原样\"提供，不提供任何担保。\n"
             "详细信息请参阅 LICENSE 文件。"
         ))
         self.main_window.license_label.setAlignment(Qt.AlignCenter)
