@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget,
-                             QProgressDialog, QGroupBox)
+                             QProgressDialog)
 from PyQt5.QtCore import Qt, QTranslator, QSettings
 from PyQt5.QtGui import QIcon
 import os
