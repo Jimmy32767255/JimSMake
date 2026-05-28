@@ -145,6 +145,33 @@ def get_resource_path():
         return resource_path
 
 
+def get_system_type():
+    """获取系统类型"""
+    import platform
+    system = platform.system()
+    if system == "Windows":
+        return "Windows"
+    elif system == "Linux":
+        return "GNU/Linux"
+    else:
+        return "未知"
+
+
+def get_run_mode():
+    """获取运行模式"""
+    if getattr(sys, 'frozen', False):
+        # 检查是否为 AppImage 格式
+        if os.environ.get('APPIMAGE'):
+            return "AppImage"
+        # 检查是否为 PyInstaller 打包
+        elif hasattr(sys, '_MEIPASS'):
+            return "PyInstaller"
+        else:
+            return "已打包"
+    else:
+        return "解释执行"
+
+
 def run_gui():
     """运行GUI模式"""
     from PyQt5.QtWidgets import QApplication

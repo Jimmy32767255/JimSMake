@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 from loguru import logger
-from Main import APP_VERSION
+from Main import APP_VERSION, get_system_type, get_run_mode
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -442,6 +442,13 @@ class MainWindow(QMainWindow):
                 self.about_title_label.setText(self.tr("JimSMake"))
             if hasattr(self, 'about_version_label'):
                 self.about_version_label.setText(self.tr("版本:") + f" {APP_VERSION}")
+            if hasattr(self, 'about_system_label'):
+                system_type = get_system_type()
+                run_mode = get_run_mode()
+                self.about_system_label.setText(
+                    self.tr("操作系统:") + f" {system_type}  |  " +
+                    self.tr("运行模式:") + f" {run_mode}"
+                )
             if hasattr(self, 'about_subtitle_label'):
                 self.about_subtitle_label.setText(self.tr("一站式潜意识音频制作工具"))
             if hasattr(self, 'about_text_label'):
