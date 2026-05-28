@@ -140,12 +140,12 @@ ARCH=x86_64 ./appimagetool-x86_64.AppImage "$APPDIR" --runtime-file runtime-x86_
 # 检查并提示
 cd "$SCRIPT_DIR"
 if [[ -f "$BUILD_DIR/JimSMake-x86_64.AppImage" ]]; then
-    mkdir -p "$SCRIPT_DIR/dist/Linux"
-    mv "$BUILD_DIR/JimSMake-x86_64.AppImage" "$SCRIPT_DIR/dist/Linux/GNU-Linux-amd64.AppImage"
+    mkdir -p "$SCRIPT_DIR/dist"
+    mv "$BUILD_DIR/JimSMake-x86_64.AppImage" "$SCRIPT_DIR/dist/GNU-Linux-amd64.AppImage"
     echo ""
     echo "=========================================="
     echo "构建成功!"
-    echo "输出文件: $SCRIPT_DIR/dist/Linux/GNU-Linux-amd64.AppImage"
+    echo "输出文件: $SCRIPT_DIR/dist/GNU-Linux-amd64.AppImage"
     echo "=========================================="
 else
     echo "[错误] 构建失败，未找到输出文件"

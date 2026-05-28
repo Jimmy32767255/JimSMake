@@ -120,19 +120,14 @@ def run_cli(args):
 
 
 def get_resource_path():
-    """获取资源路径，支持打包版本和开发版本"""
+    """获取资源路径，支持单文件打包版本和开发版本"""
     import os
 
     if getattr(sys, 'frozen', False):
-        # 打包版本：优先使用可执行文件所在目录，便于用户自定义资源
-        exe_dir = os.path.dirname(sys.executable)
-        # 检查可执行文件所在目录是否有 Translation 文件夹
-        if os.path.exists(os.path.join(exe_dir, "Translation")):
-            logger.debug(f"获取资源路径(打包版本-可执行文件目录): {exe_dir}")
-            return exe_dir
-        # 否则使用 PyInstaller 的 _MEIPASS 临时目录
-        resource_path = getattr(sys, '_MEIPASS', exe_dir)
-        logger.debug(f"获取资源路径(打包版本-临时目录): {resource_path}")
+        # 打包版本：使用 PyInstaller 的 _MEIPASS 临时目录
+        # 单文件模式下，资源被解压到临时目录
+        resource_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        logger.debug(f"获取资源路径(单文件打包版本): {resource_path}")
         logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
         logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
         return resource_path
