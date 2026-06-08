@@ -298,6 +298,13 @@ class ProjectManager:
             self._load_spin_setting('freq_track_diff', freq_track.get('diff_value'))
             self._load_checkbox_setting('freq_track_swap_channels', freq_track.get('swap_channels'))
 
+            # 加载等时音设置
+            isochronic = config.get('isochronic', {})
+            self._load_checkbox_setting('isochronic_enabled', isochronic.get('enabled'))
+            self._load_spin_setting('isochronic_freq', isochronic.get('frequency'))
+            self._load_spin_setting('isochronic_volume', isochronic.get('volume'))
+            self._load_combo_setting('isochronic_shape', isochronic.get('shape'))
+
             # 加载输出设置
             output = config.get('output', {})
             self._load_checkbox_setting('generate_audio', output.get('generate_audio'))
@@ -389,6 +396,16 @@ class ProjectManager:
             self.main_window.freq_track_diff.setValue(10)
         if hasattr(self.main_window, 'freq_track_swap_channels') and self.main_window.freq_track_swap_channels is not None:
             self.main_window.freq_track_swap_channels.setChecked(False)
+
+        # 等时音设置
+        if hasattr(self.main_window, 'isochronic_enabled') and self.main_window.isochronic_enabled is not None:
+            self.main_window.isochronic_enabled.setChecked(False)
+        if hasattr(self.main_window, 'isochronic_freq') and self.main_window.isochronic_freq is not None:
+            self.main_window.isochronic_freq.setValue(10)
+        if hasattr(self.main_window, 'isochronic_volume') and self.main_window.isochronic_volume is not None:
+            self.main_window.isochronic_volume.setValue(-20.0)
+        if hasattr(self.main_window, 'isochronic_shape') and self.main_window.isochronic_shape is not None:
+            self.main_window.isochronic_shape.setCurrentIndex(0)
 
         # 输出设置
         if hasattr(self.main_window, 'generate_audio') and self.main_window.generate_audio is not None:
@@ -599,6 +616,12 @@ class ProjectManager:
                     "diff_mode": self._get_checkbox_value('freq_track_diff_mode'),
                     "diff_value": self._get_spin_value('freq_track_diff'),
                     "swap_channels": self._get_checkbox_value('freq_track_swap_channels')
+                },
+                "isochronic": {
+                    "enabled": self._get_checkbox_value('isochronic_enabled'),
+                    "frequency": self._get_spin_value('isochronic_freq'),
+                    "volume": self._get_spin_value('isochronic_volume'),
+                    "shape": self._get_combo_value('isochronic_shape')
                 },
                 "output": {
                     "generate_audio": self._get_checkbox_value('generate_audio'),

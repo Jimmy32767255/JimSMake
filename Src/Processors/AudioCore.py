@@ -704,6 +704,72 @@ class AudioCore:
         audio_data['data'] = result
         return audio_data
 
+    def apply_isochronic_tones(self, audio_data, params=None):
+        """叠加等时音(Isochronic Tones)到音频中
+
+        等时音是一种脑波夹带技术，通过周期性的音量脉冲（完全静音到最大音量）
+        来刺激大脑进入特定状态。与双耳节拍不同，等时音不需要耳机。
+        """
+        if params is None:
+            params = self.params
+
+        # 检查是否启用等时音
+        if not params.get('isochronic_enabled', False):
+            return audio_data
+
+        freq_str = params.get('isochronic_freq', '10')
+        volume_db = params.get('isochronic_volume', -20.0)
+        pulse_shape = params.get('isochronic_shape', 'sine')  # sine, square, triangle
+
+        try:
+            frequency = float(freq_str)
+            if frequency <= 0:
+                logger.error(f"等时音频率必须大于0: {freq_str}")
+                return audio_data
+        except ValueError:
+            logger.error(f"无效的等时音频率值: {freq_str}")
+            return audio_data
+
+        data = audio_data['data']
+        sample_rate = audio_data['sample_rate']
+        volume_factor = 10 ** (volume_db / 20.0)
+
+        logger.info(f"叠加等时音: {frequency}Hz, 波形: {pulse_shape}, 音量: {volume_db}dB")
+
+        result = []
+        period_samples = sample_rate / frequency  # 一个周期的采样点数
+
+        for i, sample in enumerate(data):
+            # 计算当前在周期中的位置 (0.0 到 1.0)
+            position_in_period = (i % period_samples) / period_samples
+
+            # 根据波形类型生成脉冲
+            if pulse_shape == 'square':
+                # 方波：前半周期为1，后半周期为0
+                pulse = 1.0 if position_in_period < 0.5 else 0.0
+            elif pulse_shape == 'triangle':
+                # 三角波：上升然后下降
+                if position_in_period < 0.5:
+                    pulse = position_in_period * 2.0  # 0 -> 1
+                else:
+                    pulse = (1.0 - position_in_period) * 2.0  # 1 -> 0
+            else:  # sine
+                # 正弦波：使用半波整流后的正弦波 (0 -> 1 -> 0)
+                pulse = math.sin(position_in_period * 2 * math.pi)
+                pulse = (pulse + 1.0) / 2.0  # 映射到 0-1 范围
+
+            # 应用音量因子并叠加到原始音频
+            isochronic_sample = pulse * volume_factor
+            mixed = sample + isochronic_sample
+            # 限制在有效范围内
+            mixed = max(-1.0, min(1.0, mixed))
+            result.append(mixed)
+
+        logger.debug(f"等时音叠加完成，数据长度: {len(result)} samples")
+
+        audio_data['data'] = result
+        return audio_data
+
     def save_audio_wav(self, audio_data, output_path):
         """保存为WAV格式"""
         logger.debug(f"开始保存WAV文件: {output_path}")
@@ -883,6 +949,14 @@ class AudioCore:
             final_data = self.apply_freq_track(final_data)
             if progress_callback:
                 progress_callback(90)
+
+            if self.check_cancelled():
+                return None
+
+            # 应用等时音
+            final_data = self.apply_isochronic_tones(final_data)
+            if progress_callback:
+                progress_callback(95)
 
             if self.check_cancelled():
                 return None

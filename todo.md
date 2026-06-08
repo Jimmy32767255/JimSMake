@@ -84,25 +84,27 @@
 
 - [x] 叠加：交错模式（比如说有多个音轨，第一个音轨是正放，第二个音轨是倒放，第三个正放……以此类推。）
 
+- [x] 左右声道双耳节拍功能（差值模式，by bilibili user req, uid155874340）
+
+- [x] 等时音（Isochronic Tones）功能（by bilibili user req, uid260186114）
+
+- [ ] 添加 PyTest 测试支持
+
 - [ ] 文档：行为准则
 
 - [ ] 文档：贡献指南
 
+- [ ] 文档：AGENTS.md&CLAUDE.md
+
 - [ ] .github：议题模板
 
 - [ ] .github：拉取请求模板
-
-- [ ] 等时音（Isochronic Tones）功能（by bilibili user req, uid260186114）
 
 - [ ] MacOS 支持
 
 *正在建立测试环境……*
 
 - [ ] 添加能量音频支持
-
-*需要更多信息*
-
-- [ ] 左右声道双耳节拍功能（by bilibili user req, uid155874340）
 
 *需要更多信息*
 

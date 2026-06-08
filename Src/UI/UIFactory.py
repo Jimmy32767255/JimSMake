@@ -505,6 +505,47 @@ class UIFactory:
         self.main_window.freq_track_group.setLayout(layout)
         return self.main_window.freq_track_group
 
+    def create_isochronic_group(self):
+        """创建等时音(Isochronic Tones)设置组"""
+        self.main_window.isochronic_group = QGroupBox(self.main_window.tr("等时音(Isochronic Tones)"))
+        layout = QGridLayout()
+
+        # 启用等时音
+        self.main_window.isochronic_enabled = QCheckBox(self.main_window.tr("启用等时音"))
+        self.main_window.isochronic_enabled.setChecked(False)
+        self.main_window.isochronic_enabled.setToolTip(self.main_window.tr("在音频中叠加等时音。等时音是一种脑波夹带技术，通过周期性的音量脉冲来刺激大脑。"))
+        layout.addWidget(self.main_window.isochronic_enabled, 0, 0, 1, 3)
+
+        # 频率输入
+        self.main_window.label_isochronic_freq = QLabel(self.main_window.tr("频率 (Hz):"))
+        layout.addWidget(self.main_window.label_isochronic_freq, 1, 0)
+        self.main_window.isochronic_freq = QSpinBox()
+        self.main_window.isochronic_freq.setRange(1, 100)
+        self.main_window.isochronic_freq.setValue(10)
+        self.main_window.isochronic_freq.setToolTip(self.main_window.tr("等时音频率(Hz)。常用频率：4Hz(Theta，放松)、10Hz(Alpha，专注)、40Hz(Gamma，认知)。"))
+        layout.addWidget(self.main_window.isochronic_freq, 1, 1, 1, 2)
+
+        # 波形选择
+        self.main_window.label_isochronic_shape = QLabel(self.main_window.tr("波形:"))
+        layout.addWidget(self.main_window.label_isochronic_shape, 2, 0)
+        self.main_window.isochronic_shape = QComboBox()
+        self.main_window.isochronic_shape.addItems(["sine", "square", "triangle"])
+        self.main_window.isochronic_shape.setToolTip(self.main_window.tr("等时音脉冲波形。sine:平滑、square:明显、triangle:适中。"))
+        layout.addWidget(self.main_window.isochronic_shape, 2, 1, 1, 2)
+
+        # 音量设置
+        self.main_window.label_isochronic_volume = QLabel(self.main_window.tr("音量 (dB):"))
+        layout.addWidget(self.main_window.label_isochronic_volume, 3, 0)
+        self.main_window.isochronic_volume = QDoubleSpinBox()
+        self.main_window.isochronic_volume.setRange(-60.0, 0.0)
+        self.main_window.isochronic_volume.setValue(-20.0)
+        self.main_window.isochronic_volume.setSingleStep(1.0)
+        self.main_window.isochronic_volume.setToolTip(self.main_window.tr("等时音的音量（分贝）。"))
+        layout.addWidget(self.main_window.isochronic_volume, 3, 1, 1, 2)
+
+        self.main_window.isochronic_group.setLayout(layout)
+        return self.main_window.isochronic_group
+
     def create_output_group(self):
         """创建输出组"""
         self.main_window.output_group = QGroupBox(self.main_window.tr("输出"))

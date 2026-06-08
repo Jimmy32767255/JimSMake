@@ -1020,6 +1020,7 @@ class MainWindow(QMainWindow):
         freq_track_widget = QWidget()
         freq_track_layout = QVBoxLayout(freq_track_widget)
         freq_track_layout.addWidget(self.ui_factory.create_freq_track_group())
+        freq_track_layout.addWidget(self.ui_factory.create_isochronic_group())
 
         # 创建日志选项卡内容
         log_widget = QWidget()
