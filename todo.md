@@ -88,7 +88,7 @@
 
 - [x] 等时音（Isochronic Tones）功能（by bilibili user req, uid260186114）
 
-- [ ] 添加 PyTest 测试支持
+- [x] 添加 PyTest 测试支持
 
 - [ ] 文档：行为准则
 
