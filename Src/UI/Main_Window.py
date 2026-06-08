@@ -385,6 +385,18 @@ class MainWindow(QMainWindow):
             self.label_freq_track_volume.setText(self.tr("音量 (dB):"))
             self.freq_track_volume.setToolTip(self.tr("特定频率音轨的音量（分贝）。"))
 
+        # 更新等时音组
+        if hasattr(self, 'isochronic_group'):
+            self.isochronic_group.setTitle(self.tr("等时音(Isochronic Tones)"))
+            self.isochronic_enabled.setText(self.tr("启用等时音"))
+            self.isochronic_enabled.setToolTip(self.tr("在音频中叠加等时音。等时音是一种脑波夹带技术，通过周期性的音量脉冲来刺激大脑。"))
+            self.label_isochronic_freq.setText(self.tr("频率 (Hz):"))
+            self.isochronic_freq.setToolTip(self.tr("等时音频率(Hz)。常用频率：4Hz(Theta，放松)、10Hz(Alpha，专注)、40Hz(Gamma，认知)。"))
+            self.label_isochronic_shape.setText(self.tr("波形:"))
+            self.isochronic_shape.setToolTip(self.tr("等时音脉冲波形。sine:平滑、square:明显、triangle:适中。"))
+            self.label_isochronic_volume.setText(self.tr("音量 (dB):"))
+            self.isochronic_volume.setToolTip(self.tr("等时音的音量（分贝）。"))
+
         # 更新输出组
         if hasattr(self, 'output_group'):
             self.output_group.setTitle(self.tr("输出"))
