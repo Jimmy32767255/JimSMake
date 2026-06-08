@@ -36,6 +36,7 @@ QQ Group: 1095279278
 - **Overlay Effects** - Multi-track overlay with adjustable count, interval, volume decrease, and stagger mode (normal/reverse alternation)
 - **Background Music** - Add background tracks with independent volume control
 - **Specific Frequency Overlay** - Support 432/639/1111Hz and other specific frequency track overlay, with difference mode and channel inversion
+- **Isochronic Tones** - Support overlaying isochronic tones brainwave entrainment audio, with adjustable frequency, waveform and volume
 - **Video Generation** - Combine audio with visualization images to create MP4 and other video formats
 - **Image Search** - Integrated search engines for online visualization image search
 - **Metadata Management** - Set title, author, and other ID3 tag information for output files
