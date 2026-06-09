@@ -16,7 +16,7 @@ Or using the startup scripts:
 # Windows
 Start.bat -c [options]
 
-# Linux
+# GNU/Linux
 Start.sh -c [options]
 ```
 

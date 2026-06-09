@@ -204,7 +204,7 @@ class ReleaseManager:
                 # macOS
                 subprocess.run(["open", "-R", file_path], check=True)
             else:
-                # Linux
+                # GNU/Linux
                 subprocess.run(["xdg-open", folder_path], check=True)
             logger.info(f"在文件资源管理器中打开: {folder_path}")
         except Exception as e:

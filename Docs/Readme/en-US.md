@@ -61,7 +61,7 @@ If you need to use an older version, please download the documentation for that 
 
 ### System Requirements
 
-- OS: Windows 11, Major Linux distributions
+- OS: Windows 11, Major GNU/Linux distributions
 
 - It is strongly recommended to install [FFmpeg](https://ffmpeg.org/) on your system, otherwise you will only be able to use basic features.
 
@@ -130,7 +130,7 @@ If you want to participate in development or debug/modify the code, you need the
    Start.bat
    ```
 
-   Linux:
+   GNU/Linux:
    ```bash
    Start.sh
    ```
@@ -142,7 +142,7 @@ If you want to participate in development or debug/modify the code, you need the
    Start.bat -c
    ```
 
-   Linux:
+   GNU/Linux:
    ```bash
    Start.sh -c
    ```

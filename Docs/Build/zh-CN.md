@@ -10,7 +10,7 @@ Windows：
 build.bat
 ```
 
-## 构建 AppImage (Linux 通用包)
+## 构建 AppImage (GNU/Linux 通用包)
 
 ```bash
 Build.sh
@@ -20,9 +20,9 @@ Build.sh
 
 ## 在本地计算机上为其它操作系统打包
 
-### 在 Windows 上为 Linux 打包
+### 在 Windows 上为 GNU/Linux 打包
 
-在 Windows 上为 Linux 打包前，需要先安装 [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+在 Windows 上为 GNU/Linux 打包前，需要先安装 [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 
 1. 进入 WSL 终端
 
@@ -38,11 +38,11 @@ Build.sh
 
 2. 切换工作目录为 SMake 仓库根目录
 
-3. 与上述 Linux 上构建 AppImage 包相同。
+3. 与上述 GNU/Linux 上构建 AppImage 包相同。
 
-### 在 Linux 上为 Windows 打包
+### 在 GNU/Linux 上为 Windows 打包
 
-在 Linux 上为 Windows 打包前需要先安装 [Wine](https://www.winehq.org/)
+在 GNU/Linux 上为 Windows 打包前需要先安装 [Wine](https://www.winehq.org/)
 
 1. 进入 Wine CMD
 

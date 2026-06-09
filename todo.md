@@ -154,7 +154,7 @@
 
 - [x] 使用 loguru 记录日志
 
-- [x] Linux 启动脚本改为 Start.sh
+- [x] GNU/Linux 启动脚本改为 Start.sh
 
 - [x] 重构：将音频和视频处理器拆分到单独的 Processors 模块
 
