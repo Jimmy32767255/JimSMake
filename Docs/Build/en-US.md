@@ -10,7 +10,7 @@ Windows:
 build.bat
 ```
 
-## Build AppImage (Linux Universal Package)
+## Build AppImage (GNU/Linux Universal Package)
 
 ```bash
 Build.sh
@@ -20,9 +20,9 @@ The build artifact is generated at `./dist/Linux/GNU-Linux-amd64.AppImage`.
 
 ## Cross-Platform Builds
 
-### Build for Linux on Windows
+### Build for GNU/Linux on Windows
 
-Before building for Linux on Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+Before building for GNU/Linux on Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 
 1. Enter the WSL terminal
 
@@ -38,11 +38,11 @@ The `--wsl` parameter uses the venv-wsl virtual environment directory to avoid c
 
 2. Change to the SMake repository root directory
 
-3. Same as building AppImage on Linux above.
+3. Same as building AppImage on GNU/Linux above.
 
-### Build for Windows on Linux
+### Build for Windows on GNU/Linux
 
-Before building for Windows on Linux, you need to install [Wine](https://www.winehq.org/)
+Before building for Windows on GNU/Linux, you need to install [Wine](https://www.winehq.org/)
 
 1. Enter Wine CMD
 

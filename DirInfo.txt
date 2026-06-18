@@ -55,6 +55,6 @@ DirInfo.txt：目录信息
 LICENSE: 开源许可证
 README.md：项目描述
 requirements.txt：项目依赖列表
-Start.sh：Linux 启动脚本
+Start.sh：GNU/Linux 启动脚本
 Start.bat：Windows 启动脚本
 todo.md：待办事项清单

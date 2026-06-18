@@ -1,7 +1,6 @@
 TRANSLATIONS = zh_CN.ts \
                en_US.ts \
-               zh_TW.ts \
-               lzh.ts
+               zh_TW.ts
 
 SOURCES = ../Src/Processors/AudioCore.py \
           ../Src/Processors/AudioProcessor.py \
@@ -22,5 +21,6 @@ SOURCES = ../Src/Processors/AudioCore.py \
           ../Src/UI/TextFileSync.py \
           ../Src/UI/TTSManager.py \
           ../Src/UI/UIFactory.py \
+          ../Src/UI/UpdateChecker.py \
           ../Src/Cli.py \
           ../Src/Main.py

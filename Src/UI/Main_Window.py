@@ -1,13 +1,13 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QFileDialog, QScrollArea, QMessageBox, QTabWidget,
-                             QProgressDialog, QGroupBox)
+                             QProgressDialog)
 from PyQt5.QtCore import Qt, QTranslator, QSettings
 from PyQt5.QtGui import QIcon
 import os
 import subprocess
 import sys
 from loguru import logger
-from Main import APP_VERSION
+from Main import APP_VERSION, get_system_type, get_run_mode
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -22,6 +22,8 @@ from .ProjectManager import ProjectManager
 from .ReleaseManager import ReleaseManager
 from .UIFactory import UIFactory
 from .BatchProcessor import BatchProcessorDialog
+from .PreviewManager import PreviewManager
+from .UpdateChecker import UpdateChecker
 from Processors.DecompileProcessor import DecompileProcessor
 
 class MainWindow(QMainWindow):
@@ -67,6 +69,7 @@ class MainWindow(QMainWindow):
         self.tts_manager = TTSManager(self)
         self.output_manager = OutputManager(self)
         self.project_manager = ProjectManager(self)
+        self.preview_manager = PreviewManager(self)
 
         self.release_manager = ReleaseManager(self)
 
@@ -75,6 +78,9 @@ class MainWindow(QMainWindow):
 
         # 初始化日志处理器（需要在ui_factory之前）
         self.log_handler = LogHandler(self)
+
+        # 初始化更新检查器
+        self.update_checker = UpdateChecker(self)
 
         self.ui_factory = UIFactory(self)
         
@@ -379,6 +385,18 @@ class MainWindow(QMainWindow):
             self.label_freq_track_volume.setText(self.tr("音量 (dB):"))
             self.freq_track_volume.setToolTip(self.tr("特定频率音轨的音量（分贝）。"))
 
+        # 更新等时音组
+        if hasattr(self, 'isochronic_group'):
+            self.isochronic_group.setTitle(self.tr("等时音(Isochronic Tones)"))
+            self.isochronic_enabled.setText(self.tr("启用等时音"))
+            self.isochronic_enabled.setToolTip(self.tr("在音频中叠加等时音。等时音是一种脑波夹带技术，通过周期性的音量脉冲来刺激大脑。"))
+            self.label_isochronic_freq.setText(self.tr("频率 (Hz):"))
+            self.isochronic_freq.setToolTip(self.tr("等时音频率(Hz)。常用频率：4Hz(Theta，放松)、10Hz(Alpha，专注)、40Hz(Gamma，认知)。"))
+            self.label_isochronic_shape.setText(self.tr("波形:"))
+            self.isochronic_shape.setToolTip(self.tr("等时音脉冲波形。sine:平滑、square:明显、triangle:适中。"))
+            self.label_isochronic_volume.setText(self.tr("音量 (dB):"))
+            self.isochronic_volume.setToolTip(self.tr("等时音的音量（分贝）。"))
+
         # 更新输出组
         if hasattr(self, 'output_group'):
             self.output_group.setTitle(self.tr("输出"))
@@ -415,19 +433,9 @@ class MainWindow(QMainWindow):
             self.metadata_author.setToolTip(self.tr("设置项目输出元数据中的作者。"))
             self.generate_btn.setText(self.tr("生成项目"))
             self.generate_btn.setToolTip(self.tr("开始生成项目！"))
-            # 预览组 (已禁用)
-            # if hasattr(self, 'preview_group'):
-            #     self.preview_group.setTitle(self.tr("预览"))
-            #     self.preview_zoom_in_btn.setText(self.tr("放大"))
-            #     self.preview_zoom_in_btn.setToolTip(self.tr("放大预览视图"))
-            #     self.preview_zoom_out_btn.setText(self.tr("缩小"))
-            #     self.preview_zoom_out_btn.setToolTip(self.tr("缩小预览视图"))
-            #     self.preview_reset_btn.setText(self.tr("重置视图"))
-            #     self.preview_reset_btn.setToolTip(self.tr("重置预览视图缩放和位置"))
-            #     self.preview_update_btn.setText(self.tr("更新预览"))
-            #     self.preview_update_btn.setToolTip(self.tr("根据当前配置更新预览"))
-            #     self.preview_tracks_label.setText(self.tr('轨道预览（点击"更新预览"查看）'))
-            #     self.preview_zoom_label.setText(self.tr("缩放: 100%"))
+            # 预览组
+            if hasattr(self, 'preview_group'):
+                self.preview_group.setTitle(self.tr("输出预览"))
 
         # 更新输出文件管理组
         if hasattr(self, 'release_group'):
@@ -446,6 +454,13 @@ class MainWindow(QMainWindow):
                 self.about_title_label.setText(self.tr("JimSMake"))
             if hasattr(self, 'about_version_label'):
                 self.about_version_label.setText(self.tr("版本:") + f" {APP_VERSION}")
+            if hasattr(self, 'about_system_label'):
+                system_type = get_system_type()
+                run_mode = get_run_mode()
+                self.about_system_label.setText(
+                    self.tr("操作系统:") + f" {system_type}  |  " +
+                    self.tr("运行模式:") + f" {run_mode}"
+                )
             if hasattr(self, 'about_subtitle_label'):
                 self.about_subtitle_label.setText(self.tr("一站式潜意识音频制作工具"))
             if hasattr(self, 'about_text_label'):
@@ -460,7 +475,7 @@ class MainWindow(QMainWindow):
                     "<b>自由软件声明</b><br>"
                     "本软件是自由软件，采用 GNU General Public License v3.0 许可证发布。\n"
                     "您可以自由使用、复制、修改和分发本软件。\n"
-                    "软件按\"原样\"提供，不包含任何场景下的适用性保障。\n"
+                    "软件按\"原样\"提供，不提供任何担保。\n"
                     "详细信息请参阅 LICENSE 文件。"
                 ))
             if hasattr(self, 'contact_label'):
@@ -1017,6 +1032,7 @@ class MainWindow(QMainWindow):
         freq_track_widget = QWidget()
         freq_track_layout = QVBoxLayout(freq_track_widget)
         freq_track_layout.addWidget(self.ui_factory.create_freq_track_group())
+        freq_track_layout.addWidget(self.ui_factory.create_isochronic_group())
 
         # 创建日志选项卡内容
         log_widget = QWidget()
@@ -1064,9 +1080,46 @@ class MainWindow(QMainWindow):
         # 连接特定频率音轨的信号，用于更新频率预览
         self.setup_freq_track_preview()
 
+        # 设置Web预览
+        self.setup_web_preview()
+
         # 所有UI组件创建完成后，刷新项目列表
         # 这必须在所有UI组件（包括output_list）创建完成后调用
         self.project_manager.refresh_project_group_list()
+
+    def setup_web_preview(self):
+        """设置Web预览"""
+        if hasattr(self, 'preview_webview') and self.preview_webview:
+            self.preview_manager.setup_web_view(self.preview_webview)
+            logger.debug("Web预览已设置")
+
+            # 连接音频文件选择变化信号，自动更新预览
+            if hasattr(self, 'affirmation_file'):
+                self.affirmation_file.textChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'background_file'):
+                self.background_file.textChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'overlay_times'):
+                self.overlay_times.valueChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'overlay_interval'):
+                self.overlay_interval.valueChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'overlay_stagger_mode'):
+                self.overlay_stagger_mode.stateChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'freq_track_enabled'):
+                self.freq_track_enabled.stateChanged.connect(self.on_preview_source_changed)
+            if hasattr(self, 'ensure_integrity_check'):
+                self.ensure_integrity_check.stateChanged.connect(self.on_preview_source_changed)
+
+    def on_preview_source_changed(self):
+        """预览源数据变化时更新预览"""
+        # 使用延迟更新避免频繁刷新
+        from PyQt5.QtCore import QTimer
+        if hasattr(self, '_preview_update_timer'):
+            self._preview_update_timer.stop()
+        else:
+            self._preview_update_timer = QTimer(self)
+            self._preview_update_timer.setSingleShot(True)
+            self._preview_update_timer.timeout.connect(self.preview_manager.update_preview)
+        self._preview_update_timer.start(300)  # 300ms延迟
 
     def setup_freq_track_preview(self):
         """设置特定频率音轨的频率预览更新"""
@@ -1139,7 +1192,66 @@ class MainWindow(QMainWindow):
             if line_edit == self.text_file:
                 self.text_sync.load_text_from_file(file_path)
 
-    
+    def open_affirmation_editor(self):
+        """打开肯定语编辑器对话框"""
+        from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(self.tr("编辑肯定语"))
+        dialog.setMinimumSize(500, 300)
+
+        layout = QVBoxLayout(dialog)
+
+        # 多行文本编辑框
+        text_edit = QTextEdit(dialog)
+        text_edit.setPlainText(self.affirmation_text.text())
+        text_edit.setPlaceholderText(self.tr("在此输入肯定语..."))
+        layout.addWidget(text_edit)
+
+        # 按钮布局
+        btn_layout = QHBoxLayout()
+
+        save_btn = QPushButton(self.tr("保存"), dialog)
+        save_btn.clicked.connect(dialog.accept)
+        btn_layout.addStretch()
+        btn_layout.addWidget(save_btn)
+
+        cancel_btn = QPushButton(self.tr("取消"), dialog)
+        cancel_btn.clicked.connect(dialog.reject)
+        btn_layout.addWidget(cancel_btn)
+
+        layout.addLayout(btn_layout)
+
+        # 显示对话框
+        if dialog.exec_() == QDialog.Accepted:
+            self.affirmation_text.setText(text_edit.toPlainText())
+            logger.debug("肯定语已更新")
+
+    def open_text_file_with_default_app(self):
+        """用系统默认程序打开文本文件"""
+        file_path = self.text_file.text().strip()
+        if not file_path:
+            QMessageBox.warning(self, self.tr("提示"), self.tr("请先选择文本文件！"))
+            return
+
+        if not os.path.exists(file_path):
+            QMessageBox.warning(self, self.tr("错误"), self.tr(f"文件不存在: {file_path}"))
+            return
+
+        try:
+            import platform
+            system = platform.system()
+            if system == "Windows":
+                os.startfile(file_path)
+            elif system == "Darwin":  # macOS
+                subprocess.run(["open", file_path], check=True)
+            else:  # Linux
+                subprocess.run(["xdg-open", file_path], check=True)
+            logger.info(f"用默认程序打开文件: {file_path}")
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"无法打开文件: {str(e)}"))
+            logger.error(f"打开文件失败: {e}")
+
     def search_visualization_image(self):
         """联机搜索视觉化图片"""
         keyword = self.search_keyword.text().strip()
@@ -1600,28 +1712,38 @@ class MainWindow(QMainWindow):
     
     def reset_settings(self):
         """重置所有设置"""
-        reply = QMessageBox.question(self, self.tr("确认重置"), 
+        reply = QMessageBox.question(self, self.tr("确认重置"),
                                     self.tr("确定要重置所有设置吗？这将恢复所有设置为默认值。"),
                                     QMessageBox.Yes | QMessageBox.No)
-        
+
         if reply == QMessageBox.Yes:
             logger.info("开始重置设置")
             self.settings.clear()
             logger.debug("设置已清空")
-            
+
             self.current_language = "zh_CN"
             self.settings.setValue("language", self.current_language)
             logger.info(f"语言重置为默认: {self.current_language}")
-            
+
             self.setupTranslations()
-            
+
             current_index = self.language_combo.findData(self.current_language)
             if current_index >= 0:
                 self.language_combo.setCurrentIndex(current_index)
-            
+
             logger.info("设置重置完成")
             QMessageBox.information(self, self.tr("成功"),
                                    self.tr("所有设置已重置为默认值。"))
+
+    def check_for_updates(self):
+        """检查更新"""
+        logger.info("用户触发检查更新")
+        if hasattr(self, 'update_checker') and self.update_checker:
+            self.update_checker.check_for_updates(silent=False)
+        else:
+            logger.error("更新检查器未初始化")
+            QMessageBox.warning(self, self.tr("错误"),
+                               self.tr("更新检查器未初始化，请重启程序后重试。"))
 
     def clear_log_display(self):
         """清空日志显示区域"""

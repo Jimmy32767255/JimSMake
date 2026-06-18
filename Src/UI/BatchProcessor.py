@@ -186,6 +186,7 @@ class BatchGenerationWorker(QThread):
         background = config.get('background', {})
         overlay = config.get('overlay', {})
         freq_track = config.get('freq_track', {})
+        isochronic = config.get('isochronic', {})
         output = config.get('output', {})
         metadata = config.get('metadata', {})
 
@@ -259,6 +260,7 @@ class BatchGenerationWorker(QThread):
             'overlay_times': overlay.get('times', 1),
             'overlay_interval': overlay.get('interval', 1.0),
             'volume_decrease': overlay.get('volume_decrease', 0.0),
+            'overlay_stagger_mode': overlay.get('stagger_mode', False),
             'background_volume': background.get('volume', 0.0),
             'freq_track_enabled': freq_track.get('enabled', False),
             'freq_track_freq': freq_track.get('frequency', '432'),
@@ -266,6 +268,10 @@ class BatchGenerationWorker(QThread):
             'freq_track_diff_mode': freq_track.get('diff_mode', False),
             'freq_track_diff': freq_track.get('diff_value', '100'),
             'freq_track_swap_channels': freq_track.get('swap_channels', False),
+            'isochronic_enabled': isochronic.get('enabled', False),
+            'isochronic_freq': isochronic.get('frequency', '10'),
+            'isochronic_volume': isochronic.get('volume', -20.0),
+            'isochronic_shape': isochronic.get('shape', 'sine'),
             'output_format': audio_format,
             'output_path': audio_output_path,
             'generate_audio': generate_audio,

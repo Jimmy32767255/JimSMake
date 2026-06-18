@@ -1,0 +1,108 @@
+name: 手动云打包
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_target:
+        description: '选择打包目标'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows
+          - linux
+      upload_artifact:
+        description: '是否上传构建产物'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build-windows:
+    if: ${{ inputs.build_target == 'all' || inputs.build_target == 'windows' }}
+    runs-on: windows-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: 执行打包
+        run: |
+          pyinstaller Build.spec --clean
+        shell: cmd
+
+      - name: 整理输出文件
+        run: |
+          $outputDir = "dist/Windows"
+          New-Item -ItemType Directory -Force -Path $outputDir
+          Move-Item -Path "dist/SMake.exe" -Destination "$outputDir/SMake.exe" -Force -ErrorAction SilentlyContinue
+          if (Test-Path "dist/SMake") {
+            Copy-Item -Path "dist/SMake/*" -Destination $outputDir -Recurse -Force
+            Remove-Item -Path "dist/SMake" -Recurse -Force
+          }
+          if (Test-Path "Translation") {
+            Copy-Item -Path "Translation" -Destination $outputDir -Recurse -Force
+          }
+        shell: pwsh
+
+      - name: 上传 Windows 构建产物
+        if: ${{ inputs.upload_artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: JimSMake-Windows
+          path: dist/Windows/
+          retention-days: 7
+
+  build-linux:
+    if: ${{ inputs.build_target == 'all' || inputs.build_target == 'linux' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装系统依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip python3-venv wget
+
+      - name: 执行 AppImage 打包
+        run: |
+          chmod +x Build.sh
+          ./Build.sh
+
+      - name: 上传 Linux 构建产物
+        if: ${{ inputs.upload_artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: JimSMake-Linux
+          path: dist/Linux/
+          retention-days: 7
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.upload_artifact && always() && (needs.build-windows.result == 'success' || needs.build-linux.result == 'success') }}
+    steps:
+      - name: 下载所有构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          merge-multiple: false
+
+      - name: 查看构建产物
+        run: |
+          echo "构建产物列表:"
+          ls -la ./artifacts/
+          find ./artifacts -type f

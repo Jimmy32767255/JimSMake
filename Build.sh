@@ -61,7 +61,7 @@ cp -r "$SCRIPT_DIR/Translation" "$APPDIR/usr/share/jimsmake/"
 
 # 安装 Python 依赖到 AppDir
 echo "[安装 Python 依赖...]"
-pip3 install --prefix="$APPDIR/usr" -r "$SCRIPT_DIR/requirements.txt"
+pip3 install --prefix="$APPDIR/usr" --ignore-installed -r "$SCRIPT_DIR/requirements.txt"
 
 # 复制图标
 cp "$SCRIPT_DIR/Assets/SMakeIcon256.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/jimsmake.png"
@@ -95,10 +95,6 @@ export PYTHONPATH="$APPDIR/usr/share/jimsmake:$APPDIR/usr/lib/$PYTHON_VERSION/si
 # 检查 FFmpeg
 if ! command -v ffmpeg &> /dev/null; then
     echo "警告: 未检测到 FFmpeg，请确保已安装 FFmpeg"
-    echo "您可以通过包管理器安装:"
-    echo "  sudo apt install ffmpeg (Debian/Ubuntu)"
-    echo "  sudo pacman -S ffmpeg (Arch Linux)"
-    echo "  sudo dnf install ffmpeg (Fedora)"
 fi
 
 exec python3 "$APPDIR/usr/share/jimsmake/Src/Main.py" "$@"
@@ -124,10 +120,6 @@ export PYTHONPATH="$HERE/usr/share/jimsmake:$HERE/usr/lib/$PYTHON_VERSION/site-p
 # 检查 FFmpeg
 if ! command -v ffmpeg &> /dev/null; then
     echo "警告: 未检测到 FFmpeg，请确保已安装 FFmpeg"
-    echo "您可以通过包管理器安装:"
-    echo "  sudo apt install ffmpeg (Debian/Ubuntu)"
-    echo "  sudo pacman -S ffmpeg (Arch Linux)"
-    echo "  sudo dnf install ffmpeg (Fedora)"
 fi
 
 # 启动程序
@@ -143,23 +135,17 @@ cp "$APPDIR/usr/share/icons/hicolor/256x256/apps/jimsmake.png" "$APPDIR/jimsmake
 
 # 使用 appimagetool 打包
 echo "[使用 appimagetool 打包...]"
-ARCH=x86_64 ./appimagetool-x86_64.AppImage "$APPDIR" --runtime-file runtime-x86_64
+ARCH=x86_64 APPIMAGELAUNCHER_DISABLE=1 ./appimagetool-x86_64.AppImage "$APPDIR" --runtime-file runtime-x86_64
 
 # 检查并提示
 cd "$SCRIPT_DIR"
 if [[ -f "$BUILD_DIR/JimSMake-x86_64.AppImage" ]]; then
-    mkdir -p "$SCRIPT_DIR/dist/Linux"
-    mv "$BUILD_DIR/JimSMake-x86_64.AppImage" "$SCRIPT_DIR/dist/Linux/GNU-Linux-amd64.AppImage"
+    mkdir -p "$SCRIPT_DIR/dist"
+    mv "$BUILD_DIR/JimSMake-x86_64.AppImage" "$SCRIPT_DIR/dist/GNU-Linux-amd64.AppImage"
     echo ""
     echo "=========================================="
     echo "构建成功!"
-    echo "=========================================="
-    echo "输出文件: $SCRIPT_DIR/dist/Linux/GNU-Linux-amd64.AppImage"
-    echo ""
-    echo "注意: 运行前请确保已安装 FFmpeg"
-    echo "  sudo apt install ffmpeg (Debian/Ubuntu)"
-    echo "  sudo pacman -S ffmpeg (Arch Linux)"
-    echo "  sudo dnf install ffmpeg (Fedora)"
+    echo "输出文件: $SCRIPT_DIR/dist/GNU-Linux-amd64.AppImage"
     echo "=========================================="
 else
     echo "[错误] 构建失败，未找到输出文件"

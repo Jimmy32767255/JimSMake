@@ -16,7 +16,7 @@ python -m Src.Main -c [选项]
 # Windows
 Start.bat -c [选项]
 
-# Linux
+# GNU/Linux
 Start.sh -c [选项]
 ```
 

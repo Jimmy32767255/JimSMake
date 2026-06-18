@@ -281,6 +281,7 @@ class ProjectManager:
             self._load_spin_setting('overlay_times', overlay.get('times'))
             self._load_spin_setting('overlay_interval', overlay.get('interval'))
             self._load_spin_setting('volume_decrease', overlay.get('volume_decrease'))
+            self._load_checkbox_setting('overlay_stagger_mode', overlay.get('stagger_mode'))
 
             # 加载背景音设置
             background = config.get('background', {})
@@ -296,6 +297,13 @@ class ProjectManager:
             self._load_checkbox_setting('freq_track_diff_mode', freq_track.get('diff_mode'))
             self._load_spin_setting('freq_track_diff', freq_track.get('diff_value'))
             self._load_checkbox_setting('freq_track_swap_channels', freq_track.get('swap_channels'))
+
+            # 加载等时音设置
+            isochronic = config.get('isochronic', {})
+            self._load_checkbox_setting('isochronic_enabled', isochronic.get('enabled'))
+            self._load_spin_setting('isochronic_freq', isochronic.get('frequency'))
+            self._load_spin_setting('isochronic_volume', isochronic.get('volume'))
+            self._load_combo_setting('isochronic_shape', isochronic.get('shape'))
 
             # 加载输出设置
             output = config.get('output', {})
@@ -364,6 +372,8 @@ class ProjectManager:
             self.main_window.overlay_interval.setValue(1.0)
         if hasattr(self.main_window, 'volume_decrease') and self.main_window.volume_decrease is not None:
             self.main_window.volume_decrease.setValue(0.0)
+        if hasattr(self.main_window, 'overlay_stagger_mode') and self.main_window.overlay_stagger_mode is not None:
+            self.main_window.overlay_stagger_mode.setChecked(False)
 
         # 背景音设置
         if hasattr(self.main_window, 'background_file') and self.main_window.background_file is not None:
@@ -386,6 +396,16 @@ class ProjectManager:
             self.main_window.freq_track_diff.setValue(10)
         if hasattr(self.main_window, 'freq_track_swap_channels') and self.main_window.freq_track_swap_channels is not None:
             self.main_window.freq_track_swap_channels.setChecked(False)
+
+        # 等时音设置
+        if hasattr(self.main_window, 'isochronic_enabled') and self.main_window.isochronic_enabled is not None:
+            self.main_window.isochronic_enabled.setChecked(False)
+        if hasattr(self.main_window, 'isochronic_freq') and self.main_window.isochronic_freq is not None:
+            self.main_window.isochronic_freq.setValue(10)
+        if hasattr(self.main_window, 'isochronic_volume') and self.main_window.isochronic_volume is not None:
+            self.main_window.isochronic_volume.setValue(-20.0)
+        if hasattr(self.main_window, 'isochronic_shape') and self.main_window.isochronic_shape is not None:
+            self.main_window.isochronic_shape.setCurrentIndex(0)
 
         # 输出设置
         if hasattr(self.main_window, 'generate_audio') and self.main_window.generate_audio is not None:
@@ -456,7 +476,8 @@ class ProjectManager:
                 "overlay": {
                     "times": 1,
                     "interval": 1.0,
-                    "volume_decrease": 0.0
+                    "volume_decrease": 0.0,
+                    "stagger_mode": False
                 },
                 "background": {
                     "file": "",
@@ -581,7 +602,8 @@ class ProjectManager:
                 "overlay": {
                     "times": self._get_spin_value('overlay_times'),
                     "interval": self._get_spin_value('overlay_interval'),
-                    "volume_decrease": self._get_spin_value('volume_decrease')
+                    "volume_decrease": self._get_spin_value('volume_decrease'),
+                    "stagger_mode": self._get_checkbox_value('overlay_stagger_mode')
                 },
                 "background": {
                     "file": self._get_relative_path('background_file', project_dir),
@@ -594,6 +616,12 @@ class ProjectManager:
                     "diff_mode": self._get_checkbox_value('freq_track_diff_mode'),
                     "diff_value": self._get_spin_value('freq_track_diff'),
                     "swap_channels": self._get_checkbox_value('freq_track_swap_channels')
+                },
+                "isochronic": {
+                    "enabled": self._get_checkbox_value('isochronic_enabled'),
+                    "frequency": self._get_spin_value('isochronic_freq'),
+                    "volume": self._get_spin_value('isochronic_volume'),
+                    "shape": self._get_combo_value('isochronic_shape')
                 },
                 "output": {
                     "generate_audio": self._get_checkbox_value('generate_audio'),

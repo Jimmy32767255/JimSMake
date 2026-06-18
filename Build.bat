@@ -96,29 +96,7 @@ if "%USE_GLOBAL%"=="false" (
     echo [信息] 退出虚拟环境...
 )
 
-REM 创建平台专属目录并移动打包结果
-set "OUTPUT_DIR=dist\Windows"
-echo [信息] 创建输出目录: %OUTPUT_DIR%...
-if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
-
-REM 移动打包结果到平台专属目录
-if exist "dist\SMake" (
-    move /y "dist\SMake.exe" "%OUTPUT_DIR%\SMake.exe" >nul 2>&1
-    move /y "dist\SMake\*" "%OUTPUT_DIR%\" >nul 2>&1
-    rmdir /s /q "dist\SMake"
-)
-
-REM 复制额外文件到输出目录
-echo [信息] 复制资源文件...
-if exist "Translation" xcopy /s /i /y "Translation" "%OUTPUT_DIR%\Translation" >nul
-
-REM 创建启动脚本
-echo [信息] 创建启动脚本...
-echo @echo off > "%OUTPUT_DIR%\Start.bat"
-echo SMake.exe >> "%OUTPUT_DIR%\Start.bat"
-
 echo ==========================================
 echo [成功] 打包完成！
-echo 输出目录: %OUTPUT_DIR%\
-echo 可执行文件: %OUTPUT_DIR%\SMake.exe
+echo 输出文件: dist\Microsoft-Windows-amd64.exe
 echo ==========================================

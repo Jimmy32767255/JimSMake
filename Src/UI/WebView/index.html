@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频轨道预览</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="preview-container">
+        <div class="timeline-header">
+            <div class="track-label-header">轨道</div>
+            <div class="timeline-ruler" id="timelineRuler"></div>
+        </div>
+        <div class="tracks-container" id="tracksContainer">
+            <!-- 轨道将在这里动态生成 -->
+        </div>
+        <div class="preview-info" id="previewInfo">
+            <span class="info-text">请先选择音频文件</span>
+        </div>
+    </div>
+    <!-- QWebChannel 库，用于与Python通信 -->
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="preview.js"></script>
+</body>
+</html>

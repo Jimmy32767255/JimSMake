@@ -1,7 +1,13 @@
 # 核心依赖（必需）
 PyQt5>=5.15.0
 PyQt5-sip>=12.9.0
+PyQtWebEngine>=5.15.0
 pyttsx3>=2.90
 PyAudio>=0.2.11
 loguru>=0.7.0
 chardet>=5.0.0
+
+# 测试依赖（开发者使用）
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0

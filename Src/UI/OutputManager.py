@@ -78,6 +78,7 @@ class OutputManager:
             'overlay_times': self.main_window.overlay_times.value(),
             'overlay_interval': self.main_window.overlay_interval.value(),
             'volume_decrease': self.main_window.volume_decrease.value(),
+            'overlay_stagger_mode': self.main_window.overlay_stagger_mode.isChecked(),
             'background_volume': self.main_window.background_volume_spin.value(),
             'freq_track_enabled': self.main_window.freq_track_enabled.isChecked(),
             'freq_track_freq': self.main_window.freq_track_freq.text(),
@@ -85,6 +86,10 @@ class OutputManager:
             'freq_track_diff_mode': self.main_window.freq_track_diff_mode.isChecked(),
             'freq_track_diff': self.main_window.freq_track_diff.text(),
             'freq_track_swap_channels': self.main_window.freq_track_swap_channels.isChecked(),
+            'isochronic_enabled': self.main_window.isochronic_enabled.isChecked(),
+            'isochronic_freq': self.main_window.isochronic_freq.text(),
+            'isochronic_volume': self.main_window.isochronic_volume.value(),
+            'isochronic_shape': self.main_window.isochronic_shape.currentText(),
             'output_format': self.main_window.audio_format.currentText(),
             'output_path': audio_output_path,
             'generate_audio': generate_audio,
@@ -107,6 +112,10 @@ class OutputManager:
         logger.debug(f"生成项目参数 - freq_track_diff_mode: {params['freq_track_diff_mode']}")
         logger.debug(f"生成项目参数 - freq_track_diff: {params['freq_track_diff']}")
         logger.debug(f"生成项目参数 - freq_track_swap_channels: {params['freq_track_swap_channels']}")
+        logger.debug(f"生成项目参数 - isochronic_enabled: {params['isochronic_enabled']}")
+        logger.debug(f"生成项目参数 - isochronic_freq: {params['isochronic_freq']}")
+        logger.debug(f"生成项目参数 - isochronic_volume: {params['isochronic_volume']}")
+        logger.debug(f"生成项目参数 - isochronic_shape: {params['isochronic_shape']}")
 
         self.main_window.progress_dialog = QProgressDialog(
             self.main_window.tr("正在生成项目..."),

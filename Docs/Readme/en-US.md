@@ -4,6 +4,8 @@
 
 ## Introduction
 
+![SMake](../../Assets/SMakeIcon256.png)
+
 JimSMake is a professional subliminal audio production tool that provides an intuitive graphical interface and command-line interface, helping users easily create subliminal audio content.
 
 [Directory Info](../../DirInfo.txt)
@@ -31,9 +33,10 @@ QQ Group: 1095279278
 - **Batch Processing** - Support multi-project batch generation to improve work efficiency
 - **Affirmation Processing** - Supports audio file import, text-to-speech (TTS), microphone recording, and more
 - **Audio Effects** - Volume adjustment (dB), frequency shifting (e.g. 17500Hz), speed control, reverse playback
-- **Overlay Effects** - Multi-track overlay with adjustable count, interval, and volume decrease
+- **Overlay Effects** - Multi-track overlay with adjustable count, interval, volume decrease, and stagger mode (normal/reverse alternation)
 - **Background Music** - Add background tracks with independent volume control
 - **Specific Frequency Overlay** - Support 432/639/1111Hz and other specific frequency track overlay, with difference mode and channel inversion
+- **Isochronic Tones** - Support overlaying isochronic tones brainwave entrainment audio, with adjustable frequency, waveform and volume
 - **Video Generation** - Combine audio with visualization images to create MP4 and other video formats
 - **Image Search** - Integrated search engines for online visualization image search
 - **Metadata Management** - Set title, author, and other ID3 tag information for output files
@@ -58,7 +61,7 @@ If you need to use an older version, please download the documentation for that 
 
 ### System Requirements
 
-- OS: Windows 11, Major Linux distributions
+- OS: Windows 11, Major GNU/Linux distributions
 
 - It is strongly recommended to install [FFmpeg](https://ffmpeg.org/) on your system, otherwise you will only be able to use basic features.
 
@@ -127,7 +130,7 @@ If you want to participate in development or debug/modify the code, you need the
    Start.bat
    ```
 
-   Linux:
+   GNU/Linux:
    ```bash
    Start.sh
    ```
@@ -139,7 +142,7 @@ If you want to participate in development or debug/modify the code, you need the
    Start.bat -c
    ```
 
-   Linux:
+   GNU/Linux:
    ```bash
    Start.sh -c
    ```
@@ -179,6 +182,7 @@ If you want to participate in development or debug/modify the code, you need the
    - **Overlay Count**: 1-10 times
    - **Interval**: 0-10 seconds
    - **Volume Decrease**: 0-10dB reduction per overlay
+   - **Stagger Mode**: When enabled, overlay tracks will alternate between normal and reversed playback. The first track plays normally, the second reversed, the third normally, and so on
 
 #### Background Music Settings
 
@@ -219,21 +223,7 @@ For detailed documentation, please refer to the [Build Guide](../Build/en-US.md)
 
 ### Internationalization
 
-The program includes a translation framework. To add a new language translation:
-
-1. Generate translation files:
-
-   ```bash
-   pylupdate5 ./Translation/SMake.pro
-   ```
-
-2. Use Qt Linguist or manually edit the translation files
-
-3. Compile to generate .qm files:
-
-   ```bash
-   lrelease ./Translation/SMake.pro
-   ```
+For detailed documentation, please refer to the [Translation Guide](../Translation/en-US.md).
 
 ## Contact
 

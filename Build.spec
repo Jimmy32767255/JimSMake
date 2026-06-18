@@ -10,11 +10,13 @@ root_dir = Path(SPECPATH)
 src_dir = root_dir / "Src"
 translation_dir = root_dir / "Translation"
 assets_dir = root_dir / "Assets"
+webview_dir = root_dir / "Src" / "UI" / "WebView"
 
 # 数据文件
 added_files = [
     (str(translation_dir), "Translation"),
     (str(assets_dir), "Assets"),
+    (str(webview_dir), "Src/UI/WebView"),
 ]
 
 # 隐藏导入
@@ -58,7 +60,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SMake',
+    name='Microsoft-Windows-amd64',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -67,8 +69,10 @@ exe = EXE(
     runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
+    argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon='./Assets/SMakeIconOutput.ico',
+    onefile=True,
 )

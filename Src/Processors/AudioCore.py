@@ -402,11 +402,12 @@ class AudioCore:
         overlay_times = params.get('overlay_times', 1)
         overlay_interval = params.get('overlay_interval', 1.0)
         volume_decrease = params.get('volume_decrease', 0.0)
+        stagger_mode = params.get('overlay_stagger_mode', False)
 
         if overlay_times <= 1:
             return audio_data
 
-        logger.info(f"应用叠加效果: {overlay_times}次, 间隔{overlay_interval}s")
+        logger.info(f"应用叠加效果: {overlay_times}次, 间隔{overlay_interval}s, 交错模式: {stagger_mode}")
 
         data = audio_data['data']
         sample_rate = audio_data['sample_rate']
@@ -418,9 +419,19 @@ class AudioCore:
             current_volume_db = -i * volume_decrease
             volume_factor = 10 ** (current_volume_db / 20.0)
             offset = i * interval_samples
-            for j, sample in enumerate(data):
-                if offset + j < final_length:
-                    result[offset + j] += sample * volume_factor
+
+            # 交错模式：偶数索引（0, 2, 4...）正放，奇数索引（1, 3, 5...）倒放
+            if stagger_mode and i % 2 == 1:
+                # 倒放：反转数据
+                reversed_data = data[::-1]
+                for j, sample in enumerate(reversed_data):
+                    if offset + j < final_length:
+                        result[offset + j] += sample * volume_factor
+            else:
+                # 正放
+                for j, sample in enumerate(data):
+                    if offset + j < final_length:
+                        result[offset + j] += sample * volume_factor
 
         max_val = max(abs(s) for s in result) if result else 1.0
         if max_val > 1.0:
@@ -611,7 +622,7 @@ class AudioCore:
         channels = audio_data.get('channels', 2)
         volume_factor = 10 ** (volume_db / 20.0)
 
-        if diff_mode and channels == 2:
+        if diff_mode:
             # 差值模式：左右声道使用不同频率
             # 使用频率输入框的值作为目标频率
             target_freq = frequency
@@ -633,25 +644,47 @@ class AudioCore:
             logger.info(f"差值模式 - 目标频率: {target_freq}Hz, 差值: {freq_diff}Hz, 左声道: {left_freq}Hz, 右声道: {right_freq}Hz, 音量: {volume_db}dB")
 
             # 生成立体声差值频率音轨
+            # 将输入音频转换为立体声输出（无论输入是单声道还是立体声）
             result = []
-            for i in range(0, len(data), 2):
-                t = i / sample_rate
-                # 左声道
-                left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
-                # 右声道
-                right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
+            if channels == 2:
+                # 输入是立体声：左右声道数据交替存储 [L0, R0, L1, R1, ...]
+                for i in range(0, len(data), 2):
+                    t = i // 2 / sample_rate  # 使用帧索引计算时间
+                    # 左声道
+                    left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
+                    # 右声道
+                    right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
 
-                if i < len(data):
+                    if i < len(data):
+                        left_mixed = data[i] + left_sine
+                        left_mixed = max(-1.0, min(1.0, left_mixed))
+                        result.append(left_mixed)
+
+                    if i + 1 < len(data):
+                        right_mixed = data[i + 1] + right_sine
+                        right_mixed = max(-1.0, min(1.0, right_mixed))
+                        result.append(right_mixed)
+            else:
+                # 输入是单声道：复制到左右声道
+                for i in range(len(data)):
+                    t = i / sample_rate
+                    # 左声道
+                    left_sine = math.sin(2 * math.pi * left_freq * t) * volume_factor
+                    # 右声道
+                    right_sine = math.sin(2 * math.pi * right_freq * t) * volume_factor
+
+                    # 将单声道样本复制到左右声道，并叠加频率音轨
                     left_mixed = data[i] + left_sine
                     left_mixed = max(-1.0, min(1.0, left_mixed))
                     result.append(left_mixed)
 
-                if i + 1 < len(data):
-                    right_mixed = data[i + 1] + right_sine
+                    right_mixed = data[i] + right_sine
                     right_mixed = max(-1.0, min(1.0, right_mixed))
                     result.append(right_mixed)
 
             logger.debug(f"差值模式音轨叠加完成，数据长度: {len(result)} samples")
+            # 更新通道数为2（立体声）
+            audio_data['channels'] = 2
         else:
             # 普通模式
             logger.info(f"叠加特定频率音轨: {frequency}Hz, 音量: {volume_db}dB")
@@ -667,6 +700,72 @@ class AudioCore:
                 result.append(mixed)
 
             logger.debug(f"特定频率音轨叠加完成，数据长度: {len(result)} samples")
+
+        audio_data['data'] = result
+        return audio_data
+
+    def apply_isochronic_tones(self, audio_data, params=None):
+        """叠加等时音(Isochronic Tones)到音频中
+
+        等时音是一种脑波夹带技术，通过周期性的音量脉冲（完全静音到最大音量）
+        来刺激大脑进入特定状态。与双耳节拍不同，等时音不需要耳机。
+        """
+        if params is None:
+            params = self.params
+
+        # 检查是否启用等时音
+        if not params.get('isochronic_enabled', False):
+            return audio_data
+
+        freq_str = params.get('isochronic_freq', '10')
+        volume_db = params.get('isochronic_volume', -20.0)
+        pulse_shape = params.get('isochronic_shape', 'sine')  # sine, square, triangle
+
+        try:
+            frequency = float(freq_str)
+            if frequency <= 0:
+                logger.error(f"等时音频率必须大于0: {freq_str}")
+                return audio_data
+        except ValueError:
+            logger.error(f"无效的等时音频率值: {freq_str}")
+            return audio_data
+
+        data = audio_data['data']
+        sample_rate = audio_data['sample_rate']
+        volume_factor = 10 ** (volume_db / 20.0)
+
+        logger.info(f"叠加等时音: {frequency}Hz, 波形: {pulse_shape}, 音量: {volume_db}dB")
+
+        result = []
+        period_samples = sample_rate / frequency  # 一个周期的采样点数
+
+        for i, sample in enumerate(data):
+            # 计算当前在周期中的位置 (0.0 到 1.0)
+            position_in_period = (i % period_samples) / period_samples
+
+            # 根据波形类型生成脉冲
+            if pulse_shape == 'square':
+                # 方波：前半周期为1，后半周期为0
+                pulse = 1.0 if position_in_period < 0.5 else 0.0
+            elif pulse_shape == 'triangle':
+                # 三角波：上升然后下降
+                if position_in_period < 0.5:
+                    pulse = position_in_period * 2.0  # 0 -> 1
+                else:
+                    pulse = (1.0 - position_in_period) * 2.0  # 1 -> 0
+            else:  # sine
+                # 正弦波：使用半波整流后的正弦波 (0 -> 1 -> 0)
+                pulse = math.sin(position_in_period * 2 * math.pi)
+                pulse = (pulse + 1.0) / 2.0  # 映射到 0-1 范围
+
+            # 应用音量因子并叠加到原始音频
+            isochronic_sample = pulse * volume_factor
+            mixed = sample + isochronic_sample
+            # 限制在有效范围内
+            mixed = max(-1.0, min(1.0, mixed))
+            result.append(mixed)
+
+        logger.debug(f"等时音叠加完成，数据长度: {len(result)} samples")
 
         audio_data['data'] = result
         return audio_data
@@ -850,6 +949,14 @@ class AudioCore:
             final_data = self.apply_freq_track(final_data)
             if progress_callback:
                 progress_callback(90)
+
+            if self.check_cancelled():
+                return None
+
+            # 应用等时音
+            final_data = self.apply_isochronic_tones(final_data)
+            if progress_callback:
+                progress_callback(95)
 
             if self.check_cancelled():
                 return None

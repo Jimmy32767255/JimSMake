@@ -196,10 +196,15 @@ class ReleaseManager:
             folder_path = os.path.dirname(file_path)
             system = platform.system()
             if system == "Windows":
-                subprocess.run(["explorer", "/select,", file_path], check=True)
-            elif system == "Darwin":  # macOS
+                # Windows
+                # explorer 似乎不支持 “select” 参数，故改为打开文件夹
+                # 即使语法正确也返回1，故关闭检测
+                subprocess.run(["explorer", folder_path], check=False)
+            elif system == "Darwin":
+                # macOS
                 subprocess.run(["open", "-R", file_path], check=True)
-            else:  # Linux
+            else:
+                # GNU/Linux
                 subprocess.run(["xdg-open", folder_path], check=True)
             logger.info(f"在文件资源管理器中打开: {folder_path}")
         except Exception as e:
