@@ -98,5 +98,5 @@ if "%USE_GLOBAL%"=="false" (
 
 echo ==========================================
 echo [成功] 打包完成！
-echo 输出文件: dist\SMake.exe
+echo 输出文件: dist\Microsoft-Windows-amd64.exe
 echo ==========================================

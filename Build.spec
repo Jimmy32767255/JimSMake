@@ -60,7 +60,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SMake',
+    name='Microsoft-Windows-amd64',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
