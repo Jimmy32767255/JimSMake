@@ -4,7 +4,7 @@ import argparse
 from loguru import logger
 
 # 应用程序版本常量
-APP_VERSION = "V2.0.1R"
+APP_VERSION = "V2.1.0R"
 
 def parse_args():
     """解析命令行参数"""
