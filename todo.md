@@ -90,15 +90,15 @@
 
 - [x] 添加 PyTest 测试支持
 
-- [ ] 文档：行为准则
+- [x] 文档：行为准则
 
-- [ ] 文档：贡献指南
+- [x] 文档：贡献指南
 
-- [ ] 文档：AGENTS.md&CLAUDE.md
+- [x] 文档：AGENTS.md&CLAUDE.md
 
-- [ ] .github：议题模板
+- [x] .github：议题模板
 
-- [ ] .github：拉取请求模板
+- [x] .github：拉取请求模板
 
 - [ ] MacOS 支持
 
