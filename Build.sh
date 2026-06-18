@@ -61,7 +61,7 @@ cp -r "$SCRIPT_DIR/Translation" "$APPDIR/usr/share/jimsmake/"
 
 # 安装 Python 依赖到 AppDir
 echo "[安装 Python 依赖...]"
-pip3 install --prefix="$APPDIR/usr" -r "$SCRIPT_DIR/requirements.txt"
+pip3 install --prefix="$APPDIR/usr" --ignore-installed -r "$SCRIPT_DIR/requirements.txt"
 
 # 复制图标
 cp "$SCRIPT_DIR/Assets/SMakeIcon256.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/jimsmake.png"
