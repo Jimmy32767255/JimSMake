@@ -154,17 +154,16 @@ def get_system_type():
 
 def get_run_mode():
     """获取运行模式"""
+    # 检查是否为 AppImage 格式（AppImage 运行时自动设置 APPIMAGE 环境变量）
+    if os.environ.get('APPIMAGE'):
+        return "AppImage"
     if getattr(sys, 'frozen', False):
-        # 检查是否为 AppImage 格式
-        if os.environ.get('APPIMAGE'):
-            return "AppImage"
         # 检查是否为 PyInstaller 打包
-        elif hasattr(sys, '_MEIPASS'):
+        if hasattr(sys, '_MEIPASS'):
             return "PyInstaller"
         else:
             return "已打包"
-    else:
-        return "解释执行"
+    return "解释执行"
 
 
 def run_gui():
