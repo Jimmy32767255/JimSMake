@@ -135,7 +135,7 @@ cp "$APPDIR/usr/share/icons/hicolor/256x256/apps/jimsmake.png" "$APPDIR/jimsmake
 
 # 使用 appimagetool 打包
 echo "[使用 appimagetool 打包...]"
-ARCH=x86_64 ./appimagetool-x86_64.AppImage "$APPDIR" --runtime-file runtime-x86_64
+ARCH=x86_64 APPIMAGELAUNCHER_DISABLE=1 ./appimagetool-x86_64.AppImage "$APPDIR" --runtime-file runtime-x86_64
 
 # 检查并提示
 cd "$SCRIPT_DIR"
