@@ -194,47 +194,16 @@ class ProjectManager:
         self.main_window = main_window
         
     def get_project_base_dir(self):
-        """获取项目基础目录"""
-        is_appimage = os.environ.get('APPIMAGE') is not None
-        is_pyinstaller = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
-        
-        if is_appimage:
-            cwd = os.getcwd()
-            project_dir = os.path.join(cwd, "Project")
-            logger.debug(f"AppImage 模式项目目录: {project_dir}")
-            return project_dir
-        elif is_pyinstaller:
-            exe_dir = os.path.dirname(sys.executable)
-            project_dir = os.path.join(exe_dir, "Project")
-            logger.debug(f"PyInstaller 模式项目目录: {project_dir}")
-            return project_dir
-        else:
-            project_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Project")
-            logger.debug(f"开发模式项目目录: {project_dir}")
-            return project_dir
+        """获取项目基础目录（与主窗口保持一致，返回规范化后的绝对路径）"""
+        return self.main_window.get_project_base_dir()
 
     def get_current_project_dir(self):
         """获取当前项目目录"""
-        if hasattr(self.main_window, 'current_project_name') and self.main_window.current_project_name:
-            if hasattr(self.main_window, 'current_project_group') and self.main_window.current_project_group:
-                project_dir = os.path.join(self.get_project_base_dir(), self.main_window.current_project_group, 
-                                         self.main_window.current_project_name)
-            else:
-                project_dir = os.path.join(self.get_project_base_dir(), self.main_window.current_project_name)
-            logger.debug(f"获取当前项目目录: {project_dir}")
-            logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
-            logger.debug(f"项目目录是否存在: {os.path.exists(project_dir)}")
-            return project_dir
-        logger.debug("没有当前项目，返回None")
-        return None
+        return self.main_window.get_current_project_dir()
 
     def get_current_project_group_dir(self):
         """获取当前项目组目录"""
-        if hasattr(self.main_window, 'current_project_group') and self.main_window.current_project_group:
-            group_dir = os.path.join(self.get_project_base_dir(), self.main_window.current_project_group)
-            logger.debug(f"获取当前项目组目录: {group_dir}")
-            return group_dir
-        return self.get_project_base_dir()
+        return self.main_window.get_current_project_group_dir()
 
     def load_project_config(self, project_dir):
         """加载项目配置文件"""
@@ -534,9 +503,9 @@ class ProjectManager:
                 if project_dir and value:
                     if not os.path.isabs(value):
                         # 相对路径，相对于项目目录
-                        abs_path = os.path.join(project_dir, value)
+                        abs_path = os.path.normpath(os.path.join(project_dir, value))
                     else:
-                        abs_path = value
+                        abs_path = os.path.normpath(value)
                     if os.path.exists(abs_path):
                         widget.setText(abs_path)
                     else:
@@ -605,7 +574,7 @@ class ProjectManager:
             return
         if project_dir and not os.path.isabs(value):
             value = os.path.join(project_dir, value)
-        widget.setText(value)
+        widget.setText(os.path.normpath(value))
 
     def save_project_config(self, project_dir):
         """保存项目配置文件"""
@@ -723,6 +692,8 @@ class ProjectManager:
     @staticmethod
     def _to_relative_path(path, project_dir):
         """将项目目录内的绝对路径转换为相对路径"""
+        if path:
+            path = os.path.normpath(path)
         if path and os.path.isabs(path):
             try:
                 rel_path = os.path.relpath(path, project_dir)

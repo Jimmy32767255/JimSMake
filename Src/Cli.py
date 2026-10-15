@@ -8,8 +8,10 @@ import sys
 import argparse
 from loguru import logger
 
-# 添加父目录到路径以导入 Processors
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# 添加仓库根目录到路径以导入 Processors（使用规范化后的绝对路径，避免 ".." 片段）
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 from Src.Processors.AudioCore import AudioCore
 from Src.Processors.VideoCore import VideoCore
 

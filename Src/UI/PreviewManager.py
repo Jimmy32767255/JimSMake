@@ -50,7 +50,7 @@ class PreviewManager:
 
         # 加载本地HTML文件
         preview_html_path = os.path.join(
-            os.path.dirname(__file__), 'WebView', 'index.html'
+            os.path.dirname(os.path.abspath(__file__)), 'WebView', 'index.html'
         )
         if os.path.exists(preview_html_path):
             self.web_view.loadFinished.connect(self._on_page_loaded)

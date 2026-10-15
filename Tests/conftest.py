@@ -5,8 +5,10 @@ import pytest
 import sys
 import os
 
-# 添加Src目录到Python路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Src'))
+# 添加Src目录到Python路径（使用规范化绝对路径，避免出现 ".." 片段）
+_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Src'))
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
 
 
 @pytest.fixture(scope="session")

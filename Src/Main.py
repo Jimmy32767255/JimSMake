@@ -120,24 +120,24 @@ def run_cli(args):
 
 
 def get_resource_path():
-    """获取资源路径，支持单文件打包版本和开发版本"""
+    """获取资源路径，支持单文件打包版本和开发版本
+
+    返回值始终为规范化后的绝对路径，避免出现 ".." 等冗余片段。
+    """
     import os
 
     if getattr(sys, 'frozen', False):
         # 打包版本：使用 PyInstaller 的 _MEIPASS 临时目录
         # 单文件模式下，资源被解压到临时目录
         resource_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
-        logger.debug(f"获取资源路径(单文件打包版本): {resource_path}")
-        logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
-        logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
-        return resource_path
     else:
-        # 开发版本：使用项目根目录
-        resource_path = os.path.join(os.path.dirname(__file__), "..")
-        logger.debug(f"获取资源路径(开发版本): {resource_path}")
-        logger.debug(f"资源路径绝对路径: {os.path.abspath(resource_path)}")
-        logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
-        return resource_path
+        # 开发版本：使用项目根目录（Src 的上一级目录）
+        resource_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    resource_path = os.path.abspath(resource_path)
+    logger.debug(f"获取资源路径(打包: {getattr(sys, 'frozen', False)}): {resource_path}")
+    logger.debug(f"资源路径是否存在: {os.path.exists(resource_path)}")
+    return resource_path
 
 
 def get_system_type():
@@ -261,9 +261,10 @@ def main():
 
     logger.remove()
     try:
-        # 始终添加文件日志处理器（./SMake.log）
-        log_path = os.path.join(os.path.dirname(__file__), "..", "SMake.log")
-        log_path = os.path.abspath(log_path)
+        # 始终添加文件日志处理器（仓库根目录下的 ./SMake.log）
+        log_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "SMake.log"
+        )
         # 确保日志目录存在
         log_dir = os.path.dirname(log_path)
         if log_dir and not os.path.exists(log_dir):

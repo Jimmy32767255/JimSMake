@@ -9,7 +9,9 @@ import struct
 from types import SimpleNamespace
 
 # 添加Src目录到路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'Src'))
+_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Src'))
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
 
 from Processors.AudioCore import AudioCore
 from UI.NoiseManager import NoiseManager

@@ -9,7 +9,10 @@ import sys
 from loguru import logger
 from Main import APP_VERSION, get_system_type, get_run_mode
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# 使用规范化后的绝对路径，避免 ".." 片段污染后续导入模块的 __file__
+_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
 
 from .AudioManager import AudioManager
 from .RecordingManager import RecordingManager
@@ -243,8 +246,8 @@ class MainWindow(QMainWindow):
             # 否则使用 PyInstaller 的 _MEIPASS 临时目录
             return getattr(sys, '_MEIPASS', exe_dir)
         else:
-            # 开发版本：使用项目根目录
-            return os.path.join(os.path.dirname(__file__), "..", "..")
+            # 开发版本：项目根目录（Src/UI 的上两级，规范化后不含 ".." 片段）
+            return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     def setupTranslations(self):
         """设置翻译支持"""
@@ -1497,37 +1500,34 @@ class MainWindow(QMainWindow):
             logger.error("ProjectManager 未初始化，无法保存项目配置")
 
     def get_project_base_dir(self):
-        """获取项目基础目录"""
-        # 项目目录需要存储在用户可写的位置，而不是打包的临时目录
-        import sys
-        import platform
+        """获取项目基础目录
 
+        返回值始终为规范化后的绝对路径，避免出现 ".." 等冗余片段。
+        """
+        # 项目目录需要存储在用户可写的位置，而不是打包的临时目录
         # 检测是否在 AppImage 环境中运行
         # AppImage 会设置 APPIMAGE 环境变量
         is_appimage = os.environ.get('APPIMAGE') is not None
-        
+
         # 检测是否是 PyInstaller 打包的 Windows exe
         is_pyinstaller = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
-        
+
         if is_appimage:
             # AppImage 环境：sys.executable 指向挂载的只读目录
             # 使用当前工作目录作为项目存储位置
-            cwd = os.getcwd()
-            project_dir = os.path.join(cwd, "Project")
+            project_dir = os.path.join(os.getcwd(), "Project")
             logger.debug(f"AppImage 模式项目目录: {project_dir}")
-            return project_dir
         elif is_pyinstaller:
             # PyInstaller 打包的 Windows exe
             # 使用可执行文件所在目录（Windows 上通常是可写的）
-            exe_dir = os.path.dirname(sys.executable)
-            project_dir = os.path.join(exe_dir, "Project")
+            project_dir = os.path.join(os.path.dirname(sys.executable), "Project")
             logger.debug(f"PyInstaller 模式项目目录: {project_dir}")
-            return project_dir
         else:
             # 开发版本：使用项目根目录
-            project_dir = os.path.join(os.path.dirname(__file__), "..", "..", "Project")
+            project_dir = os.path.join(self.get_resource_path(), "Project")
             logger.debug(f"开发模式项目目录: {project_dir}")
-            return project_dir
+
+        return os.path.abspath(project_dir)
 
     def get_current_project_dir(self):
         """获取当前项目目录"""
@@ -1538,8 +1538,8 @@ class MainWindow(QMainWindow):
             else:
                 # 兼容旧版本：直接在基础目录下
                 project_dir = os.path.join(self.get_project_base_dir(), self.current_project_name)
+            project_dir = os.path.abspath(project_dir)
             logger.debug(f"获取当前项目目录: {project_dir}")
-            logger.debug(f"项目目录绝对路径: {os.path.abspath(project_dir)}")
             logger.debug(f"项目目录是否存在: {os.path.exists(project_dir)}")
             return project_dir
         logger.debug("没有当前项目，返回None")
