@@ -288,6 +288,8 @@ class ProjectManager:
             self._load_text_setting('background_file', background.get('file'), project_dir)
             self._load_slider_setting('background_volume', background.get('volume'))
             self._load_spin_setting('background_volume_spin', background.get('volume'))
+            self._load_seed_setting('white_noise_seed', background.get('seed'))
+            self._load_output_path_setting('white_noise_output', background.get('noise_output'), project_dir)
 
             # 加载特定频率音轨设置
             freq_track = config.get('freq_track', {})
@@ -382,6 +384,10 @@ class ProjectManager:
             self.main_window.background_volume.setValue(0)
         if hasattr(self.main_window, 'background_volume_spin') and self.main_window.background_volume_spin is not None:
             self.main_window.background_volume_spin.setValue(0.0)
+        if hasattr(self.main_window, 'white_noise_seed') and self.main_window.white_noise_seed is not None:
+            self.main_window.white_noise_seed.clear()
+        if hasattr(self.main_window, 'white_noise_output') and self.main_window.white_noise_output is not None:
+            self.main_window.white_noise_output.setText(self.main_window.noise_manager.get_default_output_path())
 
         # 特定频率音轨设置
         if hasattr(self.main_window, 'freq_track_enabled') and self.main_window.freq_track_enabled is not None:
@@ -481,7 +487,9 @@ class ProjectManager:
                 },
                 "background": {
                     "file": "",
-                    "volume": 0.0
+                    "volume": 0.0,
+                    "seed": "",
+                    "noise_output": ""
                 },
                 "freq_track": {
                     "enabled": False,
@@ -576,6 +584,29 @@ class ProjectManager:
             if widget is not None:
                 widget.setChecked(value)
 
+    def _load_seed_setting(self, attr_name, value):
+        """加载随机种子设置（兼容配置文件中的字符串与数字）"""
+        if value is None or value == "":
+            return
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                widget.setText(str(value))
+
+    def _load_output_path_setting(self, attr_name, value, project_dir=None):
+        """加载输出路径设置 - 文件可以尚不存在，空值回退到默认路径"""
+        if not hasattr(self.main_window, attr_name):
+            return
+        widget = getattr(self.main_window, attr_name)
+        if widget is None:
+            return
+        if not value:
+            widget.setText(self.main_window.noise_manager.get_default_output_path(project_dir))
+            return
+        if project_dir and not os.path.isabs(value):
+            value = os.path.join(project_dir, value)
+        widget.setText(value)
+
     def save_project_config(self, project_dir):
         """保存项目配置文件"""
         config_path = os.path.join(project_dir, "config.json")
@@ -607,7 +638,9 @@ class ProjectManager:
                 },
                 "background": {
                     "file": self._get_relative_path('background_file', project_dir),
-                    "volume": self._get_spin_value('background_volume_spin')
+                    "volume": self._get_spin_value('background_volume_spin'),
+                    "seed": self._get_seed_value('white_noise_seed'),
+                    "noise_output": self._get_relative_path('white_noise_output', project_dir)
                 },
                 "freq_track": {
                     "enabled": self._get_checkbox_value('freq_track_enabled'),
@@ -684,18 +717,72 @@ class ProjectManager:
         if hasattr(self.main_window, attr_name):
             widget = getattr(self.main_window, attr_name)
             if widget is not None:
-                path = widget.text()
-                if path and os.path.isabs(path):
-                    try:
-                        # 尝试转换为相对路径
-                        rel_path = os.path.relpath(path, project_dir)
-                        # 如果相对路径不以 .. 开头，说明在项目目录内
-                        if not rel_path.startswith('..'):
-                            return rel_path
-                    except ValueError:
-                        pass
-                return path
+                return self._to_relative_path(widget.text(), project_dir)
         return ""
+
+    @staticmethod
+    def _to_relative_path(path, project_dir):
+        """将项目目录内的绝对路径转换为相对路径"""
+        if path and os.path.isabs(path):
+            try:
+                rel_path = os.path.relpath(path, project_dir)
+                # 如果相对路径不以 .. 开头，说明在项目目录内
+                if not rel_path.startswith('..'):
+                    return rel_path
+            except ValueError:
+                pass
+        return path
+
+    def _get_seed_value(self, attr_name):
+        """获取随机种子值 - 纯数字保存为整数，便于复现"""
+        if hasattr(self.main_window, attr_name):
+            widget = getattr(self.main_window, attr_name)
+            if widget is not None:
+                text = widget.text().strip()
+                if not text:
+                    return ""
+                try:
+                    return int(text)
+                except ValueError:
+                    return text
+        return ""
+
+    def update_noise_settings(self, project_dir, output_path, seed):
+        """将白噪音生成设置（输出路径、随机种子）写入项目配置文件"""
+        if not project_dir:
+            logger.warning("项目目录为空，无法写入白噪音设置")
+            return
+
+        config_path = os.path.join(project_dir, "config.json")
+        try:
+            config = {}
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            if not isinstance(config, dict):
+                config = {}
+
+            background = config.get('background')
+            if not isinstance(background, dict):
+                background = {}
+            background['noise_output'] = self._to_relative_path(output_path, project_dir)
+            background['seed'] = seed
+            config['background'] = background
+
+            os.makedirs(project_dir, exist_ok=True)
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+
+            logger.info(f"白噪音设置已写入项目配置: seed={seed}, output={output_path}")
+
+        except json.JSONDecodeError as e:
+            logger.error(f"项目配置文件格式错误，白噪音设置未保存: {config_path}, 错误: {e}")
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                                self.main_window.tr("项目配置文件格式错误，白噪音设置未保存。"))
+        except Exception as e:
+            logger.error(f"写入白噪音设置失败: {config_path}, 错误: {e}")
+            QMessageBox.warning(self.main_window, self.main_window.tr("警告"),
+                                self.main_window.tr(f"白噪音设置保存失败: {str(e)}"))
 
     def _compress_to_zip(self, source_dir, output_path):
         """将目录压缩为ZIP文件，包含顶级目录名"""

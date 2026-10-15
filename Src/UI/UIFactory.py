@@ -441,6 +441,41 @@ class UIFactory:
             lambda v: self.main_window.background_volume_spin.setValue(v / 10.0))
         layout.addWidget(self.main_window.background_volume_spin, 1, 2)
 
+        # 白噪音输出路径
+        self.main_window.label_noise_output = QLabel(self.main_window.tr("白噪音输出路径:"))
+        layout.addWidget(self.main_window.label_noise_output, 2, 0)
+        self.main_window.white_noise_output = QLineEdit()
+        self.main_window.white_noise_output.setToolTip(
+            self.main_window.tr("生成白噪音的保存路径，留空则保存到项目 Assets/BGM.wav。"))
+        self.main_window.white_noise_output.setPlaceholderText(
+            self.main_window.tr("留空则保存到项目 Assets/BGM.wav"))
+        layout.addWidget(self.main_window.white_noise_output, 2, 1)
+
+        self.main_window.btn_browse_noise_output = QPushButton(self.main_window.tr("浏览..."))
+        self.main_window.btn_browse_noise_output.setToolTip(self.main_window.tr("选择白噪音保存路径"))
+        self.main_window.btn_browse_noise_output.clicked.connect(
+            lambda: self.main_window.browse_save_file(
+                self.main_window.white_noise_output,
+                self.main_window.tr("WAV音频文件 (*.wav)"),
+                self.main_window.noise_manager.get_default_output_path()))
+        layout.addWidget(self.main_window.btn_browse_noise_output, 2, 2)
+
+        # 白噪音随机种子
+        self.main_window.label_noise_seed = QLabel(self.main_window.tr("随机种子:"))
+        layout.addWidget(self.main_window.label_noise_seed, 3, 0)
+        self.main_window.white_noise_seed = QLineEdit()
+        self.main_window.white_noise_seed.setToolTip(
+            self.main_window.tr("用于复现相同的白噪音，留空则随机生成并回填。"))
+        self.main_window.white_noise_seed.setPlaceholderText(
+            self.main_window.tr("留空则随机"))
+        layout.addWidget(self.main_window.white_noise_seed, 3, 1)
+
+        self.main_window.btn_generate_noise = QPushButton(self.main_window.tr("生成白噪音"))
+        self.main_window.btn_generate_noise.setToolTip(self.main_window.tr("按当前设置生成白噪音背景音文件。"))
+        self.main_window.btn_generate_noise.clicked.connect(
+            self.main_window.noise_manager.generate_white_noise)
+        layout.addWidget(self.main_window.btn_generate_noise, 3, 2)
+
         self.main_window.background_group.setLayout(layout)
         return self.main_window.background_group
 

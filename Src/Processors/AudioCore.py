@@ -7,6 +7,7 @@ import wave
 import os
 import struct
 import math
+import random
 import subprocess
 import tempfile
 from loguru import logger
@@ -787,6 +788,61 @@ class AudioCore:
         logger.info(f"WAV音频文件已保存: {output_path}")
         logger.debug(f"WAV文件保存成功，绝对路径: {os.path.abspath(output_path)}, 大小: {os.path.getsize(output_path)} bytes")
         return output_path
+
+    def generate_white_noise(self, output_path, duration, seed=None,
+                             sample_rate=44100, channels=1, sample_width=2,
+                             amplitude=0.5, chunk_size=65536,
+                             progress_callback=None):
+        """生成白噪音WAV文件
+
+        Args:
+            output_path: 输出WAV文件路径
+            duration: 时长（秒）
+            seed: 随机种子；为None时使用系统随机种子。相同种子保证输出完全一致。
+            sample_rate: 采样率
+            channels: 通道数
+            sample_width: 采样宽度（字节）
+            amplitude: 振幅（0-1），避免与肯定语合并时削波
+            chunk_size: 分块写入的帧数，避免长音频占用过多内存
+            progress_callback: 进度回调，接收 0-100 的整数百分比
+
+        Returns:
+            (output_path, used_seed) 实际使用的随机种子
+        """
+        if seed is None:
+            seed = random.SystemRandom().randint(0, 2 ** 32 - 1)
+
+        if duration <= 0:
+            raise ValueError(f"白噪音时长必须大于0: {duration}")
+
+        total_frames = int(duration * sample_rate)
+        if total_frames <= 0:
+            raise ValueError(f"白噪音时长过短，无法生成任何采样: {duration}s")
+
+        logger.info(f"生成白噪音: 时长={duration}s, 采样率={sample_rate}, 种子={seed}")
+
+        output_dir = os.path.dirname(os.path.abspath(output_path))
+        os.makedirs(output_dir, exist_ok=True)
+
+        rng = random.Random(seed)
+        with wave.open(output_path, 'wb') as wf:
+            wf.setnchannels(channels)
+            wf.setsampwidth(sample_width)
+            wf.setframerate(sample_rate)
+
+            remaining = total_frames
+            while remaining > 0:
+                frames = min(chunk_size, remaining)
+                samples = [rng.uniform(-amplitude, amplitude)
+                           for _ in range(frames * channels)]
+                wf.writeframes(self._array_to_wav(samples, sample_width))
+                remaining -= frames
+
+                if progress_callback:
+                    progress_callback(int((total_frames - remaining) * 100 / total_frames))
+
+        logger.info(f"白噪音已保存: {output_path}, 大小: {os.path.getsize(output_path)} bytes")
+        return output_path, seed
 
     def save_audio_mp3(self, audio_data, output_path, metadata_title='', metadata_author=''):
         """使用FFmpeg保存为MP3格式"""

@@ -15,6 +15,7 @@ from .AudioManager import AudioManager
 from .RecordingManager import RecordingManager
 
 from .TTSManager import TTSManager
+from .NoiseManager import NoiseManager
 from .OutputManager import OutputManager
 from .LogHandler import LogHandler
 from .TextFileSync import TextFileSync
@@ -67,6 +68,7 @@ class MainWindow(QMainWindow):
         self.audio_manager = AudioManager(self)
         self.recording_manager = RecordingManager(self)
         self.tts_manager = TTSManager(self)
+        self.noise_manager = NoiseManager(self)
         self.output_manager = OutputManager(self)
         self.project_manager = ProjectManager(self)
         self.preview_manager = PreviewManager(self)
@@ -367,6 +369,16 @@ class MainWindow(QMainWindow):
             self.btn_browse_bg.setToolTip(self.tr("选择背景音频文件"))
             self.label_bg_volume.setText(self.tr("音量:"))
             self.background_volume.setToolTip(self.tr("改变背景音音轨的音量。（单位为分贝）"))
+            self.label_noise_output.setText(self.tr("白噪音输出路径:"))
+            self.white_noise_output.setToolTip(self.tr("生成白噪音的保存路径，留空则保存到项目 Assets/BGM.wav。"))
+            self.white_noise_output.setPlaceholderText(self.tr("留空则保存到项目 Assets/BGM.wav"))
+            self.btn_browse_noise_output.setText(self.tr("浏览..."))
+            self.btn_browse_noise_output.setToolTip(self.tr("选择白噪音保存路径"))
+            self.label_noise_seed.setText(self.tr("随机种子:"))
+            self.white_noise_seed.setToolTip(self.tr("用于复现相同的白噪音，留空则随机生成并回填。"))
+            self.white_noise_seed.setPlaceholderText(self.tr("留空则随机"))
+            self.btn_generate_noise.setText(self.tr("生成白噪音"))
+            self.btn_generate_noise.setToolTip(self.tr("按当前设置生成白噪音背景音文件。"))
 
         # 更新特定频率音轨组
         if hasattr(self, 'freq_track_group'):
@@ -1191,6 +1203,14 @@ class MainWindow(QMainWindow):
             # 如果是文本文件输入框，自动加载文件内容
             if line_edit == self.text_file:
                 self.text_sync.load_text_from_file(file_path)
+
+    def browse_save_file(self, line_edit, file_filter, default_path=""):
+        """浏览保存文件对话框（用于指定输出路径）"""
+        logger.debug(f"打开保存文件浏览对话框 - 过滤器: {file_filter}, 默认路径: {default_path}")
+        file_path, _ = QFileDialog.getSaveFileName(self, self.tr("选择保存位置"), default_path, file_filter)
+        if file_path:
+            logger.debug(f"选择的保存路径: {file_path}")
+            line_edit.setText(file_path)
 
     def open_affirmation_editor(self):
         """打开肯定语编辑器对话框"""
